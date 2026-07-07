@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from './ProjectModal.module.css';
 
 interface ProjectModalProps {
@@ -91,10 +91,7 @@ const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) => {
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
           >
-            {/* Close Button */}
-            <button className={styles.closeButton} onClick={onClose} aria-label="Close modal">
-              <X size={24} />
-            </button>
+
 
             <div className={styles.modalContent}>
               {/* Carousel Section */}
@@ -170,6 +167,18 @@ const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) => {
               </div>
             </div>
           </motion.div>
+
+          {/* Cancel button below modal container */}
+          <motion.button
+            className={`${styles.bottomCancelButton} glass`}
+            onClick={onClose}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 350, delay: 0.1 }}
+          >
+            Cancel
+          </motion.button>
         </div>
       )}
     </AnimatePresence>
