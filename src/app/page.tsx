@@ -2,6 +2,7 @@ import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/layout/HeroSection";
 import ProjectCard from "@/components/ui/ProjectCard";
 import SkillsGrid from "@/components/ui/SkillsGrid";
+import ContactSection from "@/components/layout/ContactSection";
 import styles from "./page.module.css";
 
 const PROJECTS = [
@@ -63,37 +64,11 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="contact" style={{ padding: '120px 0', textAlign: 'center' }}>
+      <ContactSection />
+
+      <footer style={{ padding: '4rem 0 3rem', textAlign: 'center', opacity: 0.5, fontSize: '0.9rem', borderTop: '1px solid var(--surface-border)', width: '100%' }}>
         <div className="section-container">
-          <div className="glass" style={{ padding: '4rem', borderRadius: '40px' }}>
-            <h2 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '1.5rem' }}>
-              Let's <span className="text-gradient">Work Together</span>
-            </h2>
-            <p style={{ 
-              maxWidth: '600px', 
-              margin: '0 auto 3rem', 
-              fontSize: '1.2rem', 
-              color: 'hsla(0, 0%, 100%, 0.6)' 
-            }}>
-              Currently available for new opportunities. Whether you have a question or just want to say hi, my inbox is always open.
-            </p>
-            <a href="mailto:hello@creative.dev" className={styles.contactBtn} style={{
-              background: 'var(--primary)',
-              color: 'white',
-              padding: '1.25rem 3rem',
-              borderRadius: '100px',
-              fontSize: '1.1rem',
-              fontWeight: 600,
-              display: 'inline-block',
-              boxShadow: '0 10px 30px var(--primary-glow)'
-            }}>
-              Get In Touch
-            </a>
-          </div>
-          
-          <div style={{ marginTop: '5rem', opacity: 0.5, fontSize: '0.9rem' }}>
-            © 2026 Creative Developer. Built with Next.js and Passion.
-          </div>
+          © 2026 Creative Developer. Built with Next.js and Passion.
         </div>
       </footer>
     </main>
