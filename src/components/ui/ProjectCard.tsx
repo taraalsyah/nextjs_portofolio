@@ -10,11 +10,13 @@ interface ProjectCardProps {
   description: string;
   tags: string[];
   image: string;
+  images?: string[];
   link?: string;
   github?: string;
+  onClick?: () => void;
 }
 
-const ProjectCard = ({ title, description, tags, image, link, github }: ProjectCardProps) => {
+const ProjectCard = ({ title, description, tags, image, link, github, onClick }: ProjectCardProps) => {
   return (
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
@@ -22,11 +24,12 @@ const ProjectCard = ({ title, description, tags, image, link, github }: ProjectC
       viewport={{ once: true }}
       transition={{ duration: 0.5 }}
       whileHover={{ y: -10 }}
+      onClick={onClick}
       className={`${styles.card} glass`}
     >
       <div className={styles.imageContainer}>
         <img src={image} alt={title} className={styles.image} />
-        <div className={styles.overlay}>
+        <div className={styles.overlay} onClick={(e) => e.stopPropagation()}>
           {link && <a href={link} target="_blank" rel="noopener noreferrer"><ExternalLink size={20} /></a>}
           {github && <a href={github} target="_blank" rel="noopener noreferrer"><Code size={20} /></a>}
         </div>
