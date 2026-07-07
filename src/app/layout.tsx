@@ -13,7 +13,7 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Modern Portfolio | Creative Developer",
+  title: "Tara Alsyah | IT Professional",
   description: "A premium portfolio showcasing modern web development skills and creative projects.",
   keywords: ["Next.js", "Portfolio", "Web Development", "UI/UX", "React"],
 };
