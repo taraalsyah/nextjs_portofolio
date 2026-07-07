@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X, ExternalLink, Code } from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import styles from './ProjectModal.module.css';
 
 interface ProjectModalProps {
@@ -166,22 +166,6 @@ const ProjectModal = ({ isOpen, onClose, project }: ProjectModalProps) => {
                       </span>
                     ))}
                   </div>
-                </div>
-
-                {/* Footer action buttons */}
-                <div className={styles.actionButtons}>
-                  {link && (
-                    <a href={link} target="_blank" rel="noopener noreferrer" className={styles.btnPrimary}>
-                      <ExternalLink size={18} />
-                      <span>Live Preview</span>
-                    </a>
-                  )}
-                  {github && (
-                    <a href={github} target="_blank" rel="noopener noreferrer" className={styles.btnSecondary}>
-                      <Code size={18} />
-                      <span>View Source</span>
-                    </a>
-                  )}
                 </div>
               </div>
             </div>
