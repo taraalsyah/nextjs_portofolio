@@ -15,7 +15,7 @@ const HeroSection = () => {
             transition={{ duration: 0.5 }}
             className={styles.welcome}
           >
-            Welcome to my creative space
+            BUILDING RELIABLE DIGITAL SOLUTIONS
           </motion.p>
           
           <motion.h1 
@@ -33,7 +33,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className={styles.description}
           >
-            Web Developer, Application Support, and CCNA Certified with expertise in developing web applications, troubleshooting enterprise systems, and managing computer networks.
+            Passionate about building modern web applications, maintaining enterprise systems, and implementing reliable network infrastructure.
           </motion.p>
           
           <motion.div 
