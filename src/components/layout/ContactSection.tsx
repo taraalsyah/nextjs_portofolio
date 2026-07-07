@@ -75,7 +75,7 @@ interface ContactMethod {
 
 const ContactSection = () => {
   const [copied, setCopied] = useState(false);
-  const emailAddress = 'hello@creative.dev';
+  const emailAddress = 'taraalsyah45@gmail.com';
 
   const handleCopyEmail = (e: React.MouseEvent) => {
     e.preventDefault();
