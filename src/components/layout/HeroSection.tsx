@@ -24,7 +24,7 @@ const HeroSection = () => {
             transition={{ duration: 0.6, delay: 0.2 }}
             className={styles.title}
           >
-            I build <span className="text-gradient">modern experiences</span> for the web.
+            Web Developer • <span className="text-gradient">Application Support •</span> CCNA Certified.
           </motion.h1>
           
           <motion.p 
@@ -33,7 +33,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className={styles.description}
           >
-            Application Support, Web Developer, dan CCNA Certified yang berfokus pada pengembangan web, troubleshooting aplikasi, serta implementasi dan administrasi jaringan komputer.
+            Web Developer, Application Support, and CCNA Certified with expertise in developing web applications, troubleshooting enterprise systems, and managing computer networks.
           </motion.p>
           
           <motion.div 
