@@ -33,7 +33,7 @@ const HeroSection = () => {
             transition={{ duration: 0.8, delay: 0.4 }}
             className={styles.description}
           >
-            Transforming complex ideas into elegant digital solutions with a focus on PERFORMANCE, DESIGN, and INNOVATION.
+            Application Support, Web Developer, dan CCNA Certified yang berfokus pada pengembangan web, troubleshooting aplikasi, serta implementasi dan administrasi jaringan komputer.
           </motion.p>
           
           <motion.div 
