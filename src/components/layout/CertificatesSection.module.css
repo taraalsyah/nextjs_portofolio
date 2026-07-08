@@ -373,6 +373,18 @@
     overflow-y: auto;
   }
 
+  .modalCloseBtn {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(10, 10, 20, 0.85) !important;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+    z-index: 2100;
+  }
+
   .modalImageWrapper {
     border-right: none;
     border-bottom: 1px solid var(--glass-border);
