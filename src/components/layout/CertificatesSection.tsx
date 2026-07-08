@@ -31,7 +31,7 @@ const CERTIFICATES: Certificate[] = [
     credentialId: 'CN543210-9876',
     verificationUrl: 'https://cisco.com/go/verify',
     category: 'Networking',
-    image: '/ccna_cert.jpg',
+    image: '/CCNA.jpg',
     description: 'Validates foundational knowledge of networking technologies including routing protocols, switching, IPv4 and IPv6 subnetting, access control lists (ACLs), network address translation (NAT), wireless infrastructure, and automation/programmability concepts.',
     tags: ['Cisco IOS', 'Routing & Switching', 'Subnetting', 'Network Security'],
     accentColor: 'hsl(198, 100%, 45%)',
