@@ -5,6 +5,7 @@ import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/layout/HeroSection";
 import ProjectCard from "@/components/ui/ProjectCard";
 import SkillsGrid from "@/components/ui/SkillsGrid";
+import CertificatesSection from "@/components/layout/CertificatesSection";
 import ContactSection from "@/components/layout/ContactSection";
 import ProjectModal from "@/components/ui/ProjectModal";
 import styles from "./page.module.css";
@@ -92,6 +93,8 @@ export default function Home() {
           <SkillsGrid />
         </div>
       </section>
+
+      <CertificatesSection />
 
       <ContactSection />
 
