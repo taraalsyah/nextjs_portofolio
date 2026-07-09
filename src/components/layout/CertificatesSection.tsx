@@ -61,7 +61,7 @@ const CERTIFICATES: Certificate[] = [
     credentialId: 'GITSCP-9876543210',
     verificationUrl: 'http://www.google.com/verify/credentials/GITSCP-9876543210',
     category: 'IT Support',
-    image: '/google_it_cert.jpg',
+    image: 'https://res.cloudinary.com/tzpgzq4i/image/upload/v1783580886/SW41000018_2606300956001_00001_iw3syj.jpg',
     description: 'A rigorous professional credential by Google covering crucial IT support fields. Includes network protocols (TCP/IP, DNS, DHCP), hardware troubleshooting, Linux and Windows system administration, operating systems, and computer security best practices.',
     tags: ['System Administration', 'Network Protocols', 'Troubleshooting', 'IT Security'],
     accentColor: 'hsl(15, 90%, 55%)',
