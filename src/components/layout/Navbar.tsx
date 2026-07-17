@@ -11,11 +11,11 @@ const Navbar = () => {
         </Link>
         
         <ul className={styles.navLinks}>
-          <li><Link href="#about">About</Link></li>
-          <li><Link href="#projects">Projects</Link></li>
-          <li><Link href="#skills">Skills</Link></li>
-          <li><Link href="#certificates">Certificates</Link></li>
-          <li><Link href="#contact" className={styles.contactBtn}>Hire Me</Link></li>
+          <li><Link href="/#about">About</Link></li>
+          <li><Link href="/#projects">Projects</Link></li>
+          <li><Link href="/#skills">Skills</Link></li>
+          <li><Link href="/#certificates">Certificates</Link></li>
+          <li><Link href="/#contact" className={styles.contactBtn}>Hire Me</Link></li>
         </ul>
       </div>
     </nav>
