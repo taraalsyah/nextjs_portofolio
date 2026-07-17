@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   
   // Mendapatkan host dari header request (misal: blog.taraalsyah.online)
@@ -14,7 +14,7 @@ export function middleware(request: NextRequest) {
       url.pathname = `/blog${url.pathname}`;
     }
     
-    // Lakukan rewrite internal Next.js
+    // Lakukan rewrite internal Next.js ke folder /blog
     return NextResponse.rewrite(url);
   }
 
@@ -22,7 +22,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Konfigurasi matcher agar middleware tidak memproses static assets, API, dsb.
+// Konfigurasi matcher agar proxy tidak memproses static assets, API, dsb.
 export const config = {
   matcher: [
     /*
