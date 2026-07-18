@@ -8,10 +8,19 @@ export async function proxy(request: NextRequest) {
   // Ambil token session NextAuth
   const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
-  // Proteksi rute dashboard jika belum terautentikasi
+  // Proteksi rute dashboard jika belum terautentikasi / session habis
   if (url.pathname.startsWith('/dashboard')) {
     if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
+      const redirectUrl = new URL('/login', request.url);
+      redirectUrl.searchParams.set('error', 'SessionExpired');
+      return NextResponse.redirect(redirectUrl);
+    }
+  }
+
+  // Redirect ke dashboard jika sudah login dan mengakses login/register
+  if (url.pathname === '/login' || url.pathname === '/register') {
+    if (token) {
+      return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
   

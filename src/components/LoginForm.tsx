@@ -13,6 +13,7 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const showRegisterSuccess = searchParams.get('registered') === 'true';
+  const showSessionExpired = searchParams.get('error') === 'SessionExpired';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
@@ -144,6 +145,13 @@ export default function LoginForm() {
         <div className={styles.successBanner}>
           <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
           <span>Registrasi berhasil. Silakan login.</span>
+        </div>
+      )}
+
+      {showSessionExpired && (
+        <div className={styles.generalError}>
+          <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+          <span>Sesi Anda telah berakhir. Silakan login kembali.</span>
         </div>
       )}
 

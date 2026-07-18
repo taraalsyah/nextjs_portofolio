@@ -1,39 +1,12 @@
-'use client';
-
 import React from 'react';
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogOut, LayoutDashboard, User as UserIcon, Mail, Shield, Home } from 'lucide-react';
+import { requireAuth } from '@/lib/session';
 import styles from './dashboard.module.css';
 
-export default function DashboardPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  if (status === 'loading') {
-    return (
-      <main className={styles.main}>
-        <div className={styles.spinner} />
-      </main>
-    );
-  }
-
-  if (status === 'unauthenticated') {
-    return (
-      <main className={styles.main}>
-        <div className={`${styles.card} glass`}>
-          <h2 className={styles.title}>Akses Ditolak</h2>
-          <p className={styles.subtitle}>
-            Silakan login terlebih dahulu untuk mengakses halaman dashboard.
-          </p>
-          <Link href="/login" className={styles.loginBtn}>
-            Kembali ke Login
-          </Link>
-        </div>
-      </main>
-    );
-  }
+export default async function DashboardPage() {
+  // Verifikasi session server-side. Jika tidak valid, redirect otomatis ke /login?error=SessionExpired
+  const user = await requireAuth();
 
   return (
     <main className={styles.main}>
@@ -54,7 +27,7 @@ export default function DashboardPage() {
               <UserIcon className={styles.icon} size={20} />
               <div>
                 <span className={styles.label}>Nama</span>
-                <span className={styles.value}>{session?.user?.name || '-'}</span>
+                <span className={styles.value}>{user.name || '-'}</span>
               </div>
             </div>
 
@@ -62,7 +35,7 @@ export default function DashboardPage() {
               <Mail className={styles.icon} size={20} />
               <div>
                 <span className={styles.label}>Email</span>
-                <span className={styles.value}>{session?.user?.email || '-'}</span>
+                <span className={styles.value}>{user.email || '-'}</span>
               </div>
             </div>
 
@@ -71,7 +44,7 @@ export default function DashboardPage() {
               <div>
                 <span className={styles.label}>Role</span>
                 <span className={styles.badge}>
-                  {(session?.user as any)?.role || 'user'}
+                  {(user as any).role || 'user'}
                 </span>
               </div>
             </div>
@@ -82,12 +55,15 @@ export default function DashboardPage() {
               <Home size={18} /> Beranda
             </Link>
 
-            <button
-              onClick={() => signOut({ callbackUrl: '/login' })}
-              className={styles.logoutBtn}
-            >
-              <LogOut size={18} /> Keluar
-            </button>
+            {/* Logout menggunakan standard HTML Form POST ke API Route untuk membersihkan session cookie di server */}
+            <form action="/api/auth/logout" method="POST" style={{ display: 'inline-block' }}>
+              <button
+                type="submit"
+                className={styles.logoutBtn}
+              >
+                <LogOut size={18} /> Keluar
+              </button>
+            </form>
           </div>
         </div>
       </div>
