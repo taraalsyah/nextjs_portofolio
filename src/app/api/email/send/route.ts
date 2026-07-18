@@ -9,28 +9,29 @@ export async function POST(request: Request) {
     // Validasi input sederhana
     if (!to || !subject || !html) {
       return NextResponse.json(
-        { message: 'Kolom "to", "subject", dan "html" wajib diisi.' },
+        { success: false, message: 'Kolom "to", "subject", dan "html" wajib diisi.' },
         { status: 400 }
       );
     }
 
     // Kirim email
-    const info = await sendEmail({ to, subject, html });
+    const result = await sendEmail({ to, subject, html });
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, message: result.message },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json(
-      { 
-        message: 'Email berhasil terkirim.',
-        messageId: info.messageId 
-      },
+      { success: true, message: result.message },
       { status: 200 }
     );
   } catch (error: any) {
     console.error('API Send Email Error:', error);
     return NextResponse.json(
-      { 
-        message: 'Gagal mengirim email.',
-        error: error.message || error 
-      },
+      { success: false, message: 'Gagal mengirim email.', error: error.message || error },
       { status: 500 }
     );
   }

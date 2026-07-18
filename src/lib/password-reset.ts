@@ -1,6 +1,6 @@
 import { prisma } from './prisma';
+import { emailService } from '@/services/email/email.service';
 import { generateSecureToken, hashToken } from './token';
-import { sendEmail } from './mail';
 import bcrypt from 'bcryptjs';
 
 export class PasswordResetService {
@@ -72,44 +72,10 @@ export class PasswordResetService {
       },
     });
 
-    // 5. Kirim email berisi link reset password
-    const baseUrl = 'https://taraalsyah.online';
-    const resetUrl = `${baseUrl}/reset-password?token=${token}`;
-
-    const htmlContent = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fafafa;">
-        <h2 style="color: #4f46e5; text-align: center;">Permintaan Reset Password</h2>
-        <p>Halo <strong>${user.name}</strong>,</p>
-        <p>Kami menerima permintaan untuk menyetel ulang password akun Anda. Silakan klik tombol di bawah ini untuk membuat password baru:</p>
-        
-        <div style="text-align: center; margin: 30px 0;">
-          <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);">
-            Reset Password
-          </a>
-        </div>
-
-        <p>Atau Anda juga dapat menggunakan link berikut jika tombol di atas tidak berfungsi:</p>
-        <p style="word-break: break-all; color: #4f46e5;"><a href="${resetUrl}">${resetUrl}</a></p>
-
-        <hr style="border: 0; border-top: 1px solid #e0e0e0; margin: 20px 0;" />
-        
-        <p style="color: #666; font-size: 13px;">Catatan Penting:</p>
-        <ul style="color: #666; font-size: 13px; padding-left: 20px; line-height: 1.5;">
-          <li>Link reset password ini hanya berlaku selama <strong>30 menit</strong>.</li>
-          <li>Link ini hanya dapat digunakan <strong>satu kali</strong>.</li>
-          <li>Jika Anda tidak merasa meminta reset password, abaikan email ini dengan aman. Password Anda tidak akan berubah.</li>
-        </ul>
-      </div>
-    `;
-
-    try {
-      await sendEmail({
-        to: user.email,
-        subject: 'Reset Password Akun Anda',
-        html: htmlContent,
-      });
-    } catch (err) {
-      console.error('Failed to send password reset email:', err);
+    // 5. Kirim email reset password via Zoho SMTP
+    const result = await emailService.sendForgotPasswordEmail(user.email, user.name, token);
+    if (!result.success) {
+      console.error('[password-reset] Gagal kirim email:', result.message);
     }
 
     return { success: true };
