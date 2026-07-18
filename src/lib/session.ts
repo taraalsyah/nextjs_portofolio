@@ -29,10 +29,37 @@ export async function requireAuth() {
 export async function destroySession() {
   const cookieStore = await cookies();
   
-  // Hapus cookie session NextAuth di development dan production
-  cookieStore.delete('next-auth.session-token');
-  cookieStore.delete('__Secure-next-auth.session-token');
-  cookieStore.delete('next-auth.callback-url');
-  cookieStore.delete('next-auth.csrf-token');
+  // Opsi domain yang mungkin digunakan di production oleh NextAuth
+  const domainOptions = [
+    {}, // Default host
+    { domain: '.taraalsyah.online' }, // Wildcard parent domain
+    { domain: 'taraalsyah.online' }, // Parent domain
+    { domain: 'blog.taraalsyah.online' } // Subdomain blog
+  ];
+
+  // Daftar semua nama cookie NextAuth (secure & non-secure)
+  const cookieNames = [
+    'next-auth.session-token',
+    '__Secure-next-auth.session-token',
+    'next-auth.callback-url',
+    '__Secure-next-auth.callback-url',
+    'next-auth.csrf-token',
+    '__Secure-next-auth.csrf-token'
+  ];
+
+  for (const name of cookieNames) {
+    for (const opt of domainOptions) {
+      // Hapus cookie secara paksa dengan menetapkan maxAge: 0 dan waktu kadaluwarsa di masa lalu
+      cookieStore.set(name, '', {
+        ...opt,
+        path: '/',
+        maxAge: 0,
+        expires: new Date(0),
+        httpOnly: true,
+        secure: true,
+        sameSite: 'lax'
+      });
+    }
+  }
 }
 export default getCurrentUser;
