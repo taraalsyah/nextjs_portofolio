@@ -85,8 +85,8 @@ export default function LoginForm() {
         redirect: false,
       });
 
-      if (res?.error) {
-        if (res.error === 'PENDING_VERIFICATION') {
+      if (!res?.ok) {
+        if (res?.error === 'PENDING_VERIFICATION') {
           setErrors({ general: 'Email Anda belum diverifikasi. Silakan lakukan verifikasi terlebih dahulu.' });
           setShowResendOption(true);
         } else {
