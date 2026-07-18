@@ -112,24 +112,54 @@ export class EmailService {
   }
 
   /**
-   * Kirim email reset password (forgot password flow via OTP).
+   * Kirim email reset password (forgot password flow via secure link).
+   * @param resetLink - URL lengkap: https://domain.com/reset-password?token=xxx
    */
-  async sendForgotPasswordEmail(email: string, name: string, otp: string): Promise<EmailResult> {
+  async sendForgotPasswordEmail(email: string, name: string, resetLink: string): Promise<EmailResult> {
     const subject = 'Reset Password Akun Anda';
 
     const body = `
       <h2 style="margin:0 0 16px;font-size:22px;color:#111827;">Permintaan Reset Password</h2>
-      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 16px;">
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 8px;">
         Halo <strong>${name}</strong>,
       </p>
-      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 24px;">
-        Kami menerima permintaan reset password untuk akun Anda. Masukkan kode OTP berikut untuk melanjutkan:
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 28px;">
+        Kami menerima permintaan untuk menyetel ulang password akun Anda.
+        Silakan klik tombol di bawah ini untuk membuat password baru.
       </p>
-      ${otpBlock(otp)}
-      <p style="text-align:center;font-size:13px;color:#6b7280;margin:8px 0 0;">
-        Kode ini hanya dapat digunakan <strong>satu kali</strong>.
+
+      <!-- CTA Button -->
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" style="padding:0 0 24px;">
+            <a href="${resetLink}"
+               style="display:inline-block;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:10px;letter-spacing:0.3px;">
+              🔐 Reset Password
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Fallback link -->
+      <p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0 0 4px;">
+        Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut ke browser Anda:
       </p>
-      <hr style="border:0;border-top:1px solid #e5e7eb;margin:28px 0;" />
+      <p style="font-size:12px;word-break:break-all;margin:0 0 24px;">
+        <a href="${resetLink}" style="color:#4f46e5;">${resetLink}</a>
+      </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0"
+             style="background-color:#fef9c3;border:1px solid #fde047;border-radius:8px;margin:0 0 24px;">
+        <tr>
+          <td style="padding:14px 18px;">
+            <p style="margin:0;font-size:13px;color:#713f12;line-height:1.6;">
+              ⏱ Link ini hanya berlaku selama <strong>10 menit</strong> dan hanya dapat digunakan <strong>satu kali</strong>.
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <hr style="border:0;border-top:1px solid #e5e7eb;margin:0 0 20px;" />
       <p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0;">
         Jika Anda tidak meminta reset password, abaikan email ini. Password Anda tidak akan berubah.
       </p>`;

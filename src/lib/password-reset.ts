@@ -59,7 +59,7 @@ export class PasswordResetService {
     // 3. Generate token baru (32 bytes = 64 hex characters)
     const token = generateSecureToken();
     const hashed = hashToken(token);
-    const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // Berlaku 30 menit
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Berlaku 10 menit
 
     // 4. Simpan ke database
     await prisma.passwordResetToken.create({
@@ -72,8 +72,12 @@ export class PasswordResetService {
       },
     });
 
-    // 5. Kirim email reset password via Zoho SMTP
-    const result = await emailService.sendForgotPasswordEmail(user.email, user.name, token);
+    // 5. Buat reset URL menggunakan FRONTEND_URL env var
+    const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://taraalsyah.online';
+    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+
+    // 6. Kirim email berisi link reset password (bukan OTP)
+    const result = await emailService.sendForgotPasswordEmail(user.email, user.name, resetUrl);
     if (!result.success) {
       console.error('[password-reset] Gagal kirim email:', result.message);
     }
