@@ -1,8 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { getToken } from 'next-auth/jwt';
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
+  
+  // Ambil token session NextAuth
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+
+  // Proteksi rute dashboard jika belum terautentikasi
+  if (url.pathname.startsWith('/dashboard')) {
+    if (!token) {
+      return NextResponse.redirect(new URL('/login', request.url));
+    }
+  }
   
   // Mendapatkan host dari header request (misal: blog.taraalsyah.online)
   const host = request.headers.get('host') || '';

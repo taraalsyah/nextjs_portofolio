@@ -1,0 +1,95 @@
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: hsla(0, 0%, 100%, 0.85);
+  font-family: var(--font-heading);
+}
+
+.inputWrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 0.85rem 1.25rem;
+  border-radius: 12px;
+  background: hsla(0, 0%, 100%, 0.03);
+  border: 1px solid var(--glass-border);
+  color: var(--fg-color);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  outline: none;
+  transition: var(--transition);
+  backdrop-filter: blur(10px);
+}
+
+.input:focus {
+  border-color: var(--primary);
+  background: hsla(0, 0%, 100%, 0.06);
+  box-shadow: 0 0 15px hsla(265, 80%, 60%, 0.15);
+}
+
+/* Make sure password input has room for the toggle button */
+.input[type="password"],
+.inputWrapper:has(.toggleButton) .input {
+  padding-right: 3rem;
+}
+
+.inputError {
+  border-color: var(--accent);
+}
+
+.inputError:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 15px hsla(330, 90%, 65%, 0.15);
+}
+
+.toggleButton {
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: hsla(0, 0%, 100%, 0.4);
+  transition: var(--transition);
+  padding: 0.25rem;
+  border-radius: 6px;
+}
+
+.toggleButton:hover {
+  color: var(--primary);
+  background: hsla(0, 0%, 100%, 0.05);
+}
+
+.errorText {
+  font-size: 0.8rem;
+  color: var(--accent);
+  margin-top: 0.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

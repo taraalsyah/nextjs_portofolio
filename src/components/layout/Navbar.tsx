@@ -15,6 +15,7 @@ const Navbar = () => {
           <li><Link href="/#projects">Projects</Link></li>
           <li><Link href="/#skills">Skills</Link></li>
           <li><Link href="/#certificates">Certificates</Link></li>
+          <li><Link href="/login" className={styles.loginBtn}>Login</Link></li>
           <li><Link href="/#contact" className={styles.contactBtn}>Hire Me</Link></li>
         </ul>
       </div>
