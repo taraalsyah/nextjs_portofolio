@@ -47,6 +47,8 @@ export async function destroySession() {
     '__Secure-next-auth.csrf-token'
   ];
 
+  const isProd = process.env.NODE_ENV === 'production';
+
   for (const name of cookieNames) {
     for (const opt of domainOptions) {
       // Hapus cookie secara paksa dengan menetapkan maxAge: 0 dan waktu kadaluwarsa di masa lalu
@@ -56,7 +58,7 @@ export async function destroySession() {
         maxAge: 0,
         expires: new Date(0),
         httpOnly: true,
-        secure: true,
+        secure: isProd,
         sameSite: 'lax'
       });
     }
