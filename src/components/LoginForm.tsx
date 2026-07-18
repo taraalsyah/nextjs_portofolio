@@ -14,6 +14,7 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
   const showRegisterSuccess = searchParams.get('registered') === 'true';
   const showSessionExpired = searchParams.get('error') === 'SessionExpired';
+  const showResetSuccess = searchParams.get('reset') === 'true';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
@@ -145,6 +146,13 @@ export default function LoginForm() {
         <div className={styles.successBanner}>
           <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
           <span>Registrasi berhasil. Silakan login.</span>
+        </div>
+      )}
+
+      {showResetSuccess && (
+        <div className={styles.successBanner}>
+          <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
+          <span>Password berhasil diubah. Silakan login menggunakan password baru.</span>
         </div>
       )}
 

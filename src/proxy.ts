@@ -10,7 +10,7 @@ export async function proxy(request: NextRequest) {
 
   // Proteksi rute dashboard jika belum terautentikasi / session habis
   if (url.pathname.startsWith('/dashboard')) {
-    if (!token) {
+    if (!token || !token.id) {
       const redirectUrl = new URL('/login', request.url);
       redirectUrl.searchParams.set('error', 'SessionExpired');
       return NextResponse.redirect(redirectUrl);
@@ -19,7 +19,7 @@ export async function proxy(request: NextRequest) {
 
   // Redirect ke dashboard jika sudah login dan mengakses login/register
   if (url.pathname === '/login' || url.pathname === '/register') {
-    if (token) {
+    if (token && token.id) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }

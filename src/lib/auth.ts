@@ -45,6 +45,7 @@ export const authOptions: AuthOptions = {
           name: user.name,
           email: user.email,
           role: user.role,
+          password: user.password,
         };
       },
     }),
@@ -54,6 +55,19 @@ export const authOptions: AuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.passwordHash = (user as any).password;
+      }
+
+      // Validasi apakah password di database masih sama (invalidation check pada semua device)
+      if (token?.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: parseInt(token.id as string) },
+          select: { password: true },
+        });
+
+        if (!dbUser || dbUser.password !== token.passwordHash) {
+          return {}; // Session ter-invalidate
+        }
       }
       return token;
     },
