@@ -1,29 +1,7 @@
-import nodemailer from 'nodemailer';
+import { sendEmail } from '@/lib/mail';
 
 export class EmailService {
-  private transporter: nodemailer.Transporter | null = null;
-
-  constructor() {
-    const host = process.env.SMTP_HOST;
-    const port = parseInt(process.env.SMTP_PORT || '587');
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
-
-    if (host && user && pass) {
-      this.transporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: {
-          user,
-          pass,
-        },
-      });
-    }
-  }
-
   async sendOTPEmail(email: string, name: string, code: string): Promise<void> {
-    const from = process.env.SMTP_FROM || 'noreply@taraalsyah.online';
     const subject = 'Kode Verifikasi OTP Anda';
     const htmlContent = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 12px; background-color: #fafafa;">
@@ -41,7 +19,10 @@ export class EmailService {
       </div>
     `;
 
-    if (!this.transporter) {
+    // Cek apakah SMTP Server dikonfigurasi
+    const isSmtpConfigured = !!process.env.SMTP_SERVER;
+
+    if (!isSmtpConfigured) {
       console.log('\n==================================================');
       console.log(`[EMAIL SERVICE - DEVELOPMENT FALLBACK]`);
       console.log(`Penerima: ${name} <${email}>`);
@@ -51,8 +32,7 @@ export class EmailService {
       return;
     }
 
-    await this.transporter.sendMail({
-      from,
+    await sendEmail({
       to: email,
       subject,
       html: htmlContent,
