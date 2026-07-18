@@ -8,13 +8,29 @@ generator client {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  password  String
-  role      String   @default("user")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              Int                 @id @default(autoincrement())
+  name            String
+  email           String              @unique
+  password        String
+  role            String              @default("user")
+  status          String              @default("PENDING") // PENDING, ACTIVE
+  emailVerifiedAt DateTime?           @map("email_verified_at")
+  createdAt       DateTime            @default(now()) @map("created_at")
+  updatedAt       DateTime            @updatedAt @map("updated_at")
+  verifications   EmailVerification[]
 
   @@map("users")
+}
+
+model EmailVerification {
+  id         Int       @id @default(autoincrement())
+  userId     Int       @map("user_id")
+  code       String
+  expiredAt  DateTime  @map("expired_at")
+  verifiedAt DateTime? @map("verified_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_verifications")
 }

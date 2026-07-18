@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { AlertTriangle, CheckCircle2 } from 'lucide-react';
 import Input from './ui/Input';
-import { registerSchema, RegisterInput } from '@/lib/validation';
+import { registerSchema, RegisterInput } from '@/validators/auth';
 import styles from '@/app/login/login.module.css';
 
 export default function RegisterForm() {
@@ -30,7 +30,7 @@ export default function RegisterForm() {
     setGeneralError(null);
 
     try {
-      const response = await fetch('/api/register', {
+      const response = await fetch('/api/auth/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +56,7 @@ export default function RegisterForm() {
       } else {
         setIsSuccess(true);
         setTimeout(() => {
-          router.push('/login?registered=true');
+          router.push(`/verify-email?email=${encodeURIComponent(data.email)}`);
         }, 3000);
       }
     } catch (error) {

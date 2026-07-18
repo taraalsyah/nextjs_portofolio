@@ -35,6 +35,11 @@ export const authOptions: AuthOptions = {
           throw new Error('Email atau password salah');
         }
 
+        // Cek status verifikasi email user
+        if (user.status !== 'ACTIVE') {
+          throw new Error('PENDING_VERIFICATION');
+        }
+
         return {
           id: user.id.toString(),
           name: user.name,

@@ -17,4 +17,15 @@ export const registerSchema = z
     path: ['confirmPassword'],
   });
 
+export const verifyEmailSchema = z.object({
+  email: z.string().email({ message: 'Format email tidak valid' }),
+  code: z.string().length(6, { message: 'Kode OTP harus berupa 6 digit angka' }),
+});
+
+export const resendVerificationSchema = z.object({
+  email: z.string().email({ message: 'Format email tidak valid' }),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
+export type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
+export type ResendVerificationInput = z.infer<typeof resendVerificationSchema>;

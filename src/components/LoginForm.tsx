@@ -18,6 +18,34 @@ export default function LoginForm() {
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [showResendOption, setShowResendOption] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+
+  const handleResend = async () => {
+    setIsResending(true);
+    setErrors({});
+    try {
+      const response = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setErrors({ general: result.message || 'Gagal mengirim ulang kode.' });
+      } else {
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+      }
+    } catch (error) {
+      setErrors({ general: 'Gagal menghubungi server. Silakan coba lagi.' });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
@@ -56,7 +84,12 @@ export default function LoginForm() {
       });
 
       if (res?.error) {
-        setErrors({ general: 'Email atau password salah' });
+        if (res.error === 'PENDING_VERIFICATION') {
+          setErrors({ general: 'Email Anda belum diverifikasi. Silakan lakukan verifikasi terlebih dahulu.' });
+          setShowResendOption(true);
+        } else {
+          setErrors({ general: 'Email atau password salah' });
+        }
       } else {
         setIsSuccess(true);
         setTimeout(() => {
@@ -119,6 +152,17 @@ export default function LoginForm() {
           <AlertTriangle size={18} style={{ flexShrink: 0 }} />
           <span>{errors.general}</span>
         </div>
+      )}
+
+      {showResendOption && (
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={isResending}
+          className={styles.resendVerificationBtn}
+        >
+          {isResending ? 'Mengirim...' : 'Kirim Ulang Kode Verifikasi'}
+        </button>
       )}
 
       <form onSubmit={handleSubmit} className={styles.form} noValidate>

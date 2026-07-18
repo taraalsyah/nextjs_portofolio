@@ -17,12 +17,16 @@ async function main() {
       name,
       password: hashedPassword,
       role: 'admin',
+      status: 'ACTIVE',
+      emailVerifiedAt: new Date(),
     },
     create: {
       name,
       email,
       password: hashedPassword,
       role: 'admin',
+      status: 'ACTIVE',
+      emailVerifiedAt: new Date(),
     },
   });
   
