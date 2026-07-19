@@ -23,6 +23,7 @@ model User {
   updatedAt       DateTime            @updatedAt @map("updated_at")
   verifications   EmailVerification[]
   passwordResets  PasswordResetToken[]
+  activityLogs    ActivityLog[]
 
   @@map("users")
 }
@@ -53,4 +54,16 @@ model PasswordResetToken {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("password_reset_tokens")
+}
+
+model ActivityLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int      @map("user_id")
+  action      String   // CREATE, UPDATE, DELETE
+  description String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("activity_logs")
 }

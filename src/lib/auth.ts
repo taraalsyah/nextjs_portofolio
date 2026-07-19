@@ -2,6 +2,7 @@ import { AuthOptions } from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import { prisma } from './prisma';
 import bcrypt from 'bcryptjs';
+import { createActivityLog } from './activity';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -45,6 +46,17 @@ export const authOptions: AuthOptions = {
           where: { id: user.id },
           data: { lastLoginAt: new Date() }
         });
+
+        // Catat aktivitas login
+        try {
+          await createActivityLog({
+            userId: user.id,
+            action: 'LOGIN',
+            description: 'Login',
+          });
+        } catch (logError) {
+          console.warn('Gagal mencatat log aktivitas login:', logError);
+        }
 
         return {
           id: user.id.toString(),

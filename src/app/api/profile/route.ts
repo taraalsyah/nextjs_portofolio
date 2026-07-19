@@ -3,6 +3,7 @@ import { revalidatePath } from 'next/cache';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { logProfileChange } from '@/lib/activity';
 import { z } from 'zod';
 import path from 'path';
 import fs from 'fs/promises';
@@ -166,6 +167,13 @@ export async function PUT(request: Request) {
         lastLoginAt: true,
       }
     });
+
+    // 6. Catat aktivitas perubahan profil ke activity_logs
+    try {
+      await logProfileChange(userId, user, updatedUser);
+    } catch (logError) {
+      console.warn('Gagal mencatat log aktivitas:', logError);
+    }
 
     // Invalidate Server Component router caches
     try {

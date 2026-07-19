@@ -1,8 +1,26 @@
 import { NextResponse } from 'next/server';
 import { destroySession } from '@/lib/session';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { createActivityLog } from '@/lib/activity';
 
 export async function POST(request: Request) {
   try {
+    // 1. Catat aktivitas logout jika user memiliki session aktif
+    try {
+      const session = await getServerSession(authOptions);
+      if (session && session.user && (session.user as any).id) {
+        const userId = parseInt((session.user as any).id);
+        await createActivityLog({
+          userId,
+          action: 'LOGOUT',
+          description: 'Logout',
+        });
+      }
+    } catch (logError) {
+      console.warn('Gagal mencatat log aktivitas logout:', logError);
+    }
+
     const response = NextResponse.redirect(new URL('/login', request.url), { status: 303 });
 
     // Opsi domain yang mungkin digunakan di production oleh NextAuth

@@ -1,0 +1,150 @@
+/* Activity Logs Table — Compact Enterprise Design */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tableCard {
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.tableHeaderSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 1rem;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: hsla(0, 0%, 100%, 0.01);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.table th {
+  background: hsla(0, 0%, 100%, 0.03);
+  color: hsla(0, 0%, 100%, 0.5);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.table td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+  vertical-align: top;
+  line-height: 1.4;
+  color: hsla(0, 0%, 100%, 0.8);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: hsla(0, 0%, 100%, 0.02);
+}
+
+/* Waktu Column */
+.timeCol {
+  width: 160px;
+  white-space: nowrap;
+  color: hsla(0, 0%, 100%, 0.5) !important;
+}
+
+/* Action Badge Column */
+.actionCol {
+  width: 100px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badgeCreate {
+  background: hsla(180, 70%, 50%, 0.15);
+  color: hsl(180, 90%, 80%);
+  border: 1px solid hsla(180, 70%, 50%, 0.2);
+}
+
+.badgeUpdate {
+  background: hsla(265, 80%, 60%, 0.15);
+  color: hsl(265, 90%, 85%);
+  border: 1px solid hsla(265, 80%, 60%, 0.2);
+}
+
+.badgeDelete {
+  background: hsla(330, 90%, 65%, 0.15);
+  color: hsl(330, 90%, 80%);
+  border: 1px solid hsla(330, 90%, 65%, 0.2);
+}
+
+/* Description Column */
+.descCol {
+  word-break: break-word;
+}
+
+.descriptionList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.descriptionItem {
+  font-family: var(--font-body);
+}
+
+/* Empty State */
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: hsla(0, 0%, 100%, 0.4);
+  gap: 0.5rem;
+}
+
+.emptyStateText {
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .tableCard {
+    padding: 1rem;
+  }
+}

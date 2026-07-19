@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  ChevronDown
+  ChevronDown,
+  History
 } from 'lucide-react';
 import styles from './layout.module.css';
 
@@ -25,6 +26,7 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Profile', href: '/dashboard/profile', icon: User },
+  { name: 'Activity History', href: '/dashboard/activity-history', icon: History },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
