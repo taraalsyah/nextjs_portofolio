@@ -170,7 +170,9 @@ export async function PUT(request: Request) {
 
     // 6. Catat aktivitas perubahan profil ke activity_logs
     try {
-      await logProfileChange(userId, user, updatedUser);
+      const userAgent = request.headers.get('user-agent') || 'Unknown';
+      const ipAddress = request.headers.get('x-forwarded-for')?.split(',')[0].trim() || request.headers.get('x-real-ip') || '127.0.0.1';
+      await logProfileChange(userId, user, updatedUser, ipAddress, userAgent);
     } catch (logError) {
       console.warn('Gagal mencatat log aktivitas:', logError);
     }

@@ -1,0 +1,409 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle } from 'lucide-react';
+import styles from './users.module.css';
+
+interface UserData {
+  id: number;
+  name: string;
+  username: string | null;
+  email: string;
+  role: string;
+  roleId: number | null;
+  roleRel: {
+    id: number;
+    name: string;
+    description: string | null;
+  } | null;
+  status: string;
+  phone: string | null;
+  createdAt: string;
+}
+
+interface RoleData {
+  id: number;
+  name: string;
+  description: string | null;
+}
+
+interface UserManagementContentProps {
+  initialUsers: UserData[];
+  availableRoles: RoleData[];
+  sessionUserId: number;
+  totalItems: number;
+  currentPage: number;
+}
+
+/**
+ * Calculates page numbers to display in a simplified pagination listing:
+ * e.g. "1 ... 5 6 7 ... 20"
+ */
+function getPageNumbers(currentPage: number, totalPages: number): (number | string)[] {
+  const pages: (number | string)[] = [];
+  const delta = 1; // Show current page +/- delta
+
+  for (let i = 1; i <= totalPages; i++) {
+    if (
+      i === 1 ||
+      i === totalPages ||
+      (i >= currentPage - delta && i <= currentPage + delta)
+    ) {
+      pages.push(i);
+    } else if (
+      (i === currentPage - delta - 1 && i > 1) ||
+      (i === currentPage + delta + 1 && i < totalPages)
+    ) {
+      pages.push('...');
+    }
+  }
+
+  return pages.filter((item, index, arr) => {
+    if (item === '...' && arr[index - 1] === '...') {
+      return false;
+    }
+    return true;
+  });
+}
+
+export default function UserManagementContent({
+  initialUsers,
+  availableRoles,
+  sessionUserId,
+  totalItems,
+  currentPage,
+}: UserManagementContentProps) {
+  const [users, setUsers] = useState<UserData[]>(initialUsers);
+  const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [selectedRoleId, setSelectedRoleId] = useState<number>(0);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+
+  // Sync users state when initialUsers updates (e.g. on server-side pagination page changes)
+  useEffect(() => {
+    setUsers(initialUsers);
+  }, [initialUsers]);
+
+  // ─── HANDLERS ──────────────────────────────────────────────────────────────
+  const openEditRoleModal = (user: UserData) => {
+    setEditingUser(user);
+    setSelectedRoleId(user.roleId || availableRoles[0]?.id || 0);
+    setStatus(null);
+  };
+
+  const closeEditRoleModal = () => {
+    setEditingUser(null);
+    setStatus(null);
+  };
+
+  const handleUpdateRole = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingUser) return;
+
+    setIsSubmitting(true);
+    setStatus(null);
+
+    try {
+      const res = await fetch(`/api/users/${editingUser.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roleId: selectedRoleId }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Gagal mengubah role pengguna.');
+      }
+
+      // Update local users state
+      const updatedRole = availableRoles.find((r) => r.id === selectedRoleId);
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === editingUser.id
+            ? {
+                ...u,
+                roleId: selectedRoleId,
+                role: updatedRole?.name || u.role,
+                roleRel: updatedRole ? { ...updatedRole, description: updatedRole.description } : u.roleRel,
+              }
+            : u
+        )
+      );
+
+      setStatus({ type: 'success', message: `Berhasil mengubah role pengguna "${editingUser.name}".` });
+      setTimeout(() => {
+        closeEditRoleModal();
+      }, 1000);
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message || 'Terjadi kesalahan.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: number, name: string) => {
+    if (userId === sessionUserId) {
+      alert('Tidak dapat menghapus akun Anda sendiri.');
+      return;
+    }
+
+    const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus user "${name}"?`);
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch(`/api/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Gagal menghapus user.');
+      }
+
+      // Update local users list
+      setUsers((prev) => prev.filter((u) => u.id !== userId));
+      alert(`User "${name}" berhasil dihapus.`);
+    } catch (err: any) {
+      alert(err.message || 'Terjadi kesalahan saat menghapus user.');
+    }
+  };
+
+  // Calculate items range description
+  const totalPages = Math.ceil(totalItems / 10);
+  const itemFrom = totalItems === 0 ? 0 : (currentPage - 1) * 10 + 1;
+  const itemTo = Math.min(currentPage * 10, totalItems);
+
+  // Generate page list configuration
+  const pageNumbers = getPageNumbers(currentPage, totalPages);
+
+  return (
+    <div className={styles.container}>
+      {/* Alert notification if not in modal */}
+      {!editingUser && status && (
+        <div className={`${styles.alert} ${status.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
+          {status.type === 'success' ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
+          <span>{status.message}</span>
+        </div>
+      )}
+
+      <div className={`${styles.tableCard} glass`}>
+        {/* Header */}
+        <div className={styles.headerSection}>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '8px',
+            background: 'var(--primary-glow)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'hsl(265, 90%, 80%)'
+          }}>
+            <UsersIcon size={18} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Manajemen Pengguna</h2>
+            <p style={{ color: 'hsla(0, 0%, 100%, 0.5)', margin: '0.05rem 0 0', fontSize: '0.78rem' }}>
+              Lihat daftar anggota, edit hak akses role, serta kelola akun secara aman
+            </p>
+          </div>
+        </div>
+
+        {/* User Table List */}
+        {totalItems === 0 ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'hsla(0, 0%, 100%, 0.4)' }}>
+            Belum ada pengguna terdaftar.
+          </div>
+        ) : (
+          <>
+            <div className={styles.tableWrapper}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th>Pengguna</th>
+                    <th>Alamat Email</th>
+                    <th>Hak Akses (Role)</th>
+                    <th>Status</th>
+                    <th>Tanggal Gabung</th>
+                    <th style={{ textAlign: 'center' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {users.map((u) => (
+                    <tr key={u.id}>
+                      <td>
+                        <div className={styles.userCol}>
+                          <span className={styles.nameText}>{u.name}</span>
+                          <span className={styles.usernameText}>@{u.username || 'user'}</span>
+                        </div>
+                      </td>
+                      <td className={styles.emailCol}>{u.email}</td>
+                      <td>
+                        <span className={`${styles.badge} ${styles.roleBadge}`}>
+                          {u.roleRel?.name || u.role || 'Staff'}
+                        </span>
+                      </td>
+                      <td>
+                        <span className={`${styles.badge} ${u.status === 'ACTIVE' ? styles.statusActive : styles.statusPending}`}>
+                          {u.status === 'ACTIVE' ? 'Aktif' : 'Tertunda'}
+                        </span>
+                      </td>
+                      <td>
+                        {new Date(u.createdAt).toLocaleDateString('id-ID', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric',
+                        })}
+                      </td>
+                      <td>
+                        <div className={styles.actionsCol} style={{ justifyContent: 'center' }}>
+                          <button
+                            onClick={() => openEditRoleModal(u)}
+                            className={styles.actionBtn}
+                            title="Ubah Role"
+                          >
+                            <Edit2 size={13} />
+                          </button>
+                          {u.id !== sessionUserId && (
+                            <button
+                              onClick={() => handleDeleteUser(u.id, u.name)}
+                              className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                              title="Hapus Pengguna"
+                            >
+                              <Trash2 size={13} />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination Controls */}
+            <div className={styles.paginationSection}>
+              <div className={styles.paginationInfo}>
+                Showing {itemFrom}–{itemTo} of {totalItems} users
+              </div>
+
+              <div className={styles.paginationNav}>
+                {/* Previous Button */}
+                {currentPage === 1 ? (
+                  <div className={`${styles.pageBtn} ${styles.disabledPageBtn}`}>
+                    Previous
+                  </div>
+                ) : (
+                  <Link href={`/dashboard/user-management?page=${currentPage - 1}`} className={styles.pageBtn}>
+                    Previous
+                  </Link>
+                )}
+
+                {/* Page Numbers */}
+                {pageNumbers.map((p, idx) => {
+                  if (p === '...') {
+                    return (
+                      <span key={`ellipsis-${idx}`} className={styles.ellipsis}>
+                        ...
+                      </span>
+                    );
+                  }
+
+                  const isCurrent = p === currentPage;
+
+                  return (
+                    <Link
+                      key={`page-${p}`}
+                      href={`/dashboard/user-management?page=${p}`}
+                      className={`${styles.pageBtn} ${isCurrent ? styles.activePageBtn : ''}`}
+                    >
+                      {p}
+                    </Link>
+                  );
+                })}
+
+                {/* Next Button */}
+                {currentPage === totalPages ? (
+                  <div className={`${styles.pageBtn} ${styles.disabledPageBtn}`}>
+                    Next
+                  </div>
+                ) : (
+                  <Link href={`/dashboard/user-management?page=${currentPage + 1}`} className={styles.pageBtn}>
+                    Next
+                  </Link>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Edit Role Modal */}
+      {editingUser && (
+        <div className={styles.modalOverlay}>
+          <form onSubmit={handleUpdateRole} className={`${styles.modalContent} glass`}>
+            <div className={styles.modalHeader}>
+              <h3 className={styles.modalTitle}>Ubah Role Pengguna</h3>
+              <button type="button" onClick={closeEditRoleModal} className={styles.closeModalBtn}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {status && (
+              <div className={`${styles.alert} ${status.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
+                {status.type === 'success' ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
+                <span>{status.message}</span>
+              </div>
+            )}
+
+            <div className={styles.formGroup}>
+              <span className={styles.label}>Nama Pengguna</span>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--fg-color)' }}>
+                {editingUser.name} ({editingUser.email})
+              </span>
+            </div>
+
+            <div className={styles.formGroup}>
+              <label htmlFor="role-select" className={styles.label}>Pilih Role Baru</label>
+              <select
+                id="role-select"
+                value={selectedRoleId}
+                onChange={(e) => setSelectedRoleId(parseInt(e.target.value, 10))}
+                className={styles.select}
+              >
+                {availableRoles.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button type="button" onClick={closeEditRoleModal} className={styles.btn}>
+                Batal
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || selectedRoleId === editingUser.roleId}
+                className={`${styles.btn} ${styles.saveBtn}`}
+              >
+                {isSubmitting ? (
+                  <span>Menyimpan...</span>
+                ) : (
+                  <>
+                    <Save size={14} />
+                    <span>Simpan</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}

@@ -12,7 +12,7 @@ export const authOptions: AuthOptions = {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Email dan password wajib diisi');
         }
@@ -49,10 +49,14 @@ export const authOptions: AuthOptions = {
 
         // Catat aktivitas login
         try {
+          const userAgent = req?.headers?.['user-agent'] || 'Unknown';
+          const ipAddress = req?.headers?.['x-forwarded-for']?.split(',')[0].trim() || req?.headers?.['x-real-ip'] || '127.0.0.1';
           await createActivityLog({
             userId: user.id,
             action: 'LOGIN',
             description: 'Login',
+            ipAddress,
+            userAgent,
           });
         } catch (logError) {
           console.warn('Gagal mencatat log aktivitas login:', logError);
@@ -92,13 +96,38 @@ export const authOptions: AuthOptions = {
       if (token?.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: parseInt(token.id as string) },
-          select: { password: true },
+          select: {
+            password: true,
+            roleRel: {
+              select: {
+                name: true,
+                rolePermissions: {
+                  select: {
+                    permission: {
+                      select: {
+                        module: true,
+                        action: true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
         });
 
         if (!dbUser || dbUser.password !== token.passwordHash) {
           console.log('JWT CALLBACK - Session invalidated (password mismatch or user not found)');
           return {}; // Session ter-invalidate
         }
+
+        // Cache role and permissions in the JWT token
+        const permissions = dbUser.roleRel?.rolePermissions.map(
+          (rp) => `${rp.permission.module}.${rp.permission.action}`
+        ) || [];
+
+        token.role = dbUser.roleRel?.name || 'Staff';
+        token.permissions = permissions;
       }
       return token;
     },
@@ -106,6 +135,7 @@ export const authOptions: AuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).permissions = token.permissions || [];
         (session.user as any).username = token.username;
         (session.user as any).image = token.image;
         session.user.name = token.name;

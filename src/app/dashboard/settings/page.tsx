@@ -1,9 +1,9 @@
 import React from 'react';
-import { requireAuth } from '@/lib/session';
+import { requirePermission } from '@/lib/session';
 import { Settings, Shield, Bell, Database } from 'lucide-react';
 
 export default async function SettingsPage() {
-  await requireAuth();
+  await requirePermission('Settings', 'View');
 
   return (
     <div style={{ maxWidth: '720px', margin: '0 auto' }}>

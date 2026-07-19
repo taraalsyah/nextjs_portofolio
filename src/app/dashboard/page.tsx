@@ -1,5 +1,5 @@
 import React from 'react';
-import { requireAuth } from '@/lib/session';
+import { requirePermission } from '@/lib/session';
 import {
   Shield,
   Activity,
@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 export default async function DashboardPage() {
-  const user = await requireAuth();
+  const user = await requirePermission('Dashboard', 'View');
 
   const memberSince = (user as any).createdAt
     ? new Date((user as any).createdAt).toLocaleDateString('id-ID', {

@@ -24,6 +24,31 @@ export async function requireAuth() {
 }
 
 /**
+ * Mengharuskan user terautentikasi dan memiliki permission tertentu.
+ * Jika tidak memiliki permission, otomatis di-redirect ke halaman /dashboard/403.
+ */
+export async function requirePermission(module: string, action: string) {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    redirect('/login?error=SessionExpired');
+  }
+
+  const role = (session.user as any).role || 'Staff';
+  if (role === 'Admin') {
+    return session.user;
+  }
+
+  const permissions = (session.user as any).permissions || [];
+  const permissionKey = `${module}.${action}`;
+
+  if (!permissions.includes(permissionKey)) {
+    redirect('/dashboard/403');
+  }
+
+  return session.user;
+}
+
+/**
  * Menghapus data session cookie secara manual dari sisi server.
  */
 export async function destroySession() {

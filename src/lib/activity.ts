@@ -10,16 +10,22 @@ export async function createActivityLog({
   userId,
   action,
   description,
+  ipAddress,
+  userAgent,
 }: {
   userId: number;
   action: ActivityAction;
   description: string;
+  ipAddress?: string | null;
+  userAgent?: string | null;
 }) {
   return await prisma.activityLog.create({
     data: {
       userId,
       action,
       description,
+      ipAddress,
+      userAgent,
     },
   });
 }
@@ -31,7 +37,9 @@ export async function createActivityLog({
 export async function logProfileChange(
   userId: number,
   oldUser: { name: string; username: string | null; phone: string | null; image: string | null },
-  newUser: { name: string; username: string | null; phone: string | null; image: string | null }
+  newUser: { name: string; username: string | null; phone: string | null; image: string | null },
+  ipAddress?: string | null,
+  userAgent?: string | null
 ) {
   const changes: string[] = [];
   let onlyPhotoDeleted = false;
@@ -61,6 +69,8 @@ export async function logProfileChange(
     userId,
     action,
     description: changes.join('\n'),
+    ipAddress,
+    userAgent,
   });
 }
 

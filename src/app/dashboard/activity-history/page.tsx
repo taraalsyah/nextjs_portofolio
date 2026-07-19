@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { requireAuth } from '@/lib/session';
+import { requirePermission } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { formatActivityDate } from '@/lib/activity';
 import { History, Inbox } from 'lucide-react';
@@ -46,7 +46,7 @@ export default async function ActivityHistoryPage(props: {
   searchParams: Promise<{ page?: string }>;
 }) {
   // 1. Verifikasi session di server side
-  const sessionUser = await requireAuth();
+  const sessionUser = await requirePermission('Activity History', 'View');
   const userId = parseInt((sessionUser as any).id);
 
   // Await searchParams as required by Next.js 15+ async APIs

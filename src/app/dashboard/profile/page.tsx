@@ -1,5 +1,5 @@
 import React from 'react';
-import { requireAuth } from '@/lib/session';
+import { requirePermission } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileForm from '@/components/profile/ProfileForm';
@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  const sessionUser = await requireAuth();
+  const sessionUser = await requirePermission('Profile', 'View');
 
   const userId = parseInt((sessionUser as any).id);
   const user = await prisma.user.findUnique({

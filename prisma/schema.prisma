@@ -13,7 +13,9 @@ model User {
   username        String?             @unique
   email           String              @unique
   password        String
-  role            String              @default("user")
+  role            String              @default("user") // Fallback
+  roleId          Int?                @map("role_id")
+  roleRel         Role?               @relation("UserRole", fields: [roleId], references: [id], onDelete: SetNull)
   status          String              @default("PENDING") // PENDING, ACTIVE
   phone           String?
   image           String?
@@ -59,11 +61,50 @@ model PasswordResetToken {
 model ActivityLog {
   id          Int      @id @default(autoincrement())
   userId      Int      @map("user_id")
-  action      String   // CREATE, UPDATE, DELETE
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT
   description String   @db.Text
+  ipAddress   String?  @map("ip_address")
+  userAgent   String?  @map("user_agent")
   createdAt   DateTime @default(now()) @map("created_at")
 
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("activity_logs")
+}
+
+model Role {
+  id              Int              @id @default(autoincrement())
+  name            String           @unique
+  description     String?          @db.Text
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  users           User[]           @relation("UserRole")
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id              Int              @id @default(autoincrement())
+  module          String
+  action          String
+  description     String?          @db.Text
+  createdAt       DateTime         @default(now()) @map("created_at")
+  rolePermissions RolePermission[]
+
+  @@unique([module, action])
+  @@map("permissions")
+}
+
+model RolePermission {
+  id           Int        @id @default(autoincrement())
+  roleId       Int        @map("role_id")
+  permissionId Int        @map("permission_id")
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
 }

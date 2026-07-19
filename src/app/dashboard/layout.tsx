@@ -13,7 +13,9 @@ import {
   ChevronRight,
   LogOut,
   ChevronDown,
-  History
+  History,
+  Users,
+  Shield
 } from 'lucide-react';
 import styles from './layout.module.css';
 
@@ -24,9 +26,11 @@ interface MenuItem {
 }
 
 const MENU_ITEMS: MenuItem[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Profile', href: '/dashboard/profile', icon: User },
+  { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'User Management', href: '/dashboard/user-management', icon: Users },
+  { name: 'Role Management', href: '/dashboard/role-management', icon: Shield },
   { name: 'Activity History', href: '/dashboard/activity-history', icon: History },
+  { name: 'Profile', href: '/dashboard/profile', icon: User },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
@@ -92,6 +96,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   // Render client loading state while session is being fetched
+  // Redirect to login if unauthenticated
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login?error=SessionExpired');
+    }
+  }, [status, router]);
+
   if (status === 'loading') {
     return (
       <div style={{ display: 'flex', height: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-color)' }}>
@@ -105,9 +116,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // If unauthenticated, redirect handles are verified by middleware but fallback gracefully
+  // If unauthenticated, redirect handles are verified by useEffect but fallback gracefully
   if (status === 'unauthenticated') {
-    router.push('/login?error=SessionExpired');
     return null;
   }
 
@@ -144,22 +154,51 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Sidebar Nav Items */}
         <nav className={styles.navSection}>
-          {MENU_ITEMS.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
-              >
-                <Icon className={styles.menuIcon} size={16} />
-                {(!isCollapsed || isMobileOpen) && (
-                  <span className={styles.menuLabel}>{item.name}</span>
-                )}
-              </Link>
-            );
-          })}
+          {(() => {
+            const userRole = (session?.user as any)?.role || 'Staff';
+            const userPermissions = (session?.user as any)?.permissions || [];
+
+            const visibleItems = MENU_ITEMS.filter((item) => {
+              if (userRole === 'Admin') return true;
+
+              if (item.href === '/dashboard') {
+                return userPermissions.includes('Dashboard.View');
+              }
+              if (item.href === '/dashboard/user-management') {
+                return userPermissions.includes('User Management.View');
+              }
+              if (item.href === '/dashboard/role-management') {
+                return userPermissions.includes('Role Management.View');
+              }
+              if (item.href === '/dashboard/activity-history') {
+                return userPermissions.includes('Activity History.View');
+              }
+              if (item.href === '/dashboard/profile') {
+                return userPermissions.includes('Profile.View');
+              }
+              if (item.href === '/dashboard/settings') {
+                return userPermissions.includes('Settings.View');
+              }
+              return true;
+            });
+
+            return visibleItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
+                >
+                  <Icon className={styles.menuIcon} size={16} />
+                  {(!isCollapsed || isMobileOpen) && (
+                    <span className={styles.menuLabel}>{item.name}</span>
+                  )}
+                </Link>
+              );
+            });
+          })()}
         </nav>
 
         {/* Sidebar footer collapse trigger */}

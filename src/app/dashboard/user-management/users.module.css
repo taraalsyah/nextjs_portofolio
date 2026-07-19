@@ -1,0 +1,402 @@
+/* User Management Styles — Compact Enterprise Design */
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.tableCard {
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+}
+
+.headerSection {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 1rem;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: hsla(0, 0%, 100%, 0.01);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.table th {
+  background: hsla(0, 0%, 100%, 0.03);
+  color: hsla(0, 0%, 100%, 0.5);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.table td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tr:hover td {
+  background: hsla(0, 0%, 100%, 0.02);
+}
+
+.userCol {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.nameText {
+  font-weight: 600;
+  color: var(--fg-color);
+}
+
+.usernameText {
+  font-size: 0.72rem;
+  color: hsla(0, 0%, 100%, 0.4);
+}
+
+.emailCol {
+  color: hsla(0, 0%, 100%, 0.7);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.15rem 0.5rem;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.roleBadge {
+  background: hsla(265, 80%, 60%, 0.12);
+  color: hsl(265, 90%, 85%);
+  border: 1px solid hsla(265, 80%, 60%, 0.25);
+}
+
+.statusActive {
+  background: hsla(180, 70%, 50%, 0.15);
+  color: hsl(180, 90%, 80%);
+  border: 1px solid hsla(180, 70%, 50%, 0.2);
+}
+
+.statusPending {
+  background: hsla(330, 90%, 65%, 0.15);
+  color: hsl(330, 90%, 80%);
+  border: 1px solid hsla(330, 90%, 65%, 0.2);
+}
+
+.actionsCol {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: hsla(0, 0%, 100%, 0.6);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.actionBtn:hover {
+  background: hsla(0, 0%, 100%, 0.05);
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.deleteBtn:hover {
+  border-color: hsl(330, 90%, 65%);
+  color: hsl(330, 90%, 65%);
+  background: hsla(330, 90%, 65%, 0.08);
+}
+
+/* Modal Overlay */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 400px;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: scaleIn 0.2s ease-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.75rem;
+}
+
+.modalTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.closeModalBtn {
+  background: transparent;
+  border: none;
+  color: hsla(0, 0%, 100%, 0.4);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.closeModalBtn:hover {
+  color: var(--fg-color);
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: hsla(0, 0%, 100%, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--bg-color);
+  color: var(--fg-color);
+  font-size: 0.82rem;
+  outline: none;
+  height: 38px;
+  cursor: pointer;
+}
+
+.select:focus {
+  border-color: var(--secondary);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1rem;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  height: 36px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--fg-color);
+  transition: var(--transition);
+}
+
+.btn:hover {
+  background: hsla(0, 0%, 100%, 0.05);
+}
+
+.saveBtn {
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 10px var(--secondary-glow);
+}
+
+.saveBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px var(--secondary-glow);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Alert Notification */
+.alert {
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideUp 0.3s ease-out;
+}
+
+.alertSuccess {
+  background: hsla(180, 70%, 50%, 0.1);
+  border: 1px solid hsla(180, 70%, 50%, 0.2);
+  color: hsl(180, 90%, 80%);
+}
+
+.alertError {
+  background: hsla(330, 90%, 65%, 0.1);
+  border: 1px solid hsla(330, 90%, 65%, 0.2);
+  color: hsl(330, 90%, 80%);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (max-width: 640px) {
+  .actionsCol {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+}
+
+/* Pagination Section */
+.paginationSection {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 1.25rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1rem;
+  gap: 1rem;
+}
+
+.paginationInfo {
+  font-size: 0.78rem;
+  color: hsla(0, 0%, 100%, 0.55);
+  font-weight: 500;
+}
+
+.paginationNav {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.pageBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  min-width: 28px;
+  padding: 0 0.5rem;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: hsla(0, 0%, 100%, 0.7);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.pageBtn:hover:not(.disabledPageBtn):not(.activePageBtn) {
+  background: hsla(0, 0%, 100%, 0.05);
+  border-color: var(--fg-color);
+  color: var(--fg-color);
+}
+
+.activePageBtn {
+  background: var(--primary-glow);
+  color: hsl(265, 90%, 80%);
+  border-color: hsla(265, 80%, 60%, 0.25);
+  cursor: default;
+}
+
+.disabledPageBtn {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ellipsis {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  min-width: 28px;
+  font-size: 0.78rem;
+  color: hsla(0, 0%, 100%, 0.4);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .paginationSection {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+}

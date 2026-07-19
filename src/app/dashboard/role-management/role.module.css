@@ -1,0 +1,406 @@
+/* Role Management Styles — Compact Dual Panel Design */
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.panelGrid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 1rem;
+}
+
+@media (max-width: 768px) {
+  .panelGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── LEFT PANEL (Role List) ────────────────────────────────────────────────── */
+.leftPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.roleCardList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.roleItem {
+  width: 100%;
+  text-align: left;
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: hsla(0, 0%, 100%, 0.6);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.roleItem:hover {
+  background: hsla(0, 0%, 100%, 0.04);
+  color: var(--fg-color);
+}
+
+.roleItemActive {
+  background: var(--primary-glow);
+  color: hsl(265, 90%, 80%) !important;
+  border-color: hsla(265, 80%, 60%, 0.25);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.roleItemName {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.roleItemDesc {
+  font-size: 0.7rem;
+  color: hsla(0, 0%, 100%, 0.4);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.addRoleBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  background: var(--glass);
+  border: 1px dashed var(--glass-border);
+  color: var(--fg-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  height: 38px;
+}
+
+.addRoleBtn:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
+  background: hsla(0, 0%, 100%, 0.02);
+}
+
+/* ─── RIGHT PANEL (Role Detail & Matrix) ─────────────────────────────────────── */
+.rightPanel {
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.detailHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.75rem;
+}
+
+.titleArea {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.detailTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.detailDesc {
+  font-size: 0.78rem;
+  color: hsla(0, 0%, 100%, 0.45);
+}
+
+.roleCrudActions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.crudBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 28px;
+  padding: 0 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: hsla(0, 0%, 100%, 0.7);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.crudBtn:hover {
+  background: hsla(0, 0%, 100%, 0.05);
+  border-color: var(--secondary);
+  color: var(--secondary);
+}
+
+.deleteCrudBtn:hover {
+  border-color: hsl(330, 90%, 65%);
+  color: hsl(330, 90%, 65%);
+  background: hsla(330, 90%, 65%, 0.08);
+}
+
+/* Form Fields */
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: hsla(0, 0%, 100%, 0.45);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--fg-color);
+  font-size: 0.82rem;
+  outline: none;
+  height: 38px;
+}
+
+.input:focus {
+  border-color: var(--secondary);
+}
+
+/* ─── PERMISSION MATRIX ──────────────────────────────────────────────────────── */
+.matrixSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.matrixCard {
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: hsla(0, 0%, 100%, 0.01);
+}
+
+.matrixTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.82rem;
+}
+
+.matrixTable th {
+  background: hsla(0, 0%, 100%, 0.03);
+  color: hsla(0, 0%, 100%, 0.5);
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.matrixTable td {
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--glass-border);
+  vertical-align: middle;
+}
+
+.matrixTable tr:last-child td {
+  border-bottom: none;
+}
+
+.moduleCol {
+  font-weight: 600;
+  color: var(--fg-color);
+  width: 220px;
+}
+
+.checkboxCell {
+  text-align: center;
+  width: 100px;
+}
+
+/* Custom Styled Checkbox */
+.checkboxContainer {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+}
+
+.checkboxInput {
+  cursor: pointer;
+  width: 15px;
+  height: 15px;
+  accent-color: var(--secondary);
+}
+
+/* Empty Dash symbol when permission action doesn't exist for module */
+.emptyAction {
+  color: hsla(0, 0%, 100%, 0.2);
+  font-weight: 600;
+}
+
+/* Footer & Buttons */
+.panelFooter {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 1rem;
+  margin-top: 0.5rem;
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.45rem 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  height: 36px;
+  border: none;
+  box-shadow: 0 4px 10px var(--secondary-glow);
+  transition: var(--transition);
+}
+
+.saveBtn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px var(--secondary-glow);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Modal Overlay (Add/Edit Role Dialog) */
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.modalContent {
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+  border: 1px solid var(--glass-border);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  animation: scaleIn 0.2s ease-out;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--glass-border);
+  padding-bottom: 0.75rem;
+}
+
+.modalTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.closeModalBtn {
+  background: transparent;
+  border: none;
+  color: hsla(0, 0%, 100%, 0.4);
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.closeModalBtn:hover {
+  color: var(--fg-color);
+}
+
+/* Alert Notification */
+.alert {
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: slideUp 0.3s ease-out;
+}
+
+.alertSuccess {
+  background: hsla(180, 70%, 50%, 0.1);
+  border: 1px solid hsla(180, 70%, 50%, 0.2);
+  color: hsl(180, 90%, 80%);
+}
+
+.alertError {
+  background: hsla(330, 90%, 65%, 0.1);
+  border: 1px solid hsla(330, 90%, 65%, 0.2);
+  color: hsl(330, 90%, 80%);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
