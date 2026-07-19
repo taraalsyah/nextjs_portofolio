@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Image as ImageIcon, AlertCircle } from 'lucide-react';
+import { Camera, AlertCircle } from 'lucide-react';
 import styles from './profile.module.css';
 
 interface ProfileAvatarProps {
@@ -9,12 +9,13 @@ interface ProfileAvatarProps {
   onFileSelect: (file: File | null) => void;
   resetTrigger: boolean;
   nameInitials: string;
+  isEditing: boolean;
 }
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
 const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
 
-export default function ProfileAvatar({ currentImage, onFileSelect, resetTrigger, nameInitials }: ProfileAvatarProps) {
+export default function ProfileAvatar({ currentImage, onFileSelect, resetTrigger, nameInitials, isEditing }: ProfileAvatarProps) {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -71,30 +72,37 @@ export default function ProfileAvatar({ currentImage, onFileSelect, resetTrigger
         )}
       </div>
 
-      <div className={styles.avatarActions}>
-        <div className={styles.uploadBtn}>
-          <label className={styles.uploadLabel} onClick={handleTriggerUpload}>
-            <Camera size={16} />
-            <span>Pilih Foto Baru</span>
-          </label>
-          <input
-            type="file"
-            ref={fileInputRef}
-            onChange={handleFileChange}
-            accept=".jpg,.jpeg,.png,.webp"
-            className={styles.fileInput}
-          />
-        </div>
-        <span className={styles.avatarInfoText}>
-          Ekstensi: JPG, JPEG, PNG, atau WEBP. Maksimal 2 MB.
-        </span>
-
-        {error && (
-          <span className={styles.errorText} style={{ marginTop: '0.25rem' }}>
-            <AlertCircle size={14} /> {error}
+      {isEditing ? (
+        <div className={styles.avatarActions}>
+          <div className={styles.uploadBtn}>
+            <label className={styles.uploadLabel} onClick={handleTriggerUpload}>
+              <Camera size={16} />
+              <span>Pilih Foto Baru</span>
+            </label>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              accept=".jpg,.jpeg,.png,.webp"
+              className={styles.fileInput}
+            />
+          </div>
+          <span className={styles.avatarInfoText}>
+            Ekstensi: JPG, JPEG, PNG, atau WEBP. Maksimal 2 MB.
           </span>
-        )}
-      </div>
+
+          {error && (
+            <span className={styles.errorText} style={{ marginTop: '0.25rem' }}>
+              <AlertCircle size={14} /> {error}
+            </span>
+          )}
+        </div>
+      ) : (
+        <div className={styles.avatarViewInfo}>
+          <span className={styles.avatarViewName}>Foto Profil</span>
+          <span className={styles.avatarViewEmail}>Klik Edit untuk mengubah foto profil</span>
+        </div>
+      )}
     </div>
   );
 }

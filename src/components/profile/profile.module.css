@@ -16,6 +16,67 @@
     0 0 50px -10px rgba(180, 70%, 50%, 0.05);
 }
 
+/* ─── CARD HEADER (Mode Badge + Edit Button) ────────────────────────────────── */
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.modeBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transition: var(--transition);
+}
+
+.modeBadgeView {
+  background: hsla(0, 0%, 100%, 0.06);
+  border: 1px solid hsla(0, 0%, 100%, 0.1);
+  color: hsla(0, 0%, 100%, 0.5);
+}
+
+.modeBadgeEdit {
+  background: hsla(180, 70%, 50%, 0.12);
+  border: 1px solid hsla(180, 70%, 50%, 0.25);
+  color: hsl(180, 80%, 65%);
+  animation: badgePulse 2s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 hsla(180, 70%, 50%, 0); }
+  50% { box-shadow: 0 0 12px 2px hsla(180, 70%, 50%, 0.15); }
+}
+
+.editBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 10px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--fg-color);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.editBtn:hover {
+  background: hsla(0, 0%, 100%, 0.08);
+  border-color: var(--secondary);
+  color: var(--secondary);
+  transform: translateY(-1px);
+}
+
 /* ─── AVATAR SECTION ─────────────────────────────────────────────────────────── */
 .avatarSection {
   display: flex;
@@ -53,6 +114,23 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+}
+
+.avatarViewInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.avatarViewName {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--fg-color);
+}
+
+.avatarViewEmail {
+  font-size: 0.85rem;
+  color: hsla(0, 0%, 100%, 0.45);
 }
 
 .uploadBtn {
@@ -151,6 +229,7 @@
   box-shadow: 0 0 15px var(--secondary-glow);
 }
 
+/* Permanently readonly fields (email, role, dates) */
 .readonlyInput {
   background: hsla(0, 0%, 100%, 0.02);
   border-color: var(--glass-border);
@@ -160,6 +239,20 @@
 
 .readonlyInput:focus {
   border-color: var(--glass-border);
+  background: hsla(0, 0%, 100%, 0.02);
+  box-shadow: none;
+}
+
+/* View Mode input styling — readonly but visually "data display" */
+.viewModeInput {
+  background: hsla(0, 0%, 100%, 0.02);
+  border-color: transparent;
+  color: hsla(0, 0%, 100%, 0.75);
+  cursor: default;
+}
+
+.viewModeInput:focus {
+  border-color: transparent;
   background: hsla(0, 0%, 100%, 0.02);
   box-shadow: none;
 }
@@ -181,6 +274,7 @@
   margin-top: 2rem;
   border-top: 1px solid var(--glass-border);
   padding-top: 2rem;
+  animation: fadeSlideUp 0.3s ease-out;
 }
 
 .saveBtn {
@@ -236,6 +330,27 @@
   cursor: not-allowed;
 }
 
+.cancelBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--fg-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.cancelBtn:hover {
+  background: hsla(330, 90%, 65%, 0.08);
+  border-color: hsl(330, 90%, 65%);
+  color: hsl(330, 90%, 75%);
+}
+
 /* Alert Notification */
 .alert {
   padding: 1rem 1.25rem;
@@ -245,6 +360,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  animation: fadeSlideUp 0.3s ease-out;
 }
 
 .alertSuccess {
@@ -273,18 +389,44 @@
   to { transform: rotate(360deg); }
 }
 
+/* ─── ANIMATIONS ─────────────────────────────────────────────────────────────── */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
+  .profileCard {
+    padding: 1.5rem;
+  }
+
+  .cardHeader {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+
   .avatarSection {
     flex-direction: column;
     text-align: center;
     gap: 1.25rem;
+  }
+
+  .avatarViewInfo {
+    align-items: center;
   }
   
   .btnSection {
     flex-direction: column;
   }
   
-  .saveBtn, .resetBtn {
+  .saveBtn, .resetBtn, .cancelBtn {
     width: 100%;
     justify-content: center;
   }

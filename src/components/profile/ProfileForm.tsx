@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { revalidateDashboard } from '@/app/actions/profile';
 import { 
   User, 
@@ -15,7 +15,10 @@ import {
   Clock, 
   Shield, 
   Save, 
-  RotateCcw,
+  Pencil,
+  X,
+  Eye,
+  PenLine,
   CheckCircle,
   AlertTriangle
 } from 'lucide-react';
@@ -57,13 +60,20 @@ interface ProfileFormProps {
 export default function ProfileForm({ initialUser }: ProfileFormProps) {
   const { update } = useSession();
   const router = useRouter();
+  const pathname = usePathname();
+
+  // ─── STATE ──────────────────────────────────────────────────────────────────
   const [currentUser, setCurrentUser] = useState<UserProfileData>(initialUser);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [resetTrigger, setResetTrigger] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
-  // React Hook Form setup
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
+  const prevPathnameRef = useRef<string>(pathname);
+
+  // ─── REACT HOOK FORM ────────────────────────────────────────────────────────
   const {
     register,
     handleSubmit,
@@ -78,12 +88,18 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
     }
   });
 
-  // Sync state if initialUser prop from server component updates
+  // Capture ref for name input to focus on edit
+  const { ref: nameRegRef, ...nameRegRest } = register('name');
+  const nameRefCallback = useCallback((el: HTMLInputElement | null) => {
+    nameRegRef(el);
+    nameInputRef.current = el;
+  }, [nameRegRef]);
+
+  // ─── SYNC INITIAL USER PROP ─────────────────────────────────────────────────
   useEffect(() => {
     setCurrentUser(initialUser);
   }, [initialUser]);
 
-  // Keep form values in sync if currentUser state changes
   useEffect(() => {
     reset({
       name: currentUser.name,
@@ -92,7 +108,61 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
     });
   }, [currentUser, reset]);
 
-  // Handle Form Submission
+  // ─── UNSAVED CHANGES GUARD: BROWSER CLOSE/REFRESH ──────────────────────────
+  const hasUnsavedChanges = isEditing && (isDirty || !!selectedFile);
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
+  // ─── UNSAVED CHANGES GUARD: ROUTE NAVIGATION ──────────────────────────────
+  useEffect(() => {
+    if (prevPathnameRef.current !== pathname && hasUnsavedChanges) {
+      const confirmed = window.confirm(
+        'Anda memiliki perubahan yang belum disimpan. Yakin ingin meninggalkan halaman ini?'
+      );
+      if (!confirmed) {
+        router.push(prevPathnameRef.current);
+        return;
+      }
+      // User chose to leave — reset state
+      setIsEditing(false);
+      setSelectedFile(null);
+      setResetTrigger(prev => !prev);
+      reset();
+    }
+    prevPathnameRef.current = pathname;
+  }, [pathname, hasUnsavedChanges, router, reset]);
+
+  // ─── MODE HANDLERS ─────────────────────────────────────────────────────────
+  const handleEdit = () => {
+    setIsEditing(true);
+    setStatus(null);
+    // Focus first editable field after DOM update
+    setTimeout(() => {
+      nameInputRef.current?.focus();
+    }, 50);
+  };
+
+  const handleCancel = () => {
+    setIsEditing(false);
+    setSelectedFile(null);
+    setResetTrigger(prev => !prev);
+    reset({
+      name: currentUser.name,
+      username: currentUser.username || '',
+      phone: currentUser.phone || '',
+    });
+    setStatus(null);
+  };
+
+  // ─── FORM SUBMISSION ───────────────────────────────────────────────────────
   const onSubmit = async (values: ProfileFormValues) => {
     setIsSubmitting(true);
     setStatus(null);
@@ -118,25 +188,24 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
         throw new Error(data.message || 'Gagal memperbarui profil.');
       }
 
-      // 1. Update status state lokal
+      // 1. Update local state & exit edit mode
       setCurrentUser(data.user);
       setSelectedFile(null);
       setResetTrigger(prev => !prev);
+      setIsEditing(false);
       setStatus({ type: 'success', message: 'Informasi profil berhasil diperbarui.' });
 
-      // 2. SINKRONISASI SESSION NEXTAUTH SECARA REALTIME
-      // Memanggil fungsi update() pada useSession() untuk meng-update JWT token.
+      // 2. Sync NextAuth session
       await update({
         name: data.user.name,
         image: data.user.image,
         username: data.user.username,
       });
 
-      // 3. REVALIDASI PATH DI SISI SERVER UNTUK MEMBERSIHKAN CLIENT ROUTER CACHE
+      // 3. Revalidate server-side cache
       await revalidateDashboard();
 
-      // 4. REFRESH ROUTER UNTUK MENG-INVALIDASI CACHE SERVER COMPONENTS
-      // Diberikan delay kecil agar penulisan cookie session selesai di browser sebelum refresh dipanggil
+      // 4. Refresh router for server components
       setTimeout(() => {
         router.refresh();
       }, 100);
@@ -144,19 +213,13 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
     } catch (err: any) {
       console.error(err);
       setStatus({ type: 'error', message: err.message || 'Terjadi kesalahan saat menyimpan data.' });
+      // Stay in edit mode on error — don't discard user input
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Handle Form Reset
-  const handleReset = () => {
-    reset();
-    setSelectedFile(null);
-    setResetTrigger(prev => !prev);
-    setStatus(null);
-  };
-
+  // ─── HELPERS ────────────────────────────────────────────────────────────────
   const getInitials = (name: string) => {
     return name
       .split(' ')
@@ -182,6 +245,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
       }) + ' WIB'
     : '-';
 
+  // ─── RENDER ─────────────────────────────────────────────────────────────────
   return (
     <div className={styles.container}>
       {/* Alert status notification */}
@@ -193,12 +257,37 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
       )}
 
       <form onSubmit={handleSubmit(onSubmit)} className={`${styles.profileCard} glass`}>
-        {/* Interactive Avatar selection */}
+        {/* Card Header: Mode Badge + Edit/Action Buttons */}
+        <div className={styles.cardHeader}>
+          {isEditing ? (
+            <span className={`${styles.modeBadge} ${styles.modeBadgeEdit}`}>
+              <PenLine size={12} /> Edit Mode
+            </span>
+          ) : (
+            <span className={`${styles.modeBadge} ${styles.modeBadgeView}`}>
+              <Eye size={12} /> View Mode
+            </span>
+          )}
+
+          {!isEditing && (
+            <button
+              type="button"
+              onClick={handleEdit}
+              className={styles.editBtn}
+            >
+              <Pencil size={15} />
+              <span>Edit</span>
+            </button>
+          )}
+        </div>
+
+        {/* Interactive Avatar section */}
         <ProfileAvatar
           currentImage={currentUser.image}
           onFileSelect={setSelectedFile}
           resetTrigger={resetTrigger}
           nameInitials={getInitials(currentUser.name)}
+          isEditing={isEditing}
         />
 
         {/* Input Fields Grid */}
@@ -210,8 +299,10 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
             </label>
             <input
               type="text"
-              {...register('name')}
-              className={styles.input}
+              ref={nameRefCallback}
+              {...nameRegRest}
+              readOnly={!isEditing}
+              className={`${styles.input} ${!isEditing ? styles.viewModeInput : ''}`}
               placeholder="Masukkan nama lengkap Anda"
             />
             {errors.name && (
@@ -227,7 +318,8 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
             <input
               type="text"
               {...register('username')}
-              className={styles.input}
+              readOnly={!isEditing}
+              className={`${styles.input} ${!isEditing ? styles.viewModeInput : ''}`}
               placeholder="Masukkan username Anda"
             />
             {errors.username && (
@@ -235,16 +327,16 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
             )}
           </div>
 
-          {/* Field 3: Email (Readonly) */}
+          {/* Field 3: Email (Always Readonly) */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              <Mail className={styles.labelIcon} size={16} /> Email (Read-Only)
+              <Mail className={styles.labelIcon} size={16} /> Email
             </label>
             <input
               type="email"
               value={currentUser.email}
               readOnly
-              className={`${styles.input} styles.readonlyInput`}
+              className={`${styles.input} ${styles.readonlyInput}`}
             />
           </div>
 
@@ -256,7 +348,8 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
             <input
               type="text"
               {...register('phone')}
-              className={styles.input}
+              readOnly={!isEditing}
+              className={`${styles.input} ${!isEditing ? styles.viewModeInput : ''}`}
               placeholder="Contoh: 08123456789 (Opsional)"
             />
             {errors.phone && (
@@ -304,36 +397,38 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           </div>
         </div>
 
-        {/* Action Button Section */}
-        <div className={styles.btnSection}>
-          <button
-            type="button"
-            onClick={handleReset}
-            disabled={isSubmitting || (!isDirty && !selectedFile)}
-            className={styles.resetBtn}
-          >
-            <RotateCcw size={16} />
-            <span>Reset</span>
-          </button>
-          
-          <button
-            type="submit"
-            disabled={isSubmitting || (!isDirty && !selectedFile)}
-            className={styles.saveBtn}
-          >
-            {isSubmitting ? (
-              <>
-                <div className={styles.spinner} />
-                <span>Menyimpan...</span>
-              </>
-            ) : (
-              <>
-                <Save size={16} />
-                <span>Simpan Perubahan</span>
-              </>
-            )}
-          </button>
-        </div>
+        {/* Action Buttons — only visible in Edit Mode */}
+        {isEditing && (
+          <div className={styles.btnSection}>
+            <button
+              type="button"
+              onClick={handleCancel}
+              disabled={isSubmitting}
+              className={styles.cancelBtn}
+            >
+              <X size={16} />
+              <span>Batal</span>
+            </button>
+            
+            <button
+              type="submit"
+              disabled={isSubmitting || (!isDirty && !selectedFile)}
+              className={styles.saveBtn}
+            >
+              {isSubmitting ? (
+                <>
+                  <div className={styles.spinner} />
+                  <span>Menyimpan...</span>
+                </>
+              ) : (
+                <>
+                  <Save size={16} />
+                  <span>Simpan Perubahan</span>
+                </>
+              )}
+            </button>
+          </div>
+        )}
       </form>
     </div>
   );
