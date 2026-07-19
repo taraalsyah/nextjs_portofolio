@@ -1,0 +1,291 @@
+/* Profile Form Styling */
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.profileCard {
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 
+    0 20px 40px -15px rgba(0, 0, 0, 0.5),
+    0 0 50px -10px rgba(180, 70%, 50%, 0.05);
+}
+
+/* ─── AVATAR SECTION ─────────────────────────────────────────────────────────── */
+.avatarSection {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  padding-bottom: 2rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.avatarWrapper {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 2.5rem;
+  color: white;
+  border: 2px solid var(--glass-border);
+  box-shadow: 0 8px 24px var(--secondary-glow);
+  flex-shrink: 0;
+}
+
+.avatarImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatarActions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.uploadBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 10px;
+  background: var(--primary);
+  color: white;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 1px solid var(--primary-glow);
+}
+
+.uploadBtn:hover {
+  background: hsl(265, 80%, 50%);
+  transform: translateY(-1px);
+}
+
+.uploadLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.fileInput {
+  display: none;
+}
+
+.avatarInfoText {
+  font-size: 0.75rem;
+  color: hsla(0, 0%, 100%, 0.4);
+  line-height: 1.4;
+}
+
+/* ─── FORM ELEMENTS ──────────────────────────────────────────────────────────── */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.fullWidth {
+  grid-column: span 1;
+}
+
+@media (min-width: 640px) {
+  .fullWidth {
+    grid-column: span 2;
+  }
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: hsla(0, 0%, 100%, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.labelIcon {
+  color: var(--secondary);
+}
+
+.input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--fg-color);
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: var(--transition);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--secondary);
+  background: hsla(0, 0%, 100%, 0.06);
+  box-shadow: 0 0 15px var(--secondary-glow);
+}
+
+.readonlyInput {
+  background: hsla(0, 0%, 100%, 0.02);
+  border-color: var(--glass-border);
+  color: hsla(0, 0%, 100%, 0.4);
+  cursor: not-allowed;
+}
+
+.readonlyInput:focus {
+  border-color: var(--glass-border);
+  background: hsla(0, 0%, 100%, 0.02);
+  box-shadow: none;
+}
+
+.errorText {
+  font-size: 0.8rem;
+  color: hsl(330, 90%, 65%);
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ─── BUTTONS SECTION ────────────────────────────────────────────────────────── */
+.btnSection {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 2rem;
+  border-top: 1px solid var(--glass-border);
+  padding-top: 2rem;
+}
+
+.saveBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+  box-shadow: 0 4px 15px var(--secondary-glow);
+  border: none;
+}
+
+.saveBtn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--secondary-glow);
+  filter: brightness(1.1);
+}
+
+.saveBtn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.resetBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass);
+  color: var(--fg-color);
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.resetBtn:hover:not(:disabled) {
+  background: hsla(0, 0%, 100%, 0.05);
+  border-color: var(--fg-color);
+}
+
+.resetBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Alert Notification */
+.alert {
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.alertSuccess {
+  background: hsla(180, 70%, 50%, 0.1);
+  border: 1px solid hsla(180, 70%, 50%, 0.2);
+  color: hsl(180, 90%, 80%);
+}
+
+.alertError {
+  background: hsla(330, 90%, 65%, 0.1);
+  border: 1px solid hsla(330, 90%, 65%, 0.2);
+  color: hsl(330, 90%, 80%);
+}
+
+/* Loading Spinners */
+.spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .avatarSection {
+    flex-direction: column;
+    text-align: center;
+    gap: 1.25rem;
+  }
+  
+  .btnSection {
+    flex-direction: column;
+  }
+  
+  .saveBtn, .resetBtn {
+    width: 100%;
+    justify-content: center;
+  }
+}

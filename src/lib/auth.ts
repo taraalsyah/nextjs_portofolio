@@ -40,22 +40,40 @@ export const authOptions: AuthOptions = {
           throw new Error('PENDING_VERIFICATION');
         }
 
+        // Simpan log waktu terakhir login ke database
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastLoginAt: new Date() }
+        });
+
         return {
           id: user.id.toString(),
           name: user.name,
           email: user.email,
           role: user.role,
           password: user.password,
+          username: user.username,
+          image: user.image,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
         token.passwordHash = (user as any).password;
+        token.name = user.name;
+        token.image = (user as any).image;
+        token.username = (user as any).username;
+      }
+
+      // Handle pembaruan session secara realtime dari client side menggunakan update()
+      if (trigger === 'update' && session) {
+        if (session.name) token.name = session.name;
+        if (session.image !== undefined) token.image = session.image;
+        if (session.username) token.username = session.username;
       }
 
       // Validasi apakah password di database masih sama (invalidation check pada semua device)
@@ -66,6 +84,7 @@ export const authOptions: AuthOptions = {
         });
 
         if (!dbUser || dbUser.password !== token.passwordHash) {
+          console.log('JWT CALLBACK - Session invalidated (password mismatch or user not found)');
           return {}; // Session ter-invalidate
         }
       }
@@ -75,6 +94,9 @@ export const authOptions: AuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).username = token.username;
+        (session.user as any).image = token.image;
+        session.user.name = token.name;
       }
       return session;
     },

@@ -10,11 +10,15 @@ generator client {
 model User {
   id              Int                 @id @default(autoincrement())
   name            String
+  username        String?             @unique
   email           String              @unique
   password        String
   role            String              @default("user")
   status          String              @default("PENDING") // PENDING, ACTIVE
+  phone           String?
+  image           String?
   emailVerifiedAt DateTime?           @map("email_verified_at")
+  lastLoginAt     DateTime?           @map("last_login_at")
   createdAt       DateTime            @default(now()) @map("created_at")
   updatedAt       DateTime            @updatedAt @map("updated_at")
   verifications   EmailVerification[]

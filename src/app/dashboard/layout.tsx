@@ -214,7 +214,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 className={styles.profileTrigger}
               >
                 <div className={styles.userAvatar}>
-                  {getInitials(session?.user?.name)}
+                  {session?.user?.image ? (
+                    <img 
+                      src={session.user.image} 
+                      alt={session.user.name || 'User'} 
+                      className={styles.avatarImage} 
+                    />
+                  ) : (
+                    getInitials(session?.user?.name)
+                  )}
                 </div>
                 <div className={styles.userInfo}>
                   <span className={styles.userName}>{session?.user?.name || 'User'}</span>
