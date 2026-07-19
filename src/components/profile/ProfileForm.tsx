@@ -251,7 +251,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
       {/* Alert status notification */}
       {status && (
         <div className={`${styles.alert} ${status.type === 'success' ? styles.alertSuccess : styles.alertError}`}>
-          {status.type === 'success' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
+          {status.type === 'success' ? <CheckCircle size={16} /> : <AlertTriangle size={16} />}
           <span>{status.message}</span>
         </div>
       )}
@@ -275,7 +275,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
               onClick={handleEdit}
               className={styles.editBtn}
             >
-              <Pencil size={15} />
+              <Pencil size={13} />
               <span>Edit</span>
             </button>
           )}
@@ -295,7 +295,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           {/* Field 1: Nama */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              <User className={styles.labelIcon} size={16} /> Nama Lengkap
+              <User className={styles.labelIcon} size={13} /> Nama Lengkap
             </label>
             <input
               type="text"
@@ -313,7 +313,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           {/* Field 2: Username */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              <User className={styles.labelIcon} size={16} /> Username
+              <User className={styles.labelIcon} size={13} /> Username
             </label>
             <input
               type="text"
@@ -330,7 +330,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           {/* Field 3: Email (Always Readonly) */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              <Mail className={styles.labelIcon} size={16} /> Email
+              <Mail className={styles.labelIcon} size={13} /> Email
             </label>
             <input
               type="email"
@@ -343,7 +343,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           {/* Field 4: Nomor Telepon */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              <Phone className={styles.labelIcon} size={16} /> Nomor Telepon
+              <Phone className={styles.labelIcon} size={13} /> Nomor Telepon
             </label>
             <input
               type="text"
@@ -360,7 +360,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           {/* Read-Only Stats: Hak Akses / Role */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              <Shield className={styles.labelIcon} size={16} /> Peran Hak Akses
+              <Shield className={styles.labelIcon} size={13} /> Peran Hak Akses
             </label>
             <input
               type="text"
@@ -373,7 +373,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           {/* Read-Only Stats: Bergabung */}
           <div className={styles.inputGroup}>
             <label className={styles.label}>
-              <Calendar className={styles.labelIcon} size={16} /> Tanggal Registrasi
+              <Calendar className={styles.labelIcon} size={13} /> Tanggal Registrasi
             </label>
             <input
               type="text"
@@ -386,7 +386,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
           {/* Read-Only Stats: Terakhir Login */}
           <div className={`${styles.inputGroup} ${styles.fullWidth}`}>
             <label className={styles.label}>
-              <Clock className={styles.labelIcon} size={16} /> Terakhir Kali Login
+              <Clock className={styles.labelIcon} size={13} /> Terakhir Kali Login
             </label>
             <input
               type="text"
@@ -406,7 +406,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
               disabled={isSubmitting}
               className={styles.cancelBtn}
             >
-              <X size={16} />
+              <X size={14} />
               <span>Batal</span>
             </button>
             
@@ -422,7 +422,7 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
                 </>
               ) : (
                 <>
-                  <Save size={16} />
+                  <Save size={14} />
                   <span>Simpan Perubahan</span>
                 </>
               )}

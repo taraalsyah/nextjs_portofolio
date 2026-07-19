@@ -10,10 +10,8 @@ export const metadata = {
 };
 
 export default async function ProfilePage() {
-  // 1. Verifikasi session di server side
   const sessionUser = await requireAuth();
 
-  // 2. Ambil data profil terbaru langsung dari database
   const userId = parseInt((sessionUser as any).id);
   const user = await prisma.user.findUnique({
     where: { id: userId },
@@ -34,7 +32,6 @@ export default async function ProfilePage() {
     throw new Error('Data user tidak ditemukan di database.');
   }
 
-  // 3. Konversi format data tanggal ke string agar aman dilempar ke client component
   const initialUser = {
     id: user.id,
     name: user.name,
@@ -48,7 +45,7 @@ export default async function ProfilePage() {
   };
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+    <div style={{ maxWidth: '720px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <ProfileHeader name={initialUser.name} />
       <ProfileForm initialUser={initialUser} />
     </div>

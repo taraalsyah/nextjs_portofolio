@@ -125,7 +125,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.logoArea}>
-            <LayoutDashboard className={styles.logoIcon} size={24} />
+            <LayoutDashboard className={styles.logoIcon} size={18} />
             {!isCollapsed && <span className={`${styles.logoText} text-gradient`}>Tara Alsyah</span>}
           </div>
           {!isCollapsed && (
@@ -151,7 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 href={item.href}
                 className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
               >
-                <Icon className={styles.menuIcon} size={20} />
+                <Icon className={styles.menuIcon} size={16} />
                 {(!isCollapsed || isMobileOpen) && (
                   <span className={styles.menuLabel}>{item.name}</span>
                 )}
@@ -168,7 +168,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className={styles.collapseBtn}
               aria-label="Expand sidebar"
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={14} />
             </button>
           ) : (
             <button
@@ -201,7 +201,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               className={styles.menuToggle}
               aria-label="Toggle menu"
             >
-              <Menu size={20} />
+              <Menu size={16} />
             </button>
             <h1 className={styles.pageTitle}>{pageTitle}</h1>
           </div>
@@ -237,11 +237,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               {isDropdownOpen && (
                 <div className={styles.dropdownMenu}>
                   <Link href="/dashboard/profile" className={styles.dropdownItem}>
-                    <User size={16} />
+                    <User size={14} />
                     <span>Profil Saya</span>
                   </Link>
                   <Link href="/dashboard/settings" className={styles.dropdownItem}>
-                    <Settings size={16} />
+                    <Settings size={14} />
                     <span>Pengaturan</span>
                   </Link>
                   <div className={styles.dropdownDivider} />
@@ -252,7 +252,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       type="submit"
                       className={`${styles.dropdownItem} ${styles.logoutItem}`}
                     >
-                      <LogOut size={16} />
+                      <LogOut size={14} />
                       <span>Keluar</span>
                     </button>
                   </form>
