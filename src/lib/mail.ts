@@ -80,7 +80,7 @@ export interface EmailResult {
  * Fungsi inti pengiriman email melalui Zoho SMTP.
  */
 export async function sendEmail(params: SendEmailParams): Promise<EmailResult> {
-  const from = `"Tara Alsyah" <${process.env.SMTP_USERNAME}>`;
+  const from = `"support-noreply" <${process.env.SMTP_USERNAME}>`;
 
   try {
     const info = await getTransporter().sendMail({
