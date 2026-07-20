@@ -4,6 +4,12 @@ import { resendVerificationSchema } from '@/validators/auth';
 
 export async function POST(request: Request) {
   try {
+    const userAgent = request.headers.get('user-agent') || 'Unknown';
+    const ipAddress =
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      request.headers.get('x-real-ip') ||
+      '127.0.0.1';
+
     const body = await request.json();
 
     // 1. Validasi input menggunakan Zod
@@ -20,11 +26,11 @@ export async function POST(request: Request) {
 
     const { email } = validation.data;
 
-    // 2. Kirim ulang OTP
-    await authService.resendOTP(email);
+    // 2. Kirim ulang OTP dengan metadata IP dan User-Agent
+    const result = await authService.resendOTP(email, { ipAddress, userAgent });
 
     return NextResponse.json(
-      { message: 'Kode verifikasi baru berhasil dikirim.' },
+      { message: result.message || 'Kode verifikasi baru berhasil dikirim.' },
       { status: 200 }
     );
   } catch (error: any) {

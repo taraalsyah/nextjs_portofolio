@@ -16,9 +16,12 @@ model User {
   role            String              @default("user") // Fallback
   roleId          Int?                @map("role_id")
   roleRel         Role?               @relation("UserRole", fields: [roleId], references: [id], onDelete: SetNull)
-  status          String              @default("PENDING") // PENDING, ACTIVE
+  status          String              @default("PENDING") // PENDING, ACTIVE, BLOCKED
   phone           String?
   image           String?
+  otpAttemptCount   Int                 @default(0) @map("otp_attempt_count")
+  otpSoftBlockUntil DateTime?           @map("otp_soft_block_until")
+  otpSoftBlockCount Int                 @default(0) @map("otp_soft_block_count")
   emailVerifiedAt DateTime?           @map("email_verified_at")
   lastLoginAt     DateTime?           @map("last_login_at")
   createdAt       DateTime            @default(now()) @map("created_at")

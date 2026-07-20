@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle, Unlock } from 'lucide-react';
 import { ButtonLoading, InlineSpinner } from '@/components/ui/loading';
 import styles from './users.module.css';
 
@@ -20,6 +20,8 @@ interface UserData {
   } | null;
   status: string;
   phone: string | null;
+  otpSoftBlockUntil?: string | null;
+  otpSoftBlockCount?: number;
   createdAt: string;
 }
 
@@ -80,6 +82,7 @@ export default function UserManagementContent({
   const [selectedRoleId, setSelectedRoleId] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
+  const [unblockingUserId, setUnblockingUserId] = useState<number | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
@@ -88,6 +91,44 @@ export default function UserManagementContent({
   useEffect(() => {
     setUsers(initialUsers);
   }, [initialUsers]);
+
+  const handleUnblockUser = async (userId: number, name: string) => {
+    const confirmed = window.confirm(`Apakah Anda yakin ingin membuka blokir registrasi akun "${name}"?`);
+    if (!confirmed) return;
+
+    setUnblockingUserId(userId);
+    setStatus(null);
+
+    try {
+      const res = await fetch(`/api/users/${userId}/unblock`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Gagal membuka blokir user.');
+      }
+
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId
+            ? {
+                ...u,
+                status: 'PENDING',
+                otpSoftBlockUntil: null,
+                otpSoftBlockCount: 0,
+              }
+            : u
+        )
+      );
+
+      setStatus({ type: 'success', message: `Berhasil membuka blokir akun "${name}". Status kembali PENDING.` });
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message || 'Terjadi kesalahan saat membuka blokir.' });
+    } finally {
+      setUnblockingUserId(null);
+    }
+  };
 
   const handlePageNavigate = (targetPage: number) => {
     if (targetPage === currentPage || targetPage < 1 || targetPage > Math.ceil(totalItems / 10)) return;
@@ -277,9 +318,32 @@ export default function UserManagementContent({
                           </span>
                         </td>
                         <td>
-                          <span className={`${styles.badge} ${u.status === 'ACTIVE' ? styles.statusActive : styles.statusPending}`}>
-                            {u.status === 'ACTIVE' ? 'Aktif' : 'Tertunda'}
-                          </span>
+                          {(() => {
+                            if (u.status === 'BLOCKED') {
+                              return (
+                                <span className={`${styles.badge} ${styles.statusBlocked}`}>
+                                  BLOCKED
+                                </span>
+                              );
+                            }
+                            const isSoftBlocked = u.otpSoftBlockUntil && new Date(u.otpSoftBlockUntil) > new Date();
+                            if (isSoftBlocked) {
+                              const diffMs = new Date(u.otpSoftBlockUntil!).getTime() - Date.now();
+                              const minsLeft = Math.max(1, Math.ceil(diffMs / (1000 * 60)));
+                              return (
+                                <span
+                                  className={`${styles.badge} ${styles.statusSoftBlocked}`}
+                                  title={`Soft Blocked. Sisa waktu: ${minsLeft}m`}
+                                >
+                                  Soft Blocked ({minsLeft}m)
+                                </span>
+                              );
+                            }
+                            if (u.status === 'ACTIVE') {
+                              return <span className={`${styles.badge} ${styles.statusActive}`}>Aktif</span>;
+                            }
+                            return <span className={`${styles.badge} ${styles.statusPending}`}>Tertunda</span>;
+                          })()}
                         </td>
                         <td>
                           {new Date(u.createdAt).toLocaleDateString('id-ID', {
@@ -290,6 +354,20 @@ export default function UserManagementContent({
                         </td>
                         <td>
                           <div className={styles.actionsCol} style={{ justifyContent: 'center' }}>
+                            {u.status === 'BLOCKED' && (
+                              <button
+                                onClick={() => handleUnblockUser(u.id, u.name)}
+                                disabled={unblockingUserId === u.id}
+                                className={`${styles.actionBtn} ${styles.unblockBtn}`}
+                                title="Buka Blokir (Unblock)"
+                              >
+                                {unblockingUserId === u.id ? (
+                                  <InlineSpinner size={13} color="var(--secondary)" />
+                                ) : (
+                                  <Unlock size={13} />
+                                )}
+                              </button>
+                            )}
                             <button
                               onClick={() => openEditRoleModal(u)}
                               className={styles.actionBtn}

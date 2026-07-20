@@ -113,6 +113,30 @@
   border: 1px solid hsla(330, 90%, 65%, 0.2);
 }
 
+.statusBlocked {
+  background: hsla(350, 80%, 55%, 0.18);
+  color: hsl(350, 90%, 80%);
+  border: 1px solid hsla(350, 80%, 55%, 0.3);
+}
+
+.statusSoftBlocked {
+  background: hsla(35, 90%, 55%, 0.18);
+  color: hsl(35, 95%, 80%);
+  border: 1px solid hsla(35, 90%, 55%, 0.3);
+}
+
+.unblockBtn {
+  border-color: hsla(180, 70%, 50%, 0.4);
+  color: var(--secondary);
+  background: hsla(180, 70%, 50%, 0.1);
+}
+
+.unblockBtn:hover {
+  border-color: var(--secondary);
+  background: hsla(180, 70%, 50%, 0.2);
+  color: white;
+}
+
 .actionsCol {
   display: flex;
   gap: 0.5rem;

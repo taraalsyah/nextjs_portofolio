@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import { hashPassword } from '@/utils/password';
 import { generateOTP } from '@/utils/otp';
 import { emailService } from '../email/email.service';
+import { otpService } from '../otp/otp.service';
 
 export class AuthService {
   async registerUser(name: string, email: string, passwordText: string) {
@@ -60,142 +61,12 @@ export class AuthService {
     };
   }
 
-  async verifyOTP(email: string, code: string) {
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      const error = new Error('User tidak ditemukan.');
-      (error as any).status = 404;
-      throw error;
-    }
-
-    // Cari kode verifikasi terbaru yang cocok untuk user tersebut
-    const verification = await prisma.emailVerification.findFirst({
-      where: {
-        userId: user.id,
-        code,
-        verifiedAt: null,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-
-    if (!verification) {
-      const error = new Error('Kode verifikasi tidak valid.');
-      (error as any).status = 400;
-      throw error;
-    }
-
-    // Cek apakah expired
-    if (verification.expiredAt < new Date()) {
-      const error = new Error('Kode verifikasi telah kedaluwarsa.');
-      (error as any).status = 400;
-      throw error;
-    }
-
-    // Update secara atomik status user dan status verifikasi
-    await prisma.$transaction(async (tx) => {
-      await tx.user.update({
-        where: { id: user.id },
-        data: {
-          status: 'ACTIVE',
-          emailVerifiedAt: new Date(),
-        },
-      });
-
-      await tx.emailVerification.update({
-        where: { id: verification.id },
-        data: {
-          verifiedAt: new Date(),
-        },
-      });
-    });
-
-    return { success: true };
+  async verifyOTP(email: string, code: string, meta?: { ipAddress?: string | null; userAgent?: string | null }) {
+    return await otpService.verifyOTP(email, code, meta);
   }
 
-  async resendOTP(email: string) {
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!user) {
-      const error = new Error('User tidak ditemukan.');
-      (error as any).status = 404;
-      throw error;
-    }
-
-    if (user.status !== 'PENDING') {
-      const error = new Error('Email Anda sudah terverifikasi.');
-      (error as any).status = 400;
-      throw error;
-    }
-
-    // Rate Limiting & Cooldown Checks
-    const latestVerification = await prisma.emailVerification.findFirst({
-      where: { userId: user.id },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    if (latestVerification) {
-      const secondsSinceLastRequest = Math.floor((Date.now() - latestVerification.createdAt.getTime()) / 1000);
-      if (secondsSinceLastRequest < 60) {
-        const error = new Error('Kirim ulang kode hanya bisa dilakukan setelah 60 detik.');
-        (error as any).status = 429;
-        throw error;
-      }
-    }
-
-    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const recentCount = await prisma.emailVerification.count({
-      where: {
-        userId: user.id,
-        createdAt: {
-          gte: oneHourAgo,
-        },
-      },
-    });
-
-    if (recentCount >= 5) {
-      const error = new Error('Maksimal pengiriman OTP adalah 5 kali dalam 1 jam.');
-      (error as any).status = 429;
-      throw error;
-    }
-
-    // Nonaktifkan OTP lama
-    await prisma.emailVerification.updateMany({
-      where: {
-        userId: user.id,
-        verifiedAt: null,
-      },
-      data: {
-        expiredAt: new Date(),
-      },
-    });
-
-    // Generate OTP baru
-    const otpCode = generateOTP();
-    const expiredAt = new Date(Date.now() + 10 * 60 * 1000);
-
-    await prisma.emailVerification.create({
-      data: {
-        userId: user.id,
-        code: otpCode,
-        expiredAt,
-      },
-    });
-
-    // Kirim email OTP baru
-    try {
-      await emailService.sendOTPEmail(user.email, user.name, otpCode);
-    } catch (err) {
-      console.error('Failed to send resent verification email:', err);
-    }
-
-    return { success: true };
+  async resendOTP(email: string, meta?: { ipAddress?: string | null; userAgent?: string | null }) {
+    return await otpService.resendOTP(email, meta);
   }
 }
 

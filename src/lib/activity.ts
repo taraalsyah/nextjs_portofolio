@@ -1,6 +1,16 @@
 import { prisma } from '@/lib/prisma';
 
-export type ActivityAction = 'CREATE' | 'UPDATE' | 'DELETE' | 'LOGIN' | 'LOGOUT';
+export type ActivityAction = 
+  | 'CREATE' 
+  | 'UPDATE' 
+  | 'DELETE' 
+  | 'LOGIN' 
+  | 'LOGOUT'
+  | 'VERIFY_OTP'
+  | 'RESEND_OTP'
+  | 'SOFT_BLOCK'
+  | 'PERMANENT_BLOCK'
+  | 'UNBLOCK';
 
 /**
  * Reusable core helper to log activities to the database.

@@ -4,6 +4,12 @@ import { verifyEmailSchema } from '@/validators/auth';
 
 export async function POST(request: Request) {
   try {
+    const userAgent = request.headers.get('user-agent') || 'Unknown';
+    const ipAddress =
+      request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      request.headers.get('x-real-ip') ||
+      '127.0.0.1';
+
     const body = await request.json();
 
     // 1. Validasi input menggunakan Zod
@@ -20,11 +26,11 @@ export async function POST(request: Request) {
 
     const { email, code } = validation.data;
 
-    // 2. Verifikasi OTP
-    await authService.verifyOTP(email, code);
+    // 2. Verifikasi OTP dengan metadata IP dan User-Agent
+    const result = await authService.verifyOTP(email, code, { ipAddress, userAgent });
 
     return NextResponse.json(
-      { message: 'Verifikasi berhasil. Silakan login.' },
+      { message: result.message || 'Verifikasi berhasil. Silakan login.' },
       { status: 200 }
     );
   } catch (error: any) {

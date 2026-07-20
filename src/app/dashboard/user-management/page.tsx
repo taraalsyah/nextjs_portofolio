@@ -49,6 +49,8 @@ export default async function UserManagementPage(props: {
       },
       status: true,
       phone: true,
+      otpSoftBlockUntil: true,
+      otpSoftBlockCount: true,
       createdAt: true,
     },
     orderBy: { id: 'asc' },
@@ -70,6 +72,7 @@ export default async function UserManagementPage(props: {
   const serializedUsers = users.map((u) => ({
     ...u,
     createdAt: u.createdAt.toISOString(),
+    otpSoftBlockUntil: u.otpSoftBlockUntil ? u.otpSoftBlockUntil.toISOString() : null,
   }));
 
   return (
