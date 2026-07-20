@@ -13,7 +13,10 @@ export default async function ActivityHistoryPage(props: {
 }) {
   // 1. Verifikasi session di server side
   const sessionUser = await requirePermission('Activity History', 'View');
-  const userId = parseInt((sessionUser as any).id);
+  const userId = parseInt((sessionUser as any).id, 10);
+  if (isNaN(userId)) {
+    throw new Error('Sesi pengguna tidak valid.');
+  }
 
   // Await searchParams as required by Next.js 15+ async APIs
   const searchParams = await props.searchParams;

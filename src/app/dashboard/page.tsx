@@ -1,5 +1,7 @@
 import React from 'react';
 import { requirePermission } from '@/lib/session';
+import { prisma } from '@/lib/prisma';
+import { formatActivityDate } from '@/lib/activity';
 import {
   Shield,
   Activity,
@@ -10,10 +12,36 @@ import {
 } from 'lucide-react';
 
 export default async function DashboardPage() {
-  const user = await requirePermission('Dashboard', 'View');
+  // 1. Verifikasi otorisasi session di backend & ambil ID user terverifikasi
+  const sessionUser = await requirePermission('Dashboard', 'View');
+  const sessionUserId = parseInt((sessionUser as any).id, 10);
 
-  const memberSince = (user as any).createdAt
-    ? new Date((user as any).createdAt).toLocaleDateString('id-ID', {
+  // 2. Query data user aktif dari DB menggunakan filter id dari session
+  const dbUser = await prisma.user.findUnique({
+    where: { id: sessionUserId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      status: true,
+      createdAt: true,
+    },
+  });
+
+  if (!dbUser) {
+    throw new Error('Data pengguna tidak ditemukan.');
+  }
+
+  // 3. Query log aktivitas terkini KHUSUS milik user ini berdasarkan sessionUserId
+  const recentActivities = await prisma.activityLog.findMany({
+    where: { userId: sessionUserId },
+    orderBy: { createdAt: 'desc' },
+    take: 5,
+  });
+
+  const memberSince = dbUser.createdAt
+    ? new Date(dbUser.createdAt).toLocaleDateString('id-ID', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -25,7 +53,7 @@ export default async function DashboardPage() {
       {/* Welcome Section */}
       <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
         <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
-          Selamat datang kembali, <span className="text-gradient">{user.name}</span>! 👋
+          Selamat datang kembali, <span className="text-gradient">{dbUser.name}</span>! 👋
         </h2>
         <p style={{ color: 'hsla(0, 0%, 100%, 0.55)', marginTop: '0.25rem', fontSize: '0.82rem', margin: '0.25rem 0 0' }}>
           Semua sistem berjalan normal. Kelola akun Anda secara aman melalui dashboard ini.
@@ -56,7 +84,7 @@ export default async function DashboardPage() {
           <div>
             <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsla(0, 0%, 100%, 0.4)', fontWeight: 600 }}>Hak Akses</span>
             <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginTop: '0.05rem' }}>
-              {(user as any).role || 'user'}
+              {dbUser.role || 'user'}
             </span>
           </div>
         </div>
@@ -79,7 +107,7 @@ export default async function DashboardPage() {
           <div>
             <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsla(0, 0%, 100%, 0.4)', fontWeight: 600 }}>Status Akun</span>
             <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginTop: '0.05rem' }}>
-              {(user as any).status === 'ACTIVE' ? 'Aktif & Terverifikasi' : 'Tertunda'}
+              {dbUser.status === 'ACTIVE' ? 'Aktif & Terverifikasi' : 'Tertunda'}
             </span>
           </div>
         </div>
@@ -122,15 +150,15 @@ export default async function DashboardPage() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', fontSize: '0.82rem' }}>
               <span style={{ color: 'hsla(0, 0%, 100%, 0.5)' }}>ID Pengguna</span>
-              <span style={{ fontWeight: 600 }}>{(user as any).id}</span>
+              <span style={{ fontWeight: 600 }}>{dbUser.id}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', fontSize: '0.82rem' }}>
               <span style={{ color: 'hsla(0, 0%, 100%, 0.5)' }}>Nama Lengkap</span>
-              <span style={{ fontWeight: 600 }}>{user.name}</span>
+              <span style={{ fontWeight: 600 }}>{dbUser.name}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.15rem', fontSize: '0.82rem' }}>
               <span style={{ color: 'hsla(0, 0%, 100%, 0.5)' }}>Alamat Email</span>
-              <span style={{ fontWeight: 600 }}>{user.email}</span>
+              <span style={{ fontWeight: 600 }}>{dbUser.email}</span>
             </div>
           </div>
         </div>
@@ -141,20 +169,25 @@ export default async function DashboardPage() {
             <Activity size={16} style={{ color: 'var(--accent)' }} /> Aktivitas Terkini
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-              <AlertCircle size={14} style={{ color: 'var(--secondary)', marginTop: '0.15rem', flexShrink: 0 }} />
-              <div>
-                <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 500 }}>Berhasil masuk sistem</span>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'hsla(0, 0%, 100%, 0.4)' }}>Baru saja</span>
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-              <AlertCircle size={14} style={{ color: 'var(--accent)', marginTop: '0.15rem', flexShrink: 0 }} />
-              <div>
-                <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 500 }}>Verifikasi email berhasil dilakukan</span>
-                <span style={{ display: 'block', fontSize: '0.7rem', color: 'hsla(0, 0%, 100%, 0.4)' }}>Beberapa menit yang lalu</span>
-              </div>
-            </div>
+            {recentActivities.length === 0 ? (
+              <span style={{ fontSize: '0.78rem', color: 'hsla(0, 0%, 100%, 0.4)' }}>
+                Belum ada log aktivitas tercatat.
+              </span>
+            ) : (
+              recentActivities.map((act) => (
+                <div key={act.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
+                  <AlertCircle size={14} style={{ color: 'var(--secondary)', marginTop: '0.15rem', flexShrink: 0 }} />
+                  <div>
+                    <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 500 }}>
+                      {act.action}: {act.description.split('\n')[0]}
+                    </span>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'hsla(0, 0%, 100%, 0.4)' }}>
+                      {formatActivityDate(act.createdAt)}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

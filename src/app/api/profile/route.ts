@@ -97,8 +97,11 @@ export async function PUT(request: Request) {
 
     // 3. Validasi keunikan username (jika diubah)
     if (username !== user.username) {
-      const usernameExists = await prisma.user.findUnique({
-        where: { username }
+      const usernameExists = await prisma.user.findFirst({
+        where: {
+          username,
+          NOT: { id: userId },
+        },
       });
       if (usernameExists) {
         return NextResponse.json({ message: 'Username sudah digunakan.' }, { status: 409 });
