@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ButtonLoading, InlineSpinner } from '@/components/ui/loading';
 import styles from './users.module.css';
 
 interface UserData {
@@ -78,12 +79,22 @@ export default function UserManagementContent({
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   // Sync users state when initialUsers updates (e.g. on server-side pagination page changes)
   useEffect(() => {
     setUsers(initialUsers);
   }, [initialUsers]);
+
+  const handlePageNavigate = (targetPage: number) => {
+    if (targetPage === currentPage || targetPage < 1 || targetPage > Math.ceil(totalItems / 10)) return;
+    startTransition(() => {
+      router.push(`/dashboard/user-management?page=${targetPage}`);
+    });
+  };
 
   // ─── HANDLERS ──────────────────────────────────────────────────────────────
   const openEditRoleModal = (user: UserData) => {
@@ -152,6 +163,7 @@ export default function UserManagementContent({
     const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus user "${name}"?`);
     if (!confirmed) return;
 
+    setDeletingUserId(userId);
     try {
       const res = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
@@ -168,6 +180,8 @@ export default function UserManagementContent({
       alert(`User "${name}" berhasil dihapus.`);
     } catch (err: any) {
       alert(err.message || 'Terjadi kesalahan saat menghapus user.');
+    } finally {
+      setDeletingUserId(null);
     }
   };
 
@@ -219,69 +233,91 @@ export default function UserManagementContent({
           </div>
         ) : (
           <>
-            <div className={styles.tableWrapper}>
-              <table className={styles.table}>
-                <thead>
-                  <tr>
-                    <th>Pengguna</th>
-                    <th>Alamat Email</th>
-                    <th>Hak Akses (Role)</th>
-                    <th>Status</th>
-                    <th>Tanggal Gabung</th>
-                    <th style={{ textAlign: 'center' }}>Aksi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u) => (
-                    <tr key={u.id}>
-                      <td>
-                        <div className={styles.userCol}>
-                          <span className={styles.nameText}>{u.name}</span>
-                          <span className={styles.usernameText}>@{u.username || 'user'}</span>
-                        </div>
-                      </td>
-                      <td className={styles.emailCol}>{u.email}</td>
-                      <td>
-                        <span className={`${styles.badge} ${styles.roleBadge}`}>
-                          {u.roleRel?.name || u.role || 'Staff'}
-                        </span>
-                      </td>
-                      <td>
-                        <span className={`${styles.badge} ${u.status === 'ACTIVE' ? styles.statusActive : styles.statusPending}`}>
-                          {u.status === 'ACTIVE' ? 'Aktif' : 'Tertunda'}
-                        </span>
-                      </td>
-                      <td>
-                        {new Date(u.createdAt).toLocaleDateString('id-ID', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric',
-                        })}
-                      </td>
-                      <td>
-                        <div className={styles.actionsCol} style={{ justifyContent: 'center' }}>
-                          <button
-                            onClick={() => openEditRoleModal(u)}
-                            className={styles.actionBtn}
-                            title="Ubah Role"
-                          >
-                            <Edit2 size={13} />
-                          </button>
-                          {u.id !== sessionUserId && (
-                            <button
-                              onClick={() => handleDeleteUser(u.id, u.name)}
-                              className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                              title="Hapus Pengguna"
-                            >
-                              <Trash2 size={13} />
-                            </button>
-                          )}
-                        </div>
-                      </td>
+            <div style={{ position: 'relative' }}>
+              {isPending && (
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: 'hsla(230, 20%, 5%, 0.45)',
+                  backdropFilter: 'blur(2px)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  zIndex: 10,
+                  borderRadius: '8px',
+                }}>
+                  <InlineSpinner size={28} color="var(--secondary)" />
+                </div>
+              )}
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th>Pengguna</th>
+                      <th>Alamat Email</th>
+                      <th>Hak Akses (Role)</th>
+                      <th>Status</th>
+                      <th>Tanggal Gabung</th>
+                      <th style={{ textAlign: 'center' }}>Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {users.map((u) => (
+                      <tr key={u.id}>
+                        <td>
+                          <div className={styles.userCol}>
+                            <span className={styles.nameText}>{u.name}</span>
+                            <span className={styles.usernameText}>@{u.username || 'user'}</span>
+                          </div>
+                        </td>
+                        <td className={styles.emailCol}>{u.email}</td>
+                        <td>
+                          <span className={`${styles.badge} ${styles.roleBadge}`}>
+                            {u.roleRel?.name || u.role || 'Staff'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`${styles.badge} ${u.status === 'ACTIVE' ? styles.statusActive : styles.statusPending}`}>
+                            {u.status === 'ACTIVE' ? 'Aktif' : 'Tertunda'}
+                          </span>
+                        </td>
+                        <td>
+                          {new Date(u.createdAt).toLocaleDateString('id-ID', {
+                            day: 'numeric',
+                            month: 'short',
+                            year: 'numeric',
+                          })}
+                        </td>
+                        <td>
+                          <div className={styles.actionsCol} style={{ justifyContent: 'center' }}>
+                            <button
+                              onClick={() => openEditRoleModal(u)}
+                              className={styles.actionBtn}
+                              title="Ubah Role"
+                            >
+                              <Edit2 size={13} />
+                            </button>
+                            {u.id !== sessionUserId && (
+                              <button
+                                onClick={() => handleDeleteUser(u.id, u.name)}
+                                disabled={deletingUserId === u.id}
+                                className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                                title="Hapus Pengguna"
+                              >
+                                {deletingUserId === u.id ? (
+                                  <InlineSpinner size={13} color="hsl(350, 80%, 75%)" />
+                                ) : (
+                                  <Trash2 size={13} />
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
 
             {/* Pagination Controls */}
@@ -297,9 +333,13 @@ export default function UserManagementContent({
                     Previous
                   </div>
                 ) : (
-                  <Link href={`/dashboard/user-management?page=${currentPage - 1}`} className={styles.pageBtn}>
+                  <button
+                    onClick={() => handlePageNavigate(currentPage - 1)}
+                    disabled={isPending}
+                    className={styles.pageBtn}
+                  >
                     Previous
-                  </Link>
+                  </button>
                 )}
 
                 {/* Page Numbers */}
@@ -315,13 +355,14 @@ export default function UserManagementContent({
                   const isCurrent = p === currentPage;
 
                   return (
-                    <Link
+                    <button
                       key={`page-${p}`}
-                      href={`/dashboard/user-management?page=${p}`}
+                      onClick={() => handlePageNavigate(Number(p))}
+                      disabled={isPending || isCurrent}
                       className={`${styles.pageBtn} ${isCurrent ? styles.activePageBtn : ''}`}
                     >
                       {p}
-                    </Link>
+                    </button>
                   );
                 })}
 
@@ -331,9 +372,13 @@ export default function UserManagementContent({
                     Next
                   </div>
                 ) : (
-                  <Link href={`/dashboard/user-management?page=${currentPage + 1}`} className={styles.pageBtn}>
+                  <button
+                    onClick={() => handlePageNavigate(currentPage + 1)}
+                    disabled={isPending}
+                    className={styles.pageBtn}
+                  >
                     Next
-                  </Link>
+                  </button>
                 )}
               </div>
             </div>
@@ -386,20 +431,16 @@ export default function UserManagementContent({
               <button type="button" onClick={closeEditRoleModal} className={styles.btn}>
                 Batal
               </button>
-              <button
+              <ButtonLoading
                 type="submit"
-                disabled={isSubmitting || selectedRoleId === editingUser.roleId}
+                isLoading={isSubmitting}
+                loadingText="Menyimpan..."
+                disabled={selectedRoleId === editingUser.roleId}
                 className={`${styles.btn} ${styles.saveBtn}`}
               >
-                {isSubmitting ? (
-                  <span>Menyimpan...</span>
-                ) : (
-                  <>
-                    <Save size={14} />
-                    <span>Simpan</span>
-                  </>
-                )}
-              </button>
+                <Save size={14} />
+                <span>Simpan</span>
+              </ButtonLoading>
             </div>
           </form>
         </div>

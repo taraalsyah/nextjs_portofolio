@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Shield, Plus, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle } from 'lucide-react';
+import { ButtonLoading, InlineSpinner } from '@/components/ui/loading';
 import styles from './role.module.css';
 
 interface RoleData {
@@ -48,6 +49,7 @@ export default function RoleManagementContent({
   // Status/alert states
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
   // Dapatkan role aktif saat ini
   const activeRole = roles.find((r) => r.id === activeRoleId);
@@ -184,7 +186,7 @@ export default function RoleManagementContent({
     const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus role "${activeRole.name}"?`);
     if (!confirmed) return;
 
-    setIsSubmitting(true);
+    setIsDeleting(true);
     setStatus(null);
 
     try {
@@ -205,7 +207,7 @@ export default function RoleManagementContent({
     } catch (err: any) {
       alert(err.message || 'Terjadi kesalahan saat menghapus role.');
     } finally {
-      setIsSubmitting(false);
+      setIsDeleting(false);
     }
   };
 
@@ -252,15 +254,20 @@ export default function RoleManagementContent({
               </div>
 
               <div className={styles.roleCrudActions}>
-                <button onClick={openEditRoleModal} className={styles.crudBtn}>
+                <button onClick={openEditRoleModal} disabled={isDeleting} className={styles.crudBtn}>
                   <Edit2 size={12} />
                   <span>Ubah</span>
                 </button>
                 {activeRole.name !== 'Admin' && (
-                  <button onClick={handleDeleteRole} className={`${styles.crudBtn} ${styles.deleteCrudBtn}`}>
+                  <ButtonLoading
+                    onClick={handleDeleteRole}
+                    isLoading={isDeleting}
+                    loadingText="Deleting..."
+                    className={`${styles.crudBtn} ${styles.deleteCrudBtn}`}
+                  >
                     <Trash2 size={12} />
                     <span>Hapus</span>
-                  </button>
+                  </ButtonLoading>
                 )}
               </div>
             </div>
@@ -330,20 +337,15 @@ export default function RoleManagementContent({
             {/* Save permissions matrix */}
             {activeRole.name !== 'Admin' && (
               <div className={styles.panelFooter}>
-                <button
+                <ButtonLoading
                   onClick={handleSavePermissions}
-                  disabled={isSubmitting}
+                  isLoading={isSubmitting}
+                  loadingText="Updating..."
                   className={styles.saveBtn}
                 >
-                  {isSubmitting ? (
-                    <span>Menyimpan...</span>
-                  ) : (
-                    <>
-                      <Save size={14} />
-                      <span>Simpan Perubahan</span>
-                    </>
-                  )}
-                </button>
+                  <Save size={14} />
+                  <span>Simpan Perubahan</span>
+                </ButtonLoading>
               </div>
             )}
           </div>
@@ -406,16 +408,15 @@ export default function RoleManagementContent({
               <button type="button" onClick={() => setModalType(null)} className={styles.btn}>
                 Batal
               </button>
-              <button type="submit" disabled={isSubmitting} className={`${styles.btn} ${styles.saveBtn}`}>
-                {isSubmitting ? (
-                  <span>Menyimpan...</span>
-                ) : (
-                  <>
-                    <Save size={14} />
-                    <span>Simpan</span>
-                  </>
-                )}
-              </button>
+              <ButtonLoading
+                type="submit"
+                isLoading={isSubmitting}
+                loadingText="Menyimpan..."
+                className={`${styles.btn} ${styles.saveBtn}`}
+              >
+                <Save size={14} />
+                <span>Simpan</span>
+              </ButtonLoading>
             </div>
           </form>
         </div>

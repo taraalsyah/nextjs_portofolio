@@ -23,6 +23,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import ProfileAvatar from './ProfileAvatar';
+import { ButtonLoading } from '@/components/ui/loading';
 import styles from './profile.module.css';
 
 // ─── VALIDASI SCHEMA ZOD ──────────────────────────────────────────────────────
@@ -410,23 +411,16 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
               <span>Batal</span>
             </button>
             
-            <button
+            <ButtonLoading
               type="submit"
-              disabled={isSubmitting || (!isDirty && !selectedFile)}
+              isLoading={isSubmitting}
+              loadingText="Menyimpan..."
+              disabled={!isDirty && !selectedFile}
               className={styles.saveBtn}
             >
-              {isSubmitting ? (
-                <>
-                  <div className={styles.spinner} />
-                  <span>Menyimpan...</span>
-                </>
-              ) : (
-                <>
-                  <Save size={14} />
-                  <span>Simpan Perubahan</span>
-                </>
-              )}
-            </button>
+              <Save size={14} />
+              <span>Simpan Perubahan</span>
+            </ButtonLoading>
           </div>
         )}
       </form>

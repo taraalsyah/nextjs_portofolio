@@ -18,6 +18,7 @@ import {
   Shield
 } from 'lucide-react';
 import styles from './layout.module.css';
+import { FullPageLoader } from '@/components/ui/loading';
 
 interface MenuItem {
   name: string;
@@ -104,16 +105,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }, [status, router]);
 
   if (status === 'loading') {
-    return (
-      <div style={{ display: 'flex', height: '100vh', width: '100vw', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--bg-color)' }}>
-        <div className={styles.spinner} style={{ width: '40px', height: '40px', border: '3px solid rgba(255,255,255,0.1)', borderRadius: '50%', borderTopColor: 'var(--secondary)', animation: 'spin 0.8s linear infinite' }} />
-        <style jsx global>{`
-          @keyframes spin {
-            to { transform: rotate(360deg); }
-          }
-        `}</style>
-      </div>
-    );
+    return <FullPageLoader label="Memuat dashboard..." />;
   }
 
   // If unauthenticated, redirect handles are verified by useEffect but fallback gracefully
