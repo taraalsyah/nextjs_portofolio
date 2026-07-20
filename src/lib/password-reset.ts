@@ -3,6 +3,8 @@ import { emailService } from '@/services/email/email.service';
 import { generateSecureToken, hashToken } from './token';
 import bcrypt from 'bcryptjs';
 
+import { addMinutesUTC, getSecondsSince, getNowUTC } from './date';
+
 export class PasswordResetService {
   async createResetToken(email: string, ipAddress?: string, userAgent?: string) {
     const user = await prisma.user.findUnique({
@@ -21,7 +23,7 @@ export class PasswordResetService {
     });
 
     if (latestToken) {
-      const secondsSinceLastRequest = Math.floor((Date.now() - latestToken.createdAt.getTime()) / 1000);
+      const secondsSinceLastRequest = getSecondsSince(latestToken.createdAt);
       if (secondsSinceLastRequest < 60) {
         const error = new Error('Kirim ulang link reset password hanya bisa dilakukan setelah 60 detik.');
         (error as any).status = 429;
@@ -52,14 +54,14 @@ export class PasswordResetService {
         usedAt: null,
       },
       data: {
-        expiresAt: new Date(), // Kadaluwarsa saat ini juga
+        expiresAt: getNowUTC(), // Kadaluwarsa saat ini juga
       },
     });
 
     // 3. Generate token baru (32 bytes = 64 hex characters)
     const token = generateSecureToken();
     const hashed = hashToken(token);
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // Berlaku 10 menit
+    const expiresAt = addMinutesUTC(10); // Berlaku 10 menit
 
     // 4. Simpan ke database
     await prisma.passwordResetToken.create({

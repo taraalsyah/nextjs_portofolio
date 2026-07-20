@@ -4,6 +4,7 @@ import React, { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle, Unlock } from 'lucide-react';
 import { ButtonLoading, InlineSpinner } from '@/components/ui/loading';
+import { formatShortWIB, getRemainingTimeString, isExpired } from '@/lib/date';
 import styles from './users.module.css';
 
 interface UserData {
@@ -326,16 +327,15 @@ export default function UserManagementContent({
                                 </span>
                               );
                             }
-                            const isSoftBlocked = u.otpSoftBlockUntil && new Date(u.otpSoftBlockUntil) > new Date();
+                            const isSoftBlocked = u.otpSoftBlockUntil && !isExpired(u.otpSoftBlockUntil);
                             if (isSoftBlocked) {
-                              const diffMs = new Date(u.otpSoftBlockUntil!).getTime() - Date.now();
-                              const minsLeft = Math.max(1, Math.ceil(diffMs / (1000 * 60)));
+                              const remaining = getRemainingTimeString(u.otpSoftBlockUntil!);
                               return (
                                 <span
                                   className={`${styles.badge} ${styles.statusSoftBlocked}`}
-                                  title={`Soft Blocked. Sisa waktu: ${minsLeft}m`}
+                                  title={`Soft Blocked. Sisa waktu: ${remaining}`}
                                 >
-                                  Soft Blocked ({minsLeft}m)
+                                  Soft Blocked ({remaining})
                                 </span>
                               );
                             }
@@ -346,11 +346,7 @@ export default function UserManagementContent({
                           })()}
                         </td>
                         <td>
-                          {new Date(u.createdAt).toLocaleDateString('id-ID', {
-                            day: 'numeric',
-                            month: 'short',
-                            year: 'numeric',
-                          })}
+                          {formatShortWIB(u.createdAt)}
                         </td>
                         <td>
                           <div className={styles.actionsCol} style={{ justifyContent: 'center' }}>

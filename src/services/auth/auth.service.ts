@@ -3,6 +3,7 @@ import { hashPassword } from '@/utils/password';
 import { generateOTP } from '@/utils/otp';
 import { emailService } from '../email/email.service';
 import { otpService } from '../otp/otp.service';
+import { addMinutesUTC } from '@/lib/date';
 
 export class AuthService {
   async registerUser(name: string, email: string, passwordText: string) {
@@ -22,7 +23,7 @@ export class AuthService {
 
     // 3. Generate OTP & Expired time (10 menit)
     const otpCode = generateOTP();
-    const expiredAt = new Date(Date.now() + 10 * 60 * 1000);
+    const expiredAt = addMinutesUTC(10);
 
     // 4. Prisma Transaction untuk membuat User dan EmailVerification secara atomik
     const result = await prisma.$transaction(async (tx) => {

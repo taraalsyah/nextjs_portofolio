@@ -2,6 +2,7 @@ import React from 'react';
 import { requirePermission } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { formatActivityDate } from '@/lib/activity';
+import { formatToWIB } from '@/lib/date';
 import {
   Shield,
   Activity,
@@ -41,11 +42,7 @@ export default async function DashboardPage() {
   });
 
   const memberSince = dbUser.createdAt
-    ? new Date(dbUser.createdAt).toLocaleDateString('id-ID', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+    ? formatToWIB(dbUser.createdAt, 'd MMMM yyyy')
     : 'Maret 2026';
 
   return (

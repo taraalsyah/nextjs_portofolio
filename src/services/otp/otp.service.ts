@@ -1,6 +1,14 @@
 import { prisma } from '@/lib/prisma';
 import { generateOTP } from '@/utils/otp';
 import { emailService } from '../email/email.service';
+import {
+  addHoursUTC,
+  addMinutesUTC,
+  getRemainingTimeString,
+  getSecondsSince,
+  isExpired,
+  getNowUTC,
+} from '@/lib/date';
 
 export interface RequestMeta {
   ipAddress?: string | null;
@@ -9,17 +17,10 @@ export interface RequestMeta {
 
 export class OtpService {
   /**
-   * Helper to format remaining soft block duration string.
+   * Helper to format remaining soft block duration string in Indonesian.
    */
   getRemainingSoftBlockTime(softBlockUntil: Date): string {
-    const diffMs = softBlockUntil.getTime() - Date.now();
-    if (diffMs <= 0) return '0 menit';
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.ceil((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-    if (hours > 0) {
-      return `${hours} jam ${minutes} menit`;
-    }
-    return `${minutes} menit`;
+    return getRemainingTimeString(softBlockUntil);
   }
 
   /**
@@ -52,7 +53,7 @@ export class OtpService {
     }
 
     // 3. Periksa apakah user sedang dalam masa Soft Block (3 jam)
-    if (user.otpSoftBlockUntil && user.otpSoftBlockUntil > new Date()) {
+    if (user.otpSoftBlockUntil && !isExpired(user.otpSoftBlockUntil)) {
       const remaining = this.getRemainingSoftBlockTime(user.otpSoftBlockUntil);
       const error = new Error(
         `Akun ditangguhkan sementara selama 3 jam karena terlalu banyak percobaan OTP yang gagal. Sisa waktu: ${remaining}.`
@@ -79,7 +80,7 @@ export class OtpService {
     }
 
     // 5. Cek apakah OTP kedaluwarsa (10 menit)
-    if (verification.expiredAt < new Date()) {
+    if (isExpired(verification.expiredAt)) {
       const error = new Error('Kode verifikasi telah kedaluwarsa.');
       (error as any).status = 400;
       throw error;
@@ -124,7 +125,7 @@ export class OtpService {
             return { isBlocked: true, isSoftBlocked: false };
           } else {
             // Aktifkan Soft Block selama 3 jam
-            const softBlockUntil = new Date(Date.now() + 3 * 60 * 60 * 1000);
+            const softBlockUntil = addHoursUTC(3);
             await tx.user.update({
               where: { id: user.id },
               data: {
@@ -195,7 +196,7 @@ export class OtpService {
         where: { id: user.id },
         data: {
           status: 'ACTIVE',
-          emailVerifiedAt: new Date(),
+          emailVerifiedAt: getNowUTC(),
           otpAttemptCount: 0,
           otpSoftBlockUntil: null,
         },
@@ -247,7 +248,7 @@ export class OtpService {
     }
 
     // Check soft block
-    if (user.otpSoftBlockUntil && user.otpSoftBlockUntil > new Date()) {
+    if (user.otpSoftBlockUntil && !isExpired(user.otpSoftBlockUntil)) {
       const remaining = this.getRemainingSoftBlockTime(user.otpSoftBlockUntil);
       const error = new Error(
         `Akun ditangguhkan sementara selama 3 jam karena terlalu banyak percobaan OTP yang gagal. Sisa waktu: ${remaining}.`
@@ -263,7 +264,7 @@ export class OtpService {
     });
 
     if (latestVerification) {
-      const secondsSinceLast = Math.floor((Date.now() - latestVerification.createdAt.getTime()) / 1000);
+      const secondsSinceLast = getSecondsSince(latestVerification.createdAt);
       if (secondsSinceLast < 60) {
         const error = new Error('Kirim ulang kode hanya bisa dilakukan setelah 60 detik.');
         (error as any).status = 429;
@@ -273,7 +274,7 @@ export class OtpService {
 
     // Generate new OTP & expire time (10 min)
     const otpCode = generateOTP();
-    const expiredAt = new Date(Date.now() + 10 * 60 * 1000);
+    const expiredAt = addMinutesUTC(10);
 
     await prisma.$transaction(async (tx) => {
       // Hapus OTP lama & reset counter percobaan

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import ProfileAvatar from './ProfileAvatar';
 import { ButtonLoading } from '@/components/ui/loading';
+import { formatToWIB } from '@/lib/date';
 import styles from './profile.module.css';
 
 // ─── VALIDASI SCHEMA ZOD ──────────────────────────────────────────────────────
@@ -230,21 +231,8 @@ export default function ProfileForm({ initialUser }: ProfileFormProps) {
       .toUpperCase();
   };
 
-  const formattedJoinDate = new Date(currentUser.createdAt).toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
-
-  const formattedLastLogin = currentUser.lastLoginAt
-    ? new Date(currentUser.lastLoginAt).toLocaleDateString('id-ID', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-      }) + ' WIB'
-    : '-';
+  const formattedJoinDate = formatToWIB(currentUser.createdAt, 'd MMMM yyyy');
+  const formattedLastLogin = formatToWIB(currentUser.lastLoginAt);
 
   // ─── RENDER ─────────────────────────────────────────────────────────────────
   return (

@@ -84,16 +84,12 @@ export async function logProfileChange(
   });
 }
 
+import { formatActivityWIB } from '@/lib/date';
+
 /**
- * Formats a Date object to the standard application timezone string:
- * e.g., "19 Jul 2026 18:45"
+ * Formats a Date object to the standard application WIB timezone string:
+ * e.g., "20 Juli 2026 14:35:12 WIB"
  */
-export function formatActivityDate(date: Date): string {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
-  const day = String(date.getDate()).padStart(2, '0');
-  const month = months[date.getMonth()];
-  const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, '0');
-  const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${day} ${month} ${year} ${hours}:${minutes}`;
+export function formatActivityDate(date: Date | string | number): string {
+  return formatActivityWIB(date);
 }

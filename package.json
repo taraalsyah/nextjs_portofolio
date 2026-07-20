@@ -13,6 +13,8 @@
     "@hookform/resolvers": "^5.4.0",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
+    "date-fns": "^4.4.0",
+    "date-fns-tz": "^3.2.0",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",
