@@ -32,8 +32,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Status tidak valid.' }, { status: 400 });
     }
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
+    const task = await prisma.task.findFirst({
+      where: { id: taskId, deletedAt: null },
     });
 
     if (!task) {
@@ -55,29 +55,35 @@ export async function PATCH(
       );
     }
 
-    const updatedTask = await prisma.task.update({
-      where: { id: taskId },
-      data: { status },
-      select: {
-        id: true,
-        taskNumber: true,
-        title: true,
-        status: true,
-        priority: true,
-        assigneeId: true,
-        assignee: { select: { id: true, name: true } },
-        category: { select: { id: true, name: true } },
-      },
-    });
+    // 🔒 PRISMA TRANSACTION FOR ATOMIC UPDATE + LOGGING
+    const updatedTask = await prisma.$transaction(async (tx) => {
+      const updated = await tx.task.update({
+        where: { id: taskId },
+        data: { status },
+        select: {
+          id: true,
+          taskNumber: true,
+          title: true,
+          status: true,
+          priority: true,
+          assigneeId: true,
+          assignee: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true } },
+        },
+      });
 
-    await logTaskActivity({
-      taskId,
-      userId: sessionUserId,
-      action: 'STATUS_CHANGE',
-      description: `Perubahan Status Task ${task.taskNumber}: ${task.status} → ${status}`,
-      fieldName: 'status',
-      previousValue: task.status,
-      newValue: status,
+      await logTaskActivity({
+        taskId,
+        userId: sessionUserId,
+        action: 'STATUS_CHANGE',
+        description: `Perubahan Status Task ${task.taskNumber}: ${task.status} → ${status}`,
+        fieldName: 'status',
+        previousValue: task.status,
+        newValue: status,
+        tx,
+      });
+
+      return updated;
     });
 
     return NextResponse.json({ task: updatedTask });

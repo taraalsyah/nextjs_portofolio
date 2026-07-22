@@ -15,19 +15,40 @@ export async function GET(req: NextRequest) {
     const sessionUserId = parseInt(String(rawId), 10) || 0;
 
     const isAdmin = role === 'Admin';
-    const accessWhere = isAdmin ? {} : { assigneeId: sessionUserId };
+
+    // 🔒 STRICT SOFT DELETE & ASSIGNEE FK CLAUSE
+    const accessWhere: any = {
+      deletedAt: null,
+    };
+
+    if (!isAdmin) {
+      accessWhere.assigneeId = sessionUserId;
+    }
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Total tasks count by status strictly scoped by role & assignee FK ID
+    // 🚀 SQL COUNT AGGREGATE QUERIES FOR MAXIMUM PERFORMANCE (100K+ RECORDS)
     const totalTasks = await prisma.task.count({ where: accessWhere });
-    const backlogCount = await prisma.task.count({ where: { ...accessWhere, status: 'BACKLOG' } });
-    const openCount = await prisma.task.count({ where: { ...accessWhere, status: 'OPEN' } });
-    const inProgressCount = await prisma.task.count({ where: { ...accessWhere, status: 'IN_PROGRESS' } });
-    const doneCount = await prisma.task.count({ where: { ...accessWhere, status: 'DONE' } });
 
-    // Tasks completed this month
+    // Group By Status in SQL
+    const statusGroups = await prisma.task.groupBy({
+      by: ['status'],
+      where: accessWhere,
+      _count: { id: true },
+    });
+
+    const statusCounts: Record<string, number> = {
+      BACKLOG: 0,
+      OPEN: 0,
+      IN_PROGRESS: 0,
+      DONE: 0,
+    };
+    statusGroups.forEach((g) => {
+      statusCounts[g.status] = g._count.id;
+    });
+
+    // Completed this month in SQL
     const completedThisMonth = await prisma.task.count({
       where: {
         ...accessWhere,
@@ -36,7 +57,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Overdue tasks count
+    // Overdue tasks count in SQL
     const overdueTasks = await prisma.task.count({
       where: {
         ...accessWhere,
@@ -45,66 +66,87 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Tasks grouped by Priority
-    const lowPriority = await prisma.task.count({ where: { ...accessWhere, priority: 'LOW' } });
-    const mediumPriority = await prisma.task.count({ where: { ...accessWhere, priority: 'MEDIUM' } });
-    const highPriority = await prisma.task.count({ where: { ...accessWhere, priority: 'HIGH' } });
-    const criticalPriority = await prisma.task.count({ where: { ...accessWhere, priority: 'CRITICAL' } });
-
-    // Tasks grouped by Category
-    const categoriesWithCount = await prisma.taskCategory.findMany({
-      select: {
-        id: true,
-        name: true,
-        _count: {
-          select: {
-            tasks: isAdmin ? true : { where: { assigneeId: sessionUserId } },
-          },
-        },
-      },
+    // Group By Priority in SQL
+    const priorityGroups = await prisma.task.groupBy({
+      by: ['priority'],
+      where: accessWhere,
+      _count: { id: true },
     });
 
-    // Tasks grouped by Assignee (Admin only sees all, Non-Admin sees self)
-    const assigneesWithCount = await prisma.user.findMany({
+    const priorityCounts: Record<string, number> = {
+      LOW: 0,
+      MEDIUM: 0,
+      HIGH: 0,
+      CRITICAL: 0,
+    };
+    priorityGroups.forEach((g) => {
+      priorityCounts[g.priority] = g._count.id;
+    });
+
+    // Group By Category in SQL
+    const categoryGroups = await prisma.task.groupBy({
+      by: ['categoryId'],
+      where: accessWhere,
+      _count: { id: true },
+    });
+
+    const categories = await prisma.taskCategory.findMany({
+      select: { id: true, name: true },
+    });
+
+    const catMap = new Map<number, string>();
+    categories.forEach((c) => catMap.set(c.id, c.name));
+
+    const byCategory = categoryGroups.map((g) => ({
+      id: g.categoryId || 0,
+      name: g.categoryId ? catMap.get(g.categoryId) || 'Uncategorized' : 'Uncategorized',
+      taskCount: g._count.id,
+    }));
+
+    // Group By Assignee in SQL
+    const assigneeGroups = await prisma.task.groupBy({
+      by: ['assigneeId'],
+      where: accessWhere,
+      _count: { id: true },
+    });
+
+    const assignees = await prisma.user.findMany({
       where: isAdmin ? { status: 'ACTIVE' } : { id: sessionUserId },
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        _count: { select: { assignedTasks: true } },
-      },
+      select: { id: true, name: true, username: true },
       orderBy: { name: 'asc' },
     });
+
+    const assigneeMap = new Map<number, { name: string; username?: string | null }>();
+    assignees.forEach((a) => assigneeMap.set(a.id, { name: a.name, username: a.username }));
+
+    const byAssignee = assigneeGroups.map((g) => ({
+      id: g.assigneeId || 0,
+      name: g.assigneeId ? assigneeMap.get(g.assigneeId)?.name || 'Unassigned' : 'Unassigned',
+      username: g.assigneeId ? assigneeMap.get(g.assigneeId)?.username : undefined,
+      taskCount: g._count.id,
+    }));
 
     return NextResponse.json({
       summary: {
         totalTasks,
-        backlogCount,
-        openCount,
-        inProgressCount,
-        doneCount,
+        backlogCount: statusCounts.BACKLOG,
+        openCount: statusCounts.OPEN,
+        inProgressCount: statusCounts.IN_PROGRESS,
+        doneCount: statusCounts.DONE,
         completedThisMonth,
         overdueTasks,
       },
       byPriority: {
-        low: lowPriority,
-        medium: mediumPriority,
-        high: highPriority,
-        critical: criticalPriority,
+        low: priorityCounts.LOW,
+        medium: priorityCounts.MEDIUM,
+        high: priorityCounts.HIGH,
+        critical: priorityCounts.CRITICAL,
       },
-      byCategory: categoriesWithCount.map((c) => ({
-        id: c.id,
-        name: c.name,
-        taskCount: c._count.tasks,
-      })),
-      byAssignee: assigneesWithCount.map((a) => ({
-        id: a.id,
-        name: a.name,
-        username: a.username,
-        taskCount: a._count.assignedTasks,
-      })),
+      byCategory,
+      byAssignee,
     });
   } catch (err: any) {
+    console.error('GET /api/tasks/reports error:', err);
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }

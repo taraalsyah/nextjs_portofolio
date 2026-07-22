@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { createActivityLog, ActivityAction } from '@/lib/activity';
+import { ActivityAction } from '@/lib/activity';
 
 export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
@@ -23,6 +23,7 @@ export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string 
  */
 export async function generateNextTaskNumber(): Promise<string> {
   const lastTask = await prisma.task.findFirst({
+    where: { deletedAt: null },
     orderBy: { id: 'desc' },
     select: { id: true, taskNumber: true },
   });
@@ -31,7 +32,6 @@ export async function generateNextTaskNumber(): Promise<string> {
     return 'TSK-000001';
   }
 
-  // Parse numeric part from last task number or last ID
   let nextNum = lastTask.id + 1;
   if (lastTask.taskNumber && lastTask.taskNumber.startsWith('TSK-')) {
     const parsed = parseInt(lastTask.taskNumber.replace('TSK-', ''), 10);
@@ -58,7 +58,7 @@ export function isValidStatusTransition(currentStatus: string, nextStatus: strin
 }
 
 /**
- * Helper to log task mutation to both TaskHistory and global ActivityLog.
+ * Helper to log task activity inside an existing or new Prisma Transaction.
  */
 export async function logTaskActivity({
   taskId,
@@ -70,6 +70,7 @@ export async function logTaskActivity({
   newValue,
   ipAddress,
   userAgent,
+  tx,
 }: {
   taskId: number;
   userId: number;
@@ -80,9 +81,16 @@ export async function logTaskActivity({
   newValue?: string | null;
   ipAddress?: string | null;
   userAgent?: string | null;
+  tx?: any;
 }) {
-  // 1. Record in per-task history
-  await prisma.taskHistory.create({
+  const db = tx || prisma;
+
+  let globalAction: ActivityAction = 'UPDATE';
+  if (action === 'TASK_CREATED') globalAction = 'CREATE';
+  if (action === 'TASK_DELETED') globalAction = 'DELETE';
+
+  // Perform atomic multi-table write inside Prisma Transaction
+  await db.taskHistory.create({
     data: {
       taskId,
       userId,
@@ -93,16 +101,13 @@ export async function logTaskActivity({
     },
   });
 
-  // 2. Record in global Activity History module
-  let globalAction: ActivityAction = 'UPDATE';
-  if (action === 'TASK_CREATED') globalAction = 'CREATE';
-  if (action === 'TASK_DELETED') globalAction = 'DELETE';
-
-  await createActivityLog({
-    userId,
-    action: globalAction,
-    description: `Task Activity: ${description}`,
-    ipAddress,
-    userAgent,
+  await db.activityLog.create({
+    data: {
+      userId,
+      action: globalAction,
+      description: `Task Activity: ${description}`,
+      ipAddress,
+      userAgent,
+    },
   });
 }

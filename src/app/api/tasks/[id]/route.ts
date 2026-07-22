@@ -24,8 +24,9 @@ export async function GET(
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
+    // Filter out soft-deleted records
+    const task = await prisma.task.findFirst({
+      where: { id: taskId, deletedAt: null },
       select: {
         id: true,
         taskNumber: true,
@@ -122,8 +123,8 @@ export async function PUT(
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
-    const oldTask = await prisma.task.findUnique({
-      where: { id: taskId },
+    const oldTask = await prisma.task.findFirst({
+      where: { id: taskId, deletedAt: null },
       include: { assignee: true, category: true },
     });
 
@@ -131,7 +132,6 @@ export async function PUT(
       return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
     }
 
-    // 🔒 STRICT AUTHORIZATION CHECK
     if (role !== 'Admin' && oldTask.assigneeId !== sessionUserId) {
       return NextResponse.json(
         { error: 'Akses ditolak. Anda tidak memiliki izin untuk memperbarui task ini.' },
@@ -152,7 +152,6 @@ export async function PUT(
       dueDate,
     } = body;
 
-    // Validation
     if (title !== undefined && (!title || !title.trim())) {
       return NextResponse.json({ error: 'Judul task wajib diisi.' }, { status: 400 });
     }
@@ -170,102 +169,88 @@ export async function PUT(
       );
     }
 
-    // Assignee authorization check: Non-Admin cannot re-assign to another user!
     let newAssigneeId = oldTask.assigneeId;
     if (role === 'Admin' && assigneeId !== undefined) {
       newAssigneeId = assigneeId ? parseInt(String(assigneeId), 10) : null;
     }
 
-    const updatedTask = await prisma.task.update({
-      where: { id: taskId },
-      data: {
-        title: title ? title.trim() : oldTask.title,
-        description: description !== undefined ? description.trim() : oldTask.description,
-        status: status || oldTask.status,
-        priority: priority || oldTask.priority,
-        assigneeId: newAssigneeId,
-        categoryId: categoryId !== undefined ? (categoryId ? parseInt(String(categoryId), 10) : null) : oldTask.categoryId,
-        tags: tags !== undefined ? (tags?.trim() || null) : oldTask.tags,
-        startDate: parsedStartDate,
-        dueDate: parsedDueDate,
-      },
-      select: {
-        id: true,
-        taskNumber: true,
-        title: true,
-        description: true,
-        status: true,
-        priority: true,
-        assigneeId: true,
-        createdById: true,
-        categoryId: true,
-        tags: true,
-        startDate: true,
-        dueDate: true,
-        createdAt: true,
-        updatedAt: true,
-        assignee: { select: { id: true, name: true } },
-        createdBy: { select: { id: true, name: true } },
-        category: { select: { id: true, name: true } },
-      },
+    // 🔒 PRISMA TRANSACTION FOR UPDATE + LOGGING
+    const updatedTask = await prisma.$transaction(async (tx) => {
+      const taskRes = await tx.task.update({
+        where: { id: taskId },
+        data: {
+          title: title ? title.trim() : oldTask.title,
+          description: description !== undefined ? description.trim() : oldTask.description,
+          status: status || oldTask.status,
+          priority: priority || oldTask.priority,
+          assigneeId: newAssigneeId,
+          categoryId: categoryId !== undefined ? (categoryId ? parseInt(String(categoryId), 10) : null) : oldTask.categoryId,
+          tags: tags !== undefined ? (tags?.trim() || null) : oldTask.tags,
+          startDate: parsedStartDate,
+          dueDate: parsedDueDate,
+        },
+        select: {
+          id: true,
+          taskNumber: true,
+          title: true,
+          description: true,
+          status: true,
+          priority: true,
+          assigneeId: true,
+          createdById: true,
+          categoryId: true,
+          tags: true,
+          startDate: true,
+          dueDate: true,
+          createdAt: true,
+          updatedAt: true,
+          assignee: { select: { id: true, name: true } },
+          createdBy: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true } },
+        },
+      });
+
+      const changes: string[] = [];
+      if (oldTask.status !== taskRes.status) {
+        changes.push(`Status: ${oldTask.status} → ${taskRes.status}`);
+        await logTaskActivity({
+          taskId,
+          userId: sessionUserId,
+          action: 'STATUS_CHANGE',
+          description: `Mengubah status task ${oldTask.taskNumber} dari ${oldTask.status} ke ${taskRes.status}`,
+          fieldName: 'status',
+          previousValue: oldTask.status,
+          newValue: taskRes.status,
+          tx,
+        });
+      }
+
+      if (oldTask.priority !== taskRes.priority) {
+        changes.push(`Priority: ${oldTask.priority} → ${taskRes.priority}`);
+        await logTaskActivity({
+          taskId,
+          userId: sessionUserId,
+          action: 'PRIORITY_CHANGE',
+          description: `Mengubah priority task ${oldTask.taskNumber} dari ${oldTask.priority} ke ${taskRes.priority}`,
+          fieldName: 'priority',
+          previousValue: oldTask.priority,
+          newValue: taskRes.priority,
+          tx,
+        });
+      }
+
+      if (changes.length > 0) {
+        await logTaskActivity({
+          taskId,
+          userId: sessionUserId,
+          action: 'TASK_UPDATED',
+          description: `Memperbarui Task ${taskRes.taskNumber}:\n${changes.join('\n')}`,
+          tx,
+        });
+      }
+
+      return taskRes;
     });
-
-    // Detect field changes and log Activity History
-    const changes: string[] = [];
-
-    if (oldTask.status !== updatedTask.status) {
-      changes.push(`Status: ${oldTask.status} → ${updatedTask.status}`);
-      await logTaskActivity({
-        taskId,
-        userId: sessionUserId,
-        action: 'STATUS_CHANGE',
-        description: `Mengubah status task ${oldTask.taskNumber} dari ${oldTask.status} ke ${updatedTask.status}`,
-        fieldName: 'status',
-        previousValue: oldTask.status,
-        newValue: updatedTask.status,
-      });
-    }
-
-    if (oldTask.priority !== updatedTask.priority) {
-      changes.push(`Priority: ${oldTask.priority} → ${updatedTask.priority}`);
-      await logTaskActivity({
-        taskId,
-        userId: sessionUserId,
-        action: 'PRIORITY_CHANGE',
-        description: `Mengubah priority task ${oldTask.taskNumber} dari ${oldTask.priority} ke ${updatedTask.priority}`,
-        fieldName: 'priority',
-        previousValue: oldTask.priority,
-        newValue: updatedTask.priority,
-      });
-    }
-
-    if (oldTask.assigneeId !== updatedTask.assigneeId) {
-      const oldAssigneeName = oldTask.assignee?.name || 'Belum di-assign';
-      const newAssigneeName = updatedTask.assignee?.name || 'Belum di-assign';
-      changes.push(`Assignee: ${oldAssigneeName} → ${newAssigneeName}`);
-      await logTaskActivity({
-        taskId,
-        userId: sessionUserId,
-        action: 'ASSIGNEE_CHANGE',
-        description: `Mengubah penugasan task ${oldTask.taskNumber} dari ${oldAssigneeName} ke ${newAssigneeName}`,
-        fieldName: 'assignee',
-        previousValue: oldAssigneeName,
-        newValue: newAssigneeName,
-      });
-    }
-
-    if (oldTask.title !== updatedTask.title) {
-      changes.push(`Judul: "${updatedTask.title}"`);
-    }
-
-    if (changes.length > 0) {
-      await logTaskActivity({
-        taskId,
-        userId: sessionUserId,
-        action: 'TASK_UPDATED',
-        description: `Memperbarui Task ${updatedTask.taskNumber}:\n${changes.join('\n')}`,
-      });
-    }
 
     return NextResponse.json({ task: updatedTask });
   } catch (err: any) {
@@ -297,26 +282,31 @@ export async function DELETE(
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
+    const task = await prisma.task.findFirst({
+      where: { id: taskId, deletedAt: null },
     });
 
     if (!task) {
       return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
     }
 
-    await prisma.task.delete({
-      where: { id: taskId },
+    // 🔒 PRISMA TRANSACTION FOR SOFT DELETE + ACTIVITY LOG
+    await prisma.$transaction(async (tx) => {
+      await tx.task.update({
+        where: { id: taskId },
+        data: { deletedAt: new Date() }, // Soft Delete
+      });
+
+      await logTaskActivity({
+        taskId,
+        userId: sessionUserId,
+        action: 'TASK_DELETED',
+        description: `Soft Delete Task ${task.taskNumber} - "${task.title}"`,
+        tx,
+      });
     });
 
-    await logTaskActivity({
-      taskId,
-      userId: sessionUserId,
-      action: 'TASK_DELETED',
-      description: `Menghapus Task ${task.taskNumber} - "${task.title}"`,
-    });
-
-    return NextResponse.json({ message: 'Task berhasil dihapus.' });
+    return NextResponse.json({ message: 'Task berhasil dihapus (Soft Delete).' });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }

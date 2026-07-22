@@ -29,15 +29,14 @@ export async function GET(req: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = (searchParams.get('sortOrder') || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc';
 
-    // Construct Prisma WHERE clause strictly using FK IDs
-    const where: any = {};
+    // 🔒 STRICT SOFT DELETE FILTER & FK ID QUERYING
+    const where: any = {
+      deletedAt: null, // Exclude soft deleted tasks
+    };
 
-    // 🔒 STRICT ROLE-BASED ACCESS CONTROL & FK QUERYING
     if (role !== 'Admin') {
-      // Non-Admin can NEVER view tasks assigned to others regardless of client query parameters!
       where.assigneeId = sessionUserId;
     } else {
-      // Admin can filter by any specific assignee_id if requested
       if (mode === 'my') {
         where.assigneeId = sessionUserId;
       } else if (reqAssigneeId) {
@@ -64,7 +63,7 @@ export async function GET(req: NextRequest) {
       where.dueDate = { gte: startOfDay, lte: endOfDay };
     }
 
-    // Global Search (Task Number, Title, Description, Tags)
+    // Global Search directly in SQL database
     if (search.trim()) {
       const q = search.trim();
       where.OR = [
@@ -75,7 +74,7 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    // Sorting
+    // SQL Sorting
     let orderBy: any = { createdAt: 'desc' };
     if (sortBy === 'dueDate') orderBy = { dueDate: sortOrder };
     else if (sortBy === 'priority') orderBy = { priority: sortOrder };
@@ -84,6 +83,7 @@ export async function GET(req: NextRequest) {
 
     const totalItems = await prisma.task.count({ where });
 
+    // Minimal column select for maximum query performance (No heavy comments, attachments, or full history)
     const tasks = await prisma.task.findMany({
       where,
       orderBy,
@@ -104,9 +104,8 @@ export async function GET(req: NextRequest) {
         dueDate: true,
         createdAt: true,
         updatedAt: true,
-        assignee: { select: { id: true, name: true, username: true, email: true, image: true } },
-        createdBy: { select: { id: true, name: true, username: true, email: true, image: true } },
-        category: { select: { id: true, name: true, description: true } },
+        assignee: { select: { id: true, name: true, image: true } },
+        category: { select: { id: true, name: true } },
         checklists: { select: { id: true, isCompleted: true } },
         _count: { select: { comments: true, attachments: true, checklists: true } },
       },
@@ -169,7 +168,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Assignee authorization check: Non-Admin can only assign tasks to themselves!
     let targetAssigneeId = assigneeId ? parseInt(String(assigneeId), 10) : null;
     if (role !== 'Admin') {
       targetAssigneeId = sessionUserId;
@@ -177,48 +175,53 @@ export async function POST(req: NextRequest) {
 
     const taskNumber = await generateNextTaskNumber();
 
-    const task = await prisma.task.create({
-      data: {
-        taskNumber,
-        title: title.trim(),
-        description: description.trim(),
-        status,
-        priority,
-        assigneeId: targetAssigneeId,
-        createdById: sessionUserId,
-        categoryId: categoryId ? parseInt(String(categoryId), 10) : null,
-        tags: tags?.trim() || null,
-        startDate: parsedStartDate,
-        dueDate: parsedDueDate,
-      },
-      select: {
-        id: true,
-        taskNumber: true,
-        title: true,
-        description: true,
-        status: true,
-        priority: true,
-        assigneeId: true,
-        createdById: true,
-        categoryId: true,
-        tags: true,
-        startDate: true,
-        dueDate: true,
-        createdAt: true,
-        updatedAt: true,
-        assignee: { select: { id: true, name: true } },
-        createdBy: { select: { id: true, name: true } },
-        category: { select: { id: true, name: true } },
-      },
-    });
+    // 🔒 PRISMA ATOMIC TRANSACTION FOR TASK CREATION + ACTIVITY LOG
+    const task = await prisma.$transaction(async (tx) => {
+      const createdTask = await tx.task.create({
+        data: {
+          taskNumber,
+          title: title.trim(),
+          description: description.trim(),
+          status,
+          priority,
+          assigneeId: targetAssigneeId,
+          createdById: sessionUserId,
+          categoryId: categoryId ? parseInt(String(categoryId), 10) : null,
+          tags: tags?.trim() || null,
+          startDate: parsedStartDate,
+          dueDate: parsedDueDate,
+        },
+        select: {
+          id: true,
+          taskNumber: true,
+          title: true,
+          description: true,
+          status: true,
+          priority: true,
+          assigneeId: true,
+          createdById: true,
+          categoryId: true,
+          tags: true,
+          startDate: true,
+          dueDate: true,
+          createdAt: true,
+          updatedAt: true,
+          assignee: { select: { id: true, name: true } },
+          createdBy: { select: { id: true, name: true } },
+          category: { select: { id: true, name: true } },
+        },
+      });
 
-    // Log to Task History & Global Activity History
-    await logTaskActivity({
-      taskId: task.id,
-      userId: sessionUserId,
-      action: 'TASK_CREATED',
-      description: `Membuat Task Baru: ${task.taskNumber} - "${task.title}"`,
-      newValue: `Status: ${task.status}, Priority: ${task.priority}`,
+      await logTaskActivity({
+        taskId: createdTask.id,
+        userId: sessionUserId,
+        action: 'TASK_CREATED',
+        description: `Membuat Task Baru: ${createdTask.taskNumber} - "${createdTask.title}"`,
+        newValue: `Status: ${createdTask.status}, Priority: ${createdTask.priority}`,
+        tx,
+      });
+
+      return createdTask;
     });
 
     return NextResponse.json({ task }, { status: 201 });
