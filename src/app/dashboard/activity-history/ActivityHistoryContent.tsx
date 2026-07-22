@@ -88,20 +88,29 @@ export default function ActivityHistoryContent({
   return (
     <div className={styles.container}>
       <div className={`${styles.tableCard} glass`}>
-        {/* Header */}
+        {/* Header Section — Identical to User Management */}
         <div className={styles.tableHeaderSection}>
-          <div className={styles.headerIcon}>
+          <div style={{
+            width: '36px',
+            height: '36px',
+            borderRadius: '8px',
+            background: 'var(--primary-glow)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'hsl(265, 90%, 80%)'
+          }}>
             <History size={18} />
           </div>
           <div>
-            <h2 className={styles.headerTitle}>Riwayat Aktivitas</h2>
-            <p className={styles.headerSubtitle}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Riwayat Aktivitas</h2>
+            <p style={{ color: 'hsla(0, 0%, 100%, 0.5)', margin: '0.05rem 0 0', fontSize: '0.78rem' }}>
               Memantau log perubahan dan aktivitas penting pada akun Anda
             </p>
           </div>
         </div>
 
-        {/* Logs Content */}
+        {/* Content Section */}
         {totalItems === 0 ? (
           <div className={styles.emptyState}>
             <Inbox size={28} />
@@ -126,88 +135,48 @@ export default function ActivityHistoryContent({
                 </div>
               )}
 
-              {/* Desktop & Tablet Table View (>= 768px) */}
-              <div className={styles.desktopView}>
-                <div className={styles.tableWrapper}>
-                  <table className={styles.table}>
-                    <thead>
-                      <tr>
-                        <th className={styles.timeCol}>Waktu</th>
-                        <th className={styles.actionCol}>Action</th>
-                        <th className={styles.descCol}>Description</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {logs.map((log) => {
-                        const descLines = log.description.split('\n');
+              {/* Logs Table Wrapper — Responsive Overflow Auto matching User Management */}
+              <div className={styles.tableWrapper}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th className={styles.timeCol}>Waktu</th>
+                      <th className={styles.actionCol}>Action</th>
+                      <th className={styles.descCol}>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log) => {
+                      const descLines = log.description.split('\n');
 
-                        return (
-                          <tr key={log.id}>
-                            <td className={styles.timeCol}>
-                              {formatActivityDate(new Date(log.createdAt))}
-                            </td>
-                            <td className={styles.actionCol}>
-                              <span className={`${styles.badge} ${getBadgeClass(log.action)}`}>
-                                {log.action}
-                              </span>
-                            </td>
-                            <td className={styles.descCol}>
-                              <ul className={styles.descriptionList}>
-                                {descLines.map((line, idx) => (
-                                  <li key={idx} className={styles.descriptionItem}>
-                                    {line}
-                                  </li>
-                                ))}
-                              </ul>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Mobile Card View (< 768px) */}
-              <div className={styles.mobileCardList}>
-                {logs.map((log) => {
-                  const descLines = log.description.split('\n');
-
-                  return (
-                    <div key={log.id} className={styles.mobileCard}>
-                      <div className={styles.cardSection}>
-                        <span className={styles.cardLabel}>Action</span>
-                        <div>
-                          <span className={`${styles.badge} ${getBadgeClass(log.action)}`}>
-                            {log.action}
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className={styles.cardSection}>
-                        <span className={styles.cardLabel}>Description</span>
-                        <div className={styles.cardDescription}>
-                          {descLines.map((line, idx) => (
-                            <p key={idx} className={styles.descriptionItem}>
-                              {line}
-                            </p>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className={styles.cardSection}>
-                        <span className={styles.cardLabel}>Date</span>
-                        <span className={styles.cardDate}>
-                          {formatActivityDate(new Date(log.createdAt))}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                })}
+                      return (
+                        <tr key={log.id}>
+                          <td className={styles.timeCol}>
+                            {formatActivityDate(new Date(log.createdAt))}
+                          </td>
+                          <td className={styles.actionCol}>
+                            <span className={`${styles.badge} ${getBadgeClass(log.action)}`}>
+                              {log.action}
+                            </span>
+                          </td>
+                          <td className={styles.descCol}>
+                            <ul className={styles.descriptionList}>
+                              {descLines.map((line, idx) => (
+                                <li key={idx} className={styles.descriptionItem}>
+                                  {line}
+                                </li>
+                              ))}
+                            </ul>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            {/* Pagination Controls */}
+            {/* Pagination Controls — Identical to User Management */}
             <div className={styles.paginationSection}>
               <div className={styles.paginationInfo}>
                 Showing {itemFrom}–{itemTo} of {totalItems} activities
@@ -223,7 +192,6 @@ export default function ActivityHistoryContent({
                     onClick={() => handlePageNavigate(currentPage - 1)}
                     disabled={isPending}
                     className={styles.pageBtn}
-                    aria-label="Previous Page"
                   >
                     Previous
                   </button>
@@ -246,8 +214,6 @@ export default function ActivityHistoryContent({
                       onClick={() => handlePageNavigate(Number(p))}
                       disabled={isPending || isCurrent}
                       className={`${styles.pageBtn} ${isCurrent ? styles.activePageBtn : ''}`}
-                      aria-label={`Page ${p}`}
-                      aria-current={isCurrent ? 'page' : undefined}
                     >
                       {p}
                     </button>
@@ -263,7 +229,6 @@ export default function ActivityHistoryContent({
                     onClick={() => handlePageNavigate(currentPage + 1)}
                     disabled={isPending}
                     className={styles.pageBtn}
-                    aria-label="Next Page"
                   >
                     Next
                   </button>

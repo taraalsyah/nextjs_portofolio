@@ -43,50 +43,34 @@ export default function TableSkeleton({
         </div>
       )}
 
-      {/* Desktop Table Skeleton */}
-      <div className={styles.desktopSkeleton}>
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                {displayHeaders.map((h, idx) => (
-                  <th key={idx}>{h}</th>
+      {/* Table Skeleton Structure */}
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              {displayHeaders.map((h, idx) => (
+                <th key={idx}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {Array.from({ length: rows }).map((_, rIdx) => (
+              <tr key={rIdx}>
+                {Array.from({ length: colCount }).map((_, cIdx) => (
+                  <td key={cIdx}>
+                    <div
+                      className={styles.skeleton}
+                      style={{
+                        width: cIdx === 0 ? '75%' : cIdx === colCount - 1 ? '40%' : '60%',
+                        height: '0.9rem',
+                      }}
+                    />
+                  </td>
                 ))}
               </tr>
-            </thead>
-            <tbody>
-              {Array.from({ length: rows }).map((_, rIdx) => (
-                <tr key={rIdx}>
-                  {Array.from({ length: colCount }).map((_, cIdx) => (
-                    <td key={cIdx}>
-                      <div
-                        className={styles.skeleton}
-                        style={{
-                          width: cIdx === 0 ? '75%' : cIdx === colCount - 1 ? '40%' : '60%',
-                          height: '0.9rem',
-                        }}
-                      />
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Mobile Card Skeleton */}
-      <div className={styles.mobileSkeleton}>
-        {Array.from({ length: Math.min(rows, 5) }).map((_, idx) => (
-          <div key={idx} className={styles.cardSkeleton} style={{ padding: '1rem', gap: '0.6rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div className={styles.skeleton} style={{ width: '60px', height: '1.2rem', borderRadius: '4px' }} />
-              <div className={styles.skeleton} style={{ width: '100px', height: '0.8rem' }} />
-            </div>
-            <div className={styles.skeleton} style={{ width: '85%', height: '0.9rem' }} />
-            <div className={styles.skeleton} style={{ width: '60%', height: '0.8rem' }} />
-          </div>
-        ))}
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination Skeleton */}
