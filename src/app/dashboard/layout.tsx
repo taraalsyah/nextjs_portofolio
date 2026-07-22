@@ -15,7 +15,8 @@ import {
   ChevronDown,
   History,
   Users,
-  Shield
+  Shield,
+  ListTodo
 } from 'lucide-react';
 import styles from './layout.module.css';
 import { FullPageLoader } from '@/components/ui/loading';
@@ -28,6 +29,7 @@ interface MenuItem {
 
 const MENU_ITEMS: MenuItem[] = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
+  { name: 'Task Management', href: '/dashboard/task-management', icon: ListTodo },
   { name: 'User Management', href: '/dashboard/user-management', icon: Users },
   { name: 'Role Management', href: '/dashboard/role-management', icon: Shield },
   { name: 'Activity History', href: '/dashboard/activity-history', icon: History },

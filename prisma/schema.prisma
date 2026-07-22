@@ -8,27 +8,34 @@ generator client {
 }
 
 model User {
-  id              Int                 @id @default(autoincrement())
-  name            String
-  username        String?             @unique
-  email           String              @unique
-  password        String
-  role            String              @default("user") // Fallback
-  roleId          Int?                @map("role_id")
-  roleRel         Role?               @relation("UserRole", fields: [roleId], references: [id], onDelete: SetNull)
-  status          String              @default("PENDING") // PENDING, ACTIVE, BLOCKED
-  phone           String?
-  image           String?
+  id                Int                 @id @default(autoincrement())
+  name              String
+  username          String?             @unique
+  email             String              @unique
+  password          String
+  role              String              @default("user") // Fallback
+  roleId            Int?                @map("role_id")
+  roleRel           Role?               @relation("UserRole", fields: [roleId], references: [id], onDelete: SetNull)
+  status            String              @default("PENDING") // PENDING, ACTIVE, BLOCKED
+  phone             String?
+  image             String?
   otpAttemptCount   Int                 @default(0) @map("otp_attempt_count")
   otpSoftBlockUntil DateTime?           @map("otp_soft_block_until")
   otpSoftBlockCount Int                 @default(0) @map("otp_soft_block_count")
-  emailVerifiedAt DateTime?           @map("email_verified_at")
-  lastLoginAt     DateTime?           @map("last_login_at")
-  createdAt       DateTime            @default(now()) @map("created_at")
-  updatedAt       DateTime            @updatedAt @map("updated_at")
-  verifications   EmailVerification[]
-  passwordResets  PasswordResetToken[]
-  activityLogs    ActivityLog[]
+  emailVerifiedAt   DateTime?           @map("email_verified_at")
+  lastLoginAt       DateTime?           @map("last_login_at")
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  verifications     EmailVerification[]
+  passwordResets    PasswordResetToken[]
+  activityLogs      ActivityLog[]
+
+  // Task Management Relations
+  assignedTasks     Task[]              @relation("TaskAssignee")
+  createdTasks      Task[]              @relation("TaskCreator")
+  taskComments      TaskComment[]
+  taskAttachments   TaskAttachment[]
+  taskHistories     TaskHistory[]
 
   @@map("users")
 }
@@ -110,4 +117,105 @@ model RolePermission {
 
   @@unique([roleId, permissionId])
   @@map("role_permissions")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TASK MANAGEMENT MODULE MODELS
+// ─────────────────────────────────────────────────────────────────────────────
+
+model TaskCategory {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  tasks       Task[]
+
+  @@map("task_categories")
+}
+
+model Task {
+  id          Int              @id @default(autoincrement())
+  taskNumber  String           @unique @map("task_number") // TSK-000001
+  title       String
+  description String           @db.Text
+  status      String           @default("BACKLOG") // BACKLOG, OPEN, IN_PROGRESS, DONE
+  priority    String           @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
+  assigneeId  Int?             @map("assignee_id")
+  createdById Int              @map("created_by_id")
+  categoryId  Int?             @map("category_id")
+  tags        String?          @db.Text // Comma separated or JSON string
+  startDate   DateTime?        @map("start_date")
+  dueDate     DateTime?        @map("due_date")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  assignee    User?            @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  createdBy   User             @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  category    TaskCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  checklists  TaskChecklist[]
+  comments    TaskComment[]
+  attachments TaskAttachment[]
+  histories   TaskHistory[]
+
+  @@map("tasks")
+}
+
+model TaskChecklist {
+  id          Int      @id @default(autoincrement())
+  taskId      Int      @map("task_id")
+  title       String
+  isCompleted Boolean  @default(false) @map("is_completed")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@map("task_checklists")
+}
+
+model TaskComment {
+  id        Int      @id @default(autoincrement())
+  taskId    Int      @map("task_id")
+  userId    Int      @map("user_id")
+  content   String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("task_comments")
+}
+
+model TaskAttachment {
+  id           Int      @id @default(autoincrement())
+  taskId       Int      @map("task_id")
+  uploadedById Int      @map("uploaded_by_id")
+  fileName     String   @map("file_name")
+  fileUrl      String   @db.LongText @map("file_url") // Base64 data URL or uploaded URL
+  fileSize     Int      @map("file_size")
+  fileType     String   @map("file_type") // image/jpeg, image/png, image/webp
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+
+  @@map("task_attachments")
+}
+
+model TaskHistory {
+  id            Int      @id @default(autoincrement())
+  taskId        Int      @map("task_id")
+  userId        Int      @map("user_id")
+  action        String   // STATUS_CHANGE, PRIORITY_CHANGE, ASSIGNEE_CHANGE, TASK_CREATED, etc.
+  fieldName     String?  @map("field_name")
+  previousValue String?  @db.Text @map("previous_value")
+  newValue      String?  @db.Text @map("new_value")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("task_histories")
 }
