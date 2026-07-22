@@ -47,6 +47,24 @@ function getPageNumbers(currentPage: number, totalPages: number): (number | stri
   });
 }
 
+function getBadgeClass(action: string): string {
+  const act = action ? action.toUpperCase() : '';
+  switch (act) {
+    case 'CREATE':
+      return styles.badgeCreate;
+    case 'UPDATE':
+      return styles.badgeUpdate;
+    case 'DELETE':
+      return styles.badgeDelete;
+    case 'LOGIN':
+      return styles.badgeLogin;
+    case 'LOGOUT':
+      return styles.badgeLogout;
+    default:
+      return styles.badgeCreate;
+  }
+}
+
 export default function ActivityHistoryContent({
   logs,
   totalItems,
@@ -72,31 +90,22 @@ export default function ActivityHistoryContent({
       <div className={`${styles.tableCard} glass`}>
         {/* Header */}
         <div className={styles.tableHeaderSection}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '8px',
-            background: 'var(--primary-glow)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'hsl(265, 90%, 80%)'
-          }}>
+          <div className={styles.headerIcon}>
             <History size={18} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Riwayat Aktivitas</h2>
-            <p style={{ color: 'hsla(0, 0%, 100%, 0.5)', margin: '0.05rem 0 0', fontSize: '0.78rem' }}>
+            <h2 className={styles.headerTitle}>Riwayat Aktivitas</h2>
+            <p className={styles.headerSubtitle}>
               Memantau log perubahan dan aktivitas penting pada akun Anda
             </p>
           </div>
         </div>
 
-        {/* Logs Table */}
+        {/* Logs Content */}
         {totalItems === 0 ? (
           <div className={styles.emptyState}>
             <Inbox size={28} />
-            <span className={styles.emptyStateText}>No activity history found.</span>
+            <span className={styles.emptyStateText}>Belum ada aktivitas.</span>
           </div>
         ) : (
           <>
@@ -116,52 +125,85 @@ export default function ActivityHistoryContent({
                   <InlineSpinner size={28} color="var(--secondary)" />
                 </div>
               )}
-              <div className={styles.tableWrapper}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th className={styles.timeCol}>Waktu</th>
-                      <th className={styles.actionCol}>Action</th>
-                      <th className={styles.descCol}>Description</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {logs.map((log) => {
-                      let badgeClass = styles.badgeCreate;
-                      if (log.action === 'UPDATE') {
-                        badgeClass = styles.badgeUpdate;
-                      } else if (log.action === 'DELETE') {
-                        badgeClass = styles.badgeDelete;
-                      } else if (log.action === 'LOGIN') {
-                        badgeClass = styles.badgeCreate;
-                      } else if (log.action === 'LOGOUT') {
-                        badgeClass = styles.badgeDelete;
-                      }
 
-                      const descLines = log.description.split('\n');
+              {/* Desktop & Tablet Table View (>= 768px) */}
+              <div className={styles.desktopView}>
+                <div className={styles.tableWrapper}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th className={styles.timeCol}>Waktu</th>
+                        <th className={styles.actionCol}>Action</th>
+                        <th className={styles.descCol}>Description</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {logs.map((log) => {
+                        const descLines = log.description.split('\n');
 
-                      return (
-                        <tr key={log.id}>
-                          <td className={styles.timeCol}>{formatActivityDate(new Date(log.createdAt))}</td>
-                          <td className={styles.actionCol}>
-                            <span className={`${styles.badge} ${badgeClass}`}>
-                              {log.action}
-                            </span>
-                          </td>
-                          <td className={styles.descCol}>
-                            <ul className={styles.descriptionList}>
-                              {descLines.map((line, idx) => (
-                                <li key={idx} className={styles.descriptionItem}>
-                                  {line}
-                                </li>
-                              ))}
-                            </ul>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                        return (
+                          <tr key={log.id}>
+                            <td className={styles.timeCol}>
+                              {formatActivityDate(new Date(log.createdAt))}
+                            </td>
+                            <td className={styles.actionCol}>
+                              <span className={`${styles.badge} ${getBadgeClass(log.action)}`}>
+                                {log.action}
+                              </span>
+                            </td>
+                            <td className={styles.descCol}>
+                              <ul className={styles.descriptionList}>
+                                {descLines.map((line, idx) => (
+                                  <li key={idx} className={styles.descriptionItem}>
+                                    {line}
+                                  </li>
+                                ))}
+                              </ul>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Mobile Card View (< 768px) */}
+              <div className={styles.mobileCardList}>
+                {logs.map((log) => {
+                  const descLines = log.description.split('\n');
+
+                  return (
+                    <div key={log.id} className={styles.mobileCard}>
+                      <div className={styles.cardSection}>
+                        <span className={styles.cardLabel}>Action</span>
+                        <div>
+                          <span className={`${styles.badge} ${getBadgeClass(log.action)}`}>
+                            {log.action}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className={styles.cardSection}>
+                        <span className={styles.cardLabel}>Description</span>
+                        <div className={styles.cardDescription}>
+                          {descLines.map((line, idx) => (
+                            <p key={idx} className={styles.descriptionItem}>
+                              {line}
+                            </p>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className={styles.cardSection}>
+                        <span className={styles.cardLabel}>Date</span>
+                        <span className={styles.cardDate}>
+                          {formatActivityDate(new Date(log.createdAt))}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -181,6 +223,7 @@ export default function ActivityHistoryContent({
                     onClick={() => handlePageNavigate(currentPage - 1)}
                     disabled={isPending}
                     className={styles.pageBtn}
+                    aria-label="Previous Page"
                   >
                     Previous
                   </button>
@@ -203,6 +246,8 @@ export default function ActivityHistoryContent({
                       onClick={() => handlePageNavigate(Number(p))}
                       disabled={isPending || isCurrent}
                       className={`${styles.pageBtn} ${isCurrent ? styles.activePageBtn : ''}`}
+                      aria-label={`Page ${p}`}
+                      aria-current={isCurrent ? 'page' : undefined}
                     >
                       {p}
                     </button>
@@ -218,6 +263,7 @@ export default function ActivityHistoryContent({
                     onClick={() => handlePageNavigate(currentPage + 1)}
                     disabled={isPending}
                     className={styles.pageBtn}
+                    aria-label="Next Page"
                   >
                     Next
                   </button>

@@ -118,6 +118,26 @@
   border-bottom: 1px solid var(--glass-border, hsla(0, 0%, 100%, 0.08));
 }
 
+.desktopSkeleton {
+  display: block;
+}
+
+.mobileSkeleton {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .desktopSkeleton {
+    display: none;
+  }
+
+  .mobileSkeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
