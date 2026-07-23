@@ -70,7 +70,7 @@ export async function getActiveProjectContext(
         visibility: membership.project.visibility,
         ownerUserId: membership.project.ownerUserId,
         memberRole: role,
-        permissions: getProjectPermissions(role),
+        permissions: await getProjectPermissions(role, membership.project.id),
       };
     }
   }
@@ -100,7 +100,7 @@ export async function getActiveProjectContext(
       visibility: firstMembership.project.visibility,
       ownerUserId: firstMembership.project.ownerUserId,
       memberRole: role,
-      permissions: getProjectPermissions(role),
+      permissions: await getProjectPermissions(role, firstMembership.project.id),
     };
   }
 
@@ -120,6 +120,6 @@ export async function getActiveProjectContext(
     visibility: personalProject.visibility,
     ownerUserId: personalProject.ownerUserId,
     memberRole: role,
-    permissions: getProjectPermissions(role),
+    permissions: await getProjectPermissions(role, personalProject.id),
   };
 }

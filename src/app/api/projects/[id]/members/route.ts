@@ -37,8 +37,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
             id: true,
             name: true,
             email: true,
+            username: true,
             image: true,
-            role: true,
+            status: true,
           },
         },
       },
@@ -66,14 +67,29 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const currentMember = await getProjectMember(projectId, currentUserId);
-    const permissions = getProjectPermissions(currentMember?.role);
+    const permissions = await getProjectPermissions(currentMember?.role, projectId);
 
     if (!permissions.canManageMembers) {
       return NextResponse.json({ error: 'Anda tidak memiliki izin untuk mengundang anggota ke proyek ini.' }, { status: 403 });
     }
 
+    // Verify project exists
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { id: true, projectName: true, ownerUserId: true },
+    });
+
+    if (!project) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
+
     const body = await req.json();
     const { userId: targetUserIdInput, email: targetEmail, role: roleInput = 'MEMBER' } = body;
+
+    // Rule: Owner role MUST NEVER be assigned during invitation
+    if (roleInput === 'OWNER') {
+      return NextResponse.json({ error: 'Peran Owner tidak dapat dipilih saat mengundang anggota. Gunakan fitur Transfer Ownership untuk mengalihkan kepemilikan.' }, { status: 400 });
+    }
 
     let targetUserId = targetUserIdInput ? parseInt(String(targetUserIdInput), 10) : null;
 
@@ -89,14 +105,28 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Pengguna yang ingin diundang tidak ditemukan.' }, { status: 404 });
     }
 
-    const validRoles: ProjectRole[] = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
-    const roleToAdd: ProjectRole = validRoles.includes(roleInput) ? roleInput : 'MEMBER';
+    // Validate target user status
+    const targetUser = await prisma.user.findUnique({
+      where: { id: targetUserId },
+      select: { id: true, name: true, email: true, status: true },
+    });
 
-    if (roleToAdd === 'OWNER' && currentMember?.role !== 'OWNER') {
-      return NextResponse.json({ error: 'Hanya OWNER yang dapat menetapkan peran OWNER.' }, { status: 403 });
+    if (!targetUser) {
+      return NextResponse.json({ error: 'Pengguna tidak ditemukan.' }, { status: 404 });
     }
 
-    // Check if already a member
+    if (targetUser.status !== 'ACTIVE') {
+      return NextResponse.json({ error: 'Pengguna tidak berstatus aktif.' }, { status: 400 });
+    }
+
+    if (targetUserId === project.ownerUserId) {
+      return NextResponse.json({ error: 'Pengguna tersebut adalah Pemilik Proyek.' }, { status: 400 });
+    }
+
+    const validAssignRoles: ProjectRole[] = ['ADMIN', 'MEMBER', 'VIEWER'];
+    const roleToAdd: ProjectRole = validAssignRoles.includes(roleInput) ? roleInput : 'MEMBER';
+
+    // Check duplicate invitation
     const existing = await prisma.projectMember.findUnique({
       where: {
         projectId_userId: {
@@ -107,7 +137,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     });
 
     if (existing) {
-      return NextResponse.json({ error: 'Pengguna sudah menjadi anggota proyek ini.' }, { status: 400 });
+      return NextResponse.json({ error: 'Pengguna sudah menjadi anggota proyek ini.' }, { status: 409 });
     }
 
     const member = await prisma.$transaction(async (tx) => {
@@ -123,7 +153,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           userId: true,
           role: true,
           joinedAt: true,
-          user: { select: { id: true, name: true, email: true, image: true } },
+          user: { select: { id: true, name: true, email: true, username: true, image: true, status: true } },
         },
       });
 
@@ -132,7 +162,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           userId: currentUserId,
           projectId,
           action: 'MEMBER_ADDED',
-          description: `Menambahkan anggota "${created.user.name}" (${created.role}) ke proyek.`,
+          description: `Member Invited: Mengundang "${created.user.name}" (${created.role}) ke dalam proyek.`,
         },
       });
 
@@ -161,7 +191,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const currentMember = await getProjectMember(projectId, currentUserId);
-    const permissions = getProjectPermissions(currentMember?.role);
+    const permissions = await getProjectPermissions(currentMember?.role, projectId);
 
     if (!permissions.canManageMemberRoles) {
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat mengubah peran anggota.' }, { status: 403 });
@@ -180,11 +210,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       select: { ownerUserId: true },
     });
 
-    if (project?.ownerUserId === targetUserId && newRoleInput !== 'OWNER') {
-      return NextResponse.json({ error: 'Peran pemilik utama proyek tidak dapat diubah.' }, { status: 400 });
+    if (project?.ownerUserId === targetUserId) {
+      return NextResponse.json({ error: 'Peran pemilik utama proyek tidak dapat diubah dari sini. Gunakan fitur Transfer Ownership.' }, { status: 400 });
     }
 
-    const validRoles: ProjectRole[] = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
+    if (newRoleInput === 'OWNER') {
+      return NextResponse.json({ error: 'Peran Owner hanya dapat dialihkan melalui fitur Transfer Ownership.' }, { status: 400 });
+    }
+
+    const validRoles: ProjectRole[] = ['ADMIN', 'MEMBER', 'VIEWER'];
     if (!validRoles.includes(newRoleInput)) {
       return NextResponse.json({ error: 'Peran baru tidak valid.' }, { status: 400 });
     }
@@ -204,7 +238,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           userId: true,
           role: true,
           joinedAt: true,
-          user: { select: { id: true, name: true, email: true } },
+          user: { select: { id: true, name: true, email: true, username: true, image: true, status: true } },
         },
       });
 
@@ -213,7 +247,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
           userId: currentUserId,
           projectId,
           action: 'ROLE_CHANGED',
-          description: `Mengubah peran "${updated.user.name}" menjadi ${newRoleInput}.`,
+          description: `Project Role Changed: Mengubah peran "${updated.user.name}" menjadi ${newRoleInput}.`,
         },
       });
 
@@ -242,7 +276,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const currentMember = await getProjectMember(projectId, currentUserId);
-    const permissions = getProjectPermissions(currentMember?.role);
+    const permissions = await getProjectPermissions(currentMember?.role, projectId);
 
     if (!permissions.canRemoveMembers) {
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat menghapus anggota.' }, { status: 403 });
@@ -265,6 +299,15 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
       return NextResponse.json({ error: 'Pemilik utama proyek tidak dapat dihapus.' }, { status: 400 });
     }
 
+    // Check member count: Cannot remove the last remaining member
+    const memberCount = await prisma.projectMember.count({
+      where: { projectId },
+    });
+
+    if (memberCount <= 1) {
+      return NextResponse.json({ error: 'Tidak dapat menghapus satu-satunya anggota proyek.' }, { status: 400 });
+    }
+
     const targetUser = await prisma.user.findUnique({
       where: { id: targetUserId },
       select: { name: true },
@@ -285,7 +328,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
           userId: currentUserId,
           projectId,
           action: 'MEMBER_REMOVED',
-          description: `Menghapus anggota "${targetUser?.name || targetUserId}" dari proyek.`,
+          description: `Member Removed: Menghapus anggota "${targetUser?.name || targetUserId}" dari proyek.`,
         },
       });
     });

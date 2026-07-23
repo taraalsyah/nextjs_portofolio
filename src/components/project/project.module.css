@@ -70,36 +70,48 @@
 }
 
 .roleBadge {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 600;
-  padding: 0.1rem 0.35rem;
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  white-space: nowrap;
 }
 
 .roleOwner {
   background: rgba(234, 179, 8, 0.15);
   color: #fde047;
-  border: 1px solid rgba(234, 179, 8, 0.3);
+  border: 1px solid rgba(234, 179, 8, 0.35);
 }
 
 .roleAdmin {
   background: rgba(168, 85, 247, 0.15);
   color: #c084fc;
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  border: 1px solid rgba(168, 85, 247, 0.35);
 }
 
 .roleMember {
   background: rgba(59, 130, 246, 0.15);
   color: #60a5fa;
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  border: 1px solid rgba(59, 130, 246, 0.35);
 }
 
 .roleViewer {
   background: rgba(148, 163, 184, 0.15);
   color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+}
+
+.statusActive {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
 }
 
 /* Dropdown Menu */
@@ -198,7 +210,7 @@
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   width: 100%;
-  max-width: 580px;
+  max-width: 680px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
   overflow: hidden;
   display: flex;
@@ -372,62 +384,107 @@
   background: hsla(350, 85%, 55%, 0.35);
 }
 
-/* Member Item Row */
-.memberList {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.memberRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.65rem 0.85rem;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* Members Table */
+.tableContainer {
+  width: 100%;
+  overflow-x: auto;
   border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
 }
 
-.memberLeft {
+.membersTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.membersTable th {
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  color: #94a3b8;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  white-space: nowrap;
+}
+
+.membersTable td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  vertical-align: middle;
+}
+
+.membersTable tr:last-child td {
+  border-bottom: none;
+}
+
+.userCell {
   display: flex;
   align-items: center;
   gap: 0.65rem;
 }
 
-.memberAvatar {
+.userAvatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 600;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-.memberMeta {
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.userInfo {
   display: flex;
   flex-direction: column;
 }
 
-.memberName {
-  font-size: 0.85rem;
+.userName {
   font-weight: 600;
   color: #f8fafc;
 }
 
-.memberEmail {
+.userHandle {
   font-size: 0.75rem;
   color: #94a3b8;
 }
 
-.memberActions {
+.actionCell {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
+}
+
+.transferBtn {
+  padding: 0.35rem 0.6rem;
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.3);
+  color: #fde047;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  transition: background 0.15s ease;
+}
+
+.transferBtn:hover {
+  background: rgba(234, 179, 8, 0.25);
 }
 
 .iconBtn {
@@ -437,8 +494,35 @@
   color: #ef4444;
   cursor: pointer;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease;
 }
 
 .iconBtn:hover {
   background: rgba(239, 68, 68, 0.15);
 }
+
+/* Matrix Table Styles */
+.matrixCategoryRow {
+  background: rgba(56, 189, 248, 0.08) !important;
+  color: #38bdf8 !important;
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.matrixCheckbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #38bdf8;
+  cursor: pointer;
+}
+
+.matrixCheckbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+

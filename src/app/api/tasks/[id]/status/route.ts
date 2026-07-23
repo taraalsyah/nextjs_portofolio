@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { isValidStatusTransition, logTaskActivity } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
+import { validateWorkflowTransition } from '@/lib/project';
 
 export async function PATCH(
   req: NextRequest,
@@ -22,10 +23,6 @@ export async function PATCH(
       return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
     }
 
-    if (activeProject.permissions.role === 'VIEWER') {
-      return NextResponse.json({ error: 'Peran Anda (VIEWER) tidak memiliki izin mengubah status task.' }, { status: 403 });
-    }
-
     const { id } = await params;
     const taskId = parseInt(id, 10);
 
@@ -34,31 +31,51 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { status } = body;
+    const { status: newStatus } = body;
 
-    if (!status || !['BACKLOG', 'OPEN', 'IN_PROGRESS', 'DONE'].includes(status)) {
+    if (!newStatus || !['BACKLOG', 'OPEN', 'IN_PROGRESS', 'DONE'].includes(newStatus)) {
       return NextResponse.json({ error: 'Status tidak valid.' }, { status: 400 });
     }
 
     const task = await prisma.task.findFirst({
       where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
+      select: { id: true, taskNumber: true, title: true, status: true, assigneeId: true, projectId: true },
     });
 
     if (!task) {
       return NextResponse.json({ error: 'Task tidak ditemukan atau tidak berada pada proyek ini.' }, { status: 404 });
     }
 
-    if (!isValidStatusTransition(task.status, status)) {
+    // 🔒 WORKFLOW TRANSITION & TASK OWNERSHIP SECURITY VALIDATION
+    const validation = await validateWorkflowTransition(
+      activeProject.permissions.role,
+      activeProject.permissions,
+      sessionUserId,
+      task.assigneeId,
+      task.status,
+      newStatus,
+      activeProject.projectId
+    );
+
+    if (!validation.allowed) {
       return NextResponse.json(
-        { error: `Perubahan status dari ${task.status} ke ${status} tidak diizinkan.` },
+        { error: validation.reason || 'Anda tidak memiliki izin untuk mengubah status task ini.' },
+        { status: 403 }
+      );
+    }
+
+    if (!isValidStatusTransition(task.status, newStatus)) {
+      return NextResponse.json(
+        { error: `Perubahan status dari ${task.status} ke ${newStatus} tidak diizinkan.` },
         { status: 400 }
       );
     }
 
+    // Transactional Update & Activity History Logging
     const updatedTask = await prisma.$transaction(async (tx) => {
       const updated = await tx.task.update({
         where: { id: taskId },
-        data: { status },
+        data: { status: newStatus },
         select: {
           id: true,
           taskNumber: true,
@@ -76,10 +93,10 @@ export async function PATCH(
         taskId,
         userId: sessionUserId,
         action: 'STATUS_CHANGE',
-        description: `Perubahan Status Task ${task.taskNumber}: ${task.status} → ${status}`,
+        description: `Workflow Transition: Transisi status ${task.taskNumber} (${task.status} → ${newStatus}) oleh ${session.user?.name || 'User'}.`,
         fieldName: 'status',
         previousValue: task.status,
-        newValue: status,
+        newValue: newStatus,
         tx,
       });
 
@@ -88,6 +105,7 @@ export async function PATCH(
 
     return NextResponse.json({ task: updatedTask });
   } catch (err: any) {
+    console.error('PATCH /api/tasks/[id]/status error:', err);
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }

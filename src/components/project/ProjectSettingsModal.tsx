@@ -1,9 +1,32 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Settings, Users, AlertTriangle, UserPlus, Trash2, Check, Shield } from 'lucide-react';
+import {
+  X,
+  Settings,
+  Users,
+  AlertTriangle,
+  UserPlus,
+  Trash2,
+  Check,
+  Crown,
+  Star,
+  User as UserIcon,
+  Eye,
+  Search,
+  ArrowRightLeft,
+  Shield,
+  Save,
+} from 'lucide-react';
+import { format } from 'date-fns';
 import styles from './project.module.css';
 import { notifyProjectMembersUpdated } from '@/hooks/useProjectMembers';
+import {
+  ALL_PERMISSIONS_LIST,
+  ALL_WORKFLOW_TRANSITIONS,
+  ProjectRole,
+  ProjectPermissionKey,
+} from '@/lib/project';
 
 interface ProjectSettingsModalProps {
   isOpen: boolean;
@@ -33,7 +56,9 @@ interface ProjectMemberItem {
     id: number;
     name: string;
     email: string;
+    username?: string | null;
     image?: string | null;
+    status?: string;
   };
 }
 
@@ -41,6 +66,7 @@ interface SearchUserItem {
   id: number;
   name: string;
   email: string;
+  username?: string | null;
   image?: string | null;
 }
 
@@ -50,7 +76,7 @@ export function ProjectSettingsModal({
   activeProjectId,
   onProjectUpdated,
 }: ProjectSettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'members' | 'danger'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'members' | 'roles' | 'danger'>('general');
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
   const [currentRole, setCurrentRole] = useState<string>('VIEWER');
   const [members, setMembers] = useState<ProjectMemberItem[]>([]);
@@ -58,19 +84,29 @@ export function ProjectSettingsModal({
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
-  // Form states
+  // Form states for General
   const [projectName, setProjectName] = useState('');
   const [description, setDescription] = useState('');
   const [visibility, setVisibility] = useState<'PRIVATE' | 'TEAM'>('PRIVATE');
   const [isSavingGeneral, setIsSavingGeneral] = useState(false);
 
-  // Invite states
+  // Invite Modal Sub-Dialog states
+  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [inviteSearchQuery, setInviteSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchUserItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [selectedInviteUser, setSelectedInviteUser] = useState<SearchUserItem | null>(null);
-  const [inviteRole, setInviteRole] = useState<string>('MEMBER');
+  const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MEMBER' | 'VIEWER'>('MEMBER');
   const [isInviting, setIsInviting] = useState(false);
+
+  // Transfer Ownership Dialog states
+  const [transferTargetUser, setTransferTargetUser] = useState<ProjectMemberItem | null>(null);
+  const [isTransferring, setIsTransferring] = useState(false);
+
+  // Matrix Roles state
+  const [permMatrix, setPermMatrix] = useState<Record<string, Record<string, boolean>> | null>(null);
+  const [wfMatrix, setWfMatrix] = useState<Record<string, Record<string, boolean>> | null>(null);
+  const [isSavingMatrix, setIsSavingMatrix] = useState(false);
 
   const fetchProjectDetails = async () => {
     if (!activeProjectId || !isOpen) return;
@@ -93,6 +129,13 @@ export function ProjectSettingsModal({
         const memData = await memRes.json();
         setMembers(memData.members || []);
       }
+
+      const matrixRes = await fetch(`/api/projects/${activeProjectId}/roles/permissions`);
+      if (matrixRes.ok) {
+        const matrixData = await matrixRes.json();
+        setPermMatrix(matrixData.matrix);
+        setWfMatrix(matrixData.workflowMatrix);
+      }
     } catch (err: any) {
       setError(err.message || 'Gagal memuat detail proyek.');
     } finally {
@@ -106,21 +149,25 @@ export function ProjectSettingsModal({
     }
   }, [isOpen, activeProjectId]);
 
-  // Search users for invite
+  // Debounced Search Users for Invite Modal
   useEffect(() => {
-    if (!inviteSearchQuery.trim() || inviteSearchQuery.trim().length < 2) {
+    const q = inviteSearchQuery.trim();
+    if (!q || q.length < 3) {
       setSearchResults([]);
+      setIsSearching(false);
       return;
     }
 
+    setIsSearching(true);
     const timer = setTimeout(() => {
-      setIsSearching(true);
-      fetch(`/api/projects/${activeProjectId}/members/search-users?q=${encodeURIComponent(inviteSearchQuery.trim())}`)
+      fetch(
+        `/api/projects/${activeProjectId}/members/search-users?q=${encodeURIComponent(q)}`
+      )
         .then((res) => res.json())
         .then((data) => setSearchResults(data.users || []))
-        .catch(() => {})
+        .catch(() => setSearchResults([]))
         .finally(() => setIsSearching(false));
-    }, 300);
+    }, 350);
 
     return () => clearTimeout(timer);
   }, [inviteSearchQuery, activeProjectId]);
@@ -128,6 +175,7 @@ export function ProjectSettingsModal({
   if (!isOpen) return null;
 
   const isOwner = currentRole === 'OWNER';
+  const isAdminOrOwner = isOwner || currentRole === 'ADMIN';
 
   const handleUpdateGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,10 +206,18 @@ export function ProjectSettingsModal({
     }
   };
 
-  const handleInviteMember = async () => {
+  const handleInviteMember = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!selectedInviteUser || isInviting) return;
+
+    if ((inviteRole as string) === 'OWNER') {
+      setError('Peran Owner tidak dapat dipilih saat mengundang anggota.');
+      return;
+    }
+
     setIsInviting(true);
     setError(null);
+    setSuccessMsg(null);
 
     try {
       const res = await fetch(`/api/projects/${activeProjectId}/members`, {
@@ -173,18 +229,18 @@ export function ProjectSettingsModal({
         }),
       });
 
+      const data = await res.json();
+
       if (!res.ok) {
-        const json = await res.json();
-        throw new Error(json.error || 'Gagal mengundang anggota.');
+        throw new Error(data.error || 'Gagal mengundang anggota.');
       }
 
-      const data = await res.json();
       setInviteSearchQuery('');
       setSelectedInviteUser(null);
       setSearchResults([]);
-      setSuccessMsg('Anggota berhasil ditambahkan ke proyek.');
-      
-      // Update local modal state immediately
+      setIsInviteDialogOpen(false);
+      setSuccessMsg(`Anggota "${data.member?.user?.name || 'User'}" berhasil diundang.`);
+
       if (data.member) {
         setMembers((prev) => {
           if (prev.some((m) => m.userId === data.member.userId)) return prev;
@@ -192,7 +248,6 @@ export function ProjectSettingsModal({
         });
       }
 
-      // Notify all application components of updated members
       notifyProjectMembersUpdated(activeProjectId);
       fetchProjectDetails();
     } catch (err: any) {
@@ -204,6 +259,11 @@ export function ProjectSettingsModal({
 
   const handleChangeRole = async (targetUserId: number, newRole: string) => {
     if (!isOwner) return;
+    if (newRole === 'OWNER') {
+      alert('Peran Owner hanya dapat dialihkan melalui fitur Transfer Ownership.');
+      return;
+    }
+
     try {
       const res = await fetch(`/api/projects/${activeProjectId}/members`, {
         method: 'PUT',
@@ -227,14 +287,20 @@ export function ProjectSettingsModal({
     }
   };
 
-  const handleRemoveMember = async (member: any) => {
+  const handleRemoveMember = async (member: ProjectMemberItem) => {
     if (!isOwner) return;
+    if (member.userId === projectData?.ownerUserId) {
+      alert('Pemilik utama proyek tidak dapat dihapus.');
+      return;
+    }
+
     if (!confirm(`Apakah Anda yakin ingin menghapus "${member.user.name}" dari proyek ini?`)) return;
 
     try {
-      const res = await fetch(`/api/projects/${activeProjectId}/members?userId=${member.userId}`, {
-        method: 'DELETE',
-      });
+      const res = await fetch(
+        `/api/projects/${activeProjectId}/members?userId=${member.userId}`,
+        { method: 'DELETE' }
+      );
 
       if (res.ok) {
         setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
@@ -249,9 +315,89 @@ export function ProjectSettingsModal({
     }
   };
 
+  const handleTransferOwnership = async () => {
+    if (!transferTargetUser || !isOwner || isTransferring) return;
+
+    setIsTransferring(true);
+    setError(null);
+
+    try {
+      const res = await fetch(`/api/projects/${activeProjectId}/transfer-ownership`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ newOwnerUserId: transferTargetUser.userId }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal mentransfer kepemilikan proyek.');
+      }
+
+      setSuccessMsg(data.message || 'Kepemilikan proyek berhasil dialihkan.');
+      setTransferTargetUser(null);
+      notifyProjectMembersUpdated(activeProjectId);
+      onProjectUpdated();
+      fetchProjectDetails();
+    } catch (err: any) {
+      setError(err.message || 'Gagal mentransfer kepemilikan.');
+    } finally {
+      setIsTransferring(false);
+    }
+  };
+
+  const handleSavePermissionMatrix = async () => {
+    if (!isAdminOrOwner || !permMatrix || !wfMatrix || isSavingMatrix) return;
+
+    setIsSavingMatrix(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/projects/${activeProjectId}/roles/permissions`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ matrix: permMatrix, workflowMatrix: wfMatrix }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal menyimpan matriks izin peran.');
+      }
+
+      setSuccessMsg(data.message || 'Matriks izin peran proyek berhasil diperbarui.');
+      notifyProjectMembersUpdated(activeProjectId);
+    } catch (err: any) {
+      setError(err.message || 'Gagal menyimpan matriks izin.');
+    } finally {
+      setIsSavingMatrix(false);
+    }
+  };
+
+  const togglePermission = (role: string, permKey: string) => {
+    if (role === 'OWNER') return; // Owner permissions remain full for security
+    setPermMatrix((prev) => {
+      if (!prev) return prev;
+      const roleMap = { ...prev[role] };
+      roleMap[permKey] = !roleMap[permKey];
+      return { ...prev, [role]: roleMap };
+    });
+  };
+
+  const toggleWorkflow = (role: string, transitionKey: string) => {
+    if (role === 'OWNER') return;
+    setWfMatrix((prev) => {
+      if (!prev) return prev;
+      const roleMap = { ...prev[role] };
+      roleMap[transitionKey] = !roleMap[transitionKey];
+      return { ...prev, [role]: roleMap };
+    });
+  };
+
   const handleDeleteProject = async () => {
     if (!isOwner) return;
-    const confirmName = prompt(`PERINGATAN: Tindakan ini akan menghapus proyek "${projectData?.projectName}" beserta SELURUH task di dalamnya secara permanen!\n\nKetik nama proyek untuk mengonfirmasi:`);
+    const confirmName = prompt(
+      `PERINGATAN: Tindakan ini akan menghapus proyek "${projectData?.projectName}" beserta SELURUH task di dalamnya secara permanen!\n\nKetik nama proyek untuk mengonfirmasi:`
+    );
 
     if (confirmName !== projectData?.projectName) {
       alert('Nama proyek yang Anda ketikkan tidak cocok. Penghapusan dibatalkan.');
@@ -275,6 +421,40 @@ export function ProjectSettingsModal({
       alert(err.message || 'Gagal menghapus proyek.');
     }
   };
+
+  const renderRoleBadge = (role: string) => {
+    switch (role) {
+      case 'OWNER':
+        return (
+          <span className={`${styles.roleBadge} ${styles.roleOwner}`}>
+            <Crown size={12} /> Owner
+          </span>
+        );
+      case 'ADMIN':
+        return (
+          <span className={`${styles.roleBadge} ${styles.roleAdmin}`}>
+            <Star size={12} /> Admin
+          </span>
+        );
+      case 'MEMBER':
+        return (
+          <span className={`${styles.roleBadge} ${styles.roleMember}`}>
+            <UserIcon size={12} /> Member
+          </span>
+        );
+      case 'VIEWER':
+      default:
+        return (
+          <span className={`${styles.roleBadge} ${styles.roleViewer}`}>
+            <Eye size={12} /> Viewer
+          </span>
+        );
+    }
+  };
+
+  const rolesList: ProjectRole[] = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
+
+  const categories = Array.from(new Set(ALL_PERMISSIONS_LIST.map((p) => p.category)));
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
@@ -302,6 +482,12 @@ export function ProjectSettingsModal({
             onClick={() => setActiveTab('members')}
           >
             <Users size={14} /> Anggota ({members.length})
+          </button>
+          <button
+            className={`${styles.tabBtn} ${activeTab === 'roles' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('roles')}
+          >
+            <Shield size={14} /> Roles & Matrix
           </button>
           {isOwner && (
             <button
@@ -346,12 +532,17 @@ export function ProjectSettingsModal({
           )}
 
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>Memuat data proyek...</div>
+            <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+              Memuat data proyek...
+            </div>
           ) : (
             <>
               {/* GENERAL TAB */}
               {activeTab === 'general' && (
-                <form onSubmit={handleUpdateGeneral} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <form
+                  onSubmit={handleUpdateGeneral}
+                  style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}
+                >
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Nama Proyek</label>
                     <input
@@ -403,117 +594,278 @@ export function ProjectSettingsModal({
               {/* MEMBERS TAB */}
               {activeTab === 'members' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {/* Invite User Box */}
-                  {(isOwner || currentRole === 'ADMIN') && (
-                    <div style={{ padding: '1rem', background: 'rgba(255, 255, 255, 0.03)', borderRadius: '10px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                      <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                        <UserPlus size={16} style={{ color: '#38bdf8' }} /> Undang Anggota Baru
-                      </div>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
+                      Daftar Anggota Proyek ({members.length})
+                    </div>
+                    {isAdminOrOwner && (
+                      <button
+                        onClick={() => setIsInviteDialogOpen(true)}
+                        className={styles.submitBtn}
+                        style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}
+                      >
+                        <UserPlus size={15} /> Invite Member
+                      </button>
+                    )}
+                  </div>
 
-                      <div className={styles.formGroup} style={{ position: 'relative' }}>
-                        <input
-                          type="text"
-                          placeholder="Cari pengguna berdasarkan nama atau email..."
-                          value={inviteSearchQuery}
-                          onChange={(e) => {
-                            setInviteSearchQuery(e.target.value);
-                            setSelectedInviteUser(null);
-                          }}
-                          className={styles.input}
-                        />
-
-                        {/* Search Dropdown Results */}
-                        {searchResults.length > 0 && !selectedInviteUser && (
-                          <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: '#0f172a', border: '1px solid rgba(255, 255, 255, 0.15)', borderRadius: '8px', zIndex: 10, marginTop: '4px', maxHeight: '180px', overflowY: 'auto' }}>
-                            {searchResults.map((u) => (
-                              <div
-                                key={u.id}
-                                onClick={() => {
-                                  setSelectedInviteUser(u);
-                                  setInviteSearchQuery(u.name);
-                                }}
-                                style={{ padding: '0.5rem 0.75rem', cursor: 'pointer', borderBottom: '1px solid rgba(255, 255, 255, 0.05)', fontSize: '0.85rem' }}
-                              >
-                                <div style={{ fontWeight: 600, color: '#f8fafc' }}>{u.name}</div>
-                                <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>{u.email}</div>
+                  <div className={styles.tableContainer}>
+                    <table className={styles.membersTable}>
+                      <thead>
+                        <tr>
+                          <th>User</th>
+                          <th>Role</th>
+                          <th>Joined Date</th>
+                          <th>Status</th>
+                          {isOwner && <th>Action</th>}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {members.map((m) => (
+                          <tr key={m.id}>
+                            <td>
+                              <div className={styles.userCell}>
+                                <div className={styles.userAvatar}>
+                                  {m.user.image ? (
+                                    <img
+                                      src={m.user.image}
+                                      alt={m.user.name}
+                                      className={styles.avatarImg}
+                                    />
+                                  ) : m.user.name ? (
+                                    m.user.name[0].toUpperCase()
+                                  ) : (
+                                    'U'
+                                  )}
+                                </div>
+                                <div className={styles.userInfo}>
+                                  <span className={styles.userName}>{m.user.name}</span>
+                                  <span className={styles.userHandle}>
+                                    {m.user.email}
+                                    {m.user.username ? ` (@${m.user.username})` : ''}
+                                  </span>
+                                </div>
                               </div>
+                            </td>
+                            <td>{renderRoleBadge(m.role)}</td>
+                            <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                              {m.joinedAt
+                                ? format(new Date(m.joinedAt), 'dd MMM yyyy')
+                                : '-'}
+                            </td>
+                            <td>
+                              <span className={styles.statusActive}>Active</span>
+                            </td>
+                            {isOwner && (
+                              <td>
+                                <div className={styles.actionCell}>
+                                  {m.userId !== projectData?.ownerUserId ? (
+                                    <>
+                                      <select
+                                        value={m.role}
+                                        onChange={(e) =>
+                                          handleChangeRole(m.userId, e.target.value)
+                                        }
+                                        className={styles.select}
+                                        style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', width: 'auto' }}
+                                      >
+                                        <option value="ADMIN">Admin</option>
+                                        <option value="MEMBER">Member</option>
+                                        <option value="VIEWER">Viewer</option>
+                                      </select>
+
+                                      <button
+                                        onClick={() => setTransferTargetUser(m)}
+                                        className={styles.transferBtn}
+                                        title="Transfer Kepemilikan Proyek"
+                                      >
+                                        <Crown size={12} /> Transfer
+                                      </button>
+
+                                      <button
+                                        onClick={() => handleRemoveMember(m)}
+                                        className={styles.iconBtn}
+                                        title="Hapus dari proyek"
+                                      >
+                                        <Trash2 size={15} />
+                                      </button>
+                                    </>
+                                  ) : (
+                                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
+                                      Owner Utama
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                            )}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ROLES & PERMISSION MATRIX TAB */}
+              {activeTab === 'roles' && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
+                        Configurable Project Role Permission Matrix
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>
+                        Atur hak akses granular dan transisi workflow untuk setiap peran proyek.
+                      </div>
+                    </div>
+                    {isAdminOrOwner && (
+                      <button
+                        onClick={handleSavePermissionMatrix}
+                        className={styles.submitBtn}
+                        disabled={isSavingMatrix}
+                        style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}
+                      >
+                        <Save size={15} /> {isSavingMatrix ? 'Menyimpan...' : 'Save Matrix'}
+                      </button>
+                    )}
+                  </div>
+
+                  {permMatrix && wfMatrix && (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                      {/* Permission Matrix Table */}
+                      <div className={styles.tableContainer}>
+                        <table className={styles.membersTable}>
+                          <thead>
+                            <tr>
+                              <th>Permission</th>
+                              <th style={{ textAlign: 'center' }}>Owner 👑</th>
+                              <th style={{ textAlign: 'center' }}>Admin ⭐</th>
+                              <th style={{ textAlign: 'center' }}>Member 👤</th>
+                              <th style={{ textAlign: 'center' }}>Viewer 👀</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {categories.map((cat) => (
+                              <React.Fragment key={cat}>
+                                <tr className={styles.matrixCategoryRow}>
+                                  <td colSpan={5}>{cat}</td>
+                                </tr>
+                                {ALL_PERMISSIONS_LIST.filter((p) => p.category === cat).map(
+                                  (perm) => (
+                                    <tr key={perm.key}>
+                                      <td style={{ fontSize: '0.8rem' }}>{perm.name}</td>
+                                      {rolesList.map((r) => (
+                                        <td key={r} style={{ textAlign: 'center' }}>
+                                          <input
+                                            type="checkbox"
+                                            checked={!!permMatrix[r]?.[perm.key]}
+                                            disabled={r === 'OWNER' || !isAdminOrOwner}
+                                            onChange={() => togglePermission(r, perm.key)}
+                                            className={styles.matrixCheckbox}
+                                          />
+                                        </td>
+                                      ))}
+                                    </tr>
+                                  )
+                                )}
+                              </React.Fragment>
                             ))}
-                          </div>
-                        )}
+                          </tbody>
+                        </table>
                       </div>
 
-                      {selectedInviteUser && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.75rem' }}>
-                          <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className={styles.select} style={{ flex: 1 }}>
-                            {isOwner && <option value="OWNER">OWNER</option>}
-                            <option value="ADMIN">ADMIN</option>
-                            <option value="MEMBER">MEMBER</option>
-                            <option value="VIEWER">VIEWER</option>
-                          </select>
-                          <button onClick={handleInviteMember} className={styles.submitBtn} disabled={isInviting}>
-                            {isInviting ? 'Menambahkan...' : 'Undang'}
-                          </button>
+                      {/* Workflow Transition Matrix Table */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
+                          Workflow Transition Permission
                         </div>
-                      )}
+                        <div className={styles.tableContainer}>
+                          <table className={styles.membersTable}>
+                            <thead>
+                              <tr>
+                                <th>Workflow Transition</th>
+                                <th style={{ textAlign: 'center' }}>Owner 👑</th>
+                                <th style={{ textAlign: 'center' }}>Admin ⭐</th>
+                                <th style={{ textAlign: 'center' }}>Member 👤</th>
+                                <th style={{ textAlign: 'center' }}>Viewer 👀</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {ALL_WORKFLOW_TRANSITIONS.map((trans) => {
+                                const key = `${trans.fromStatus}->${trans.toStatus}`;
+                                return (
+                                  <tr key={key}>
+                                    <td style={{ fontSize: '0.8rem' }}>{trans.label}</td>
+                                    {rolesList.map((r) => (
+                                      <td key={r} style={{ textAlign: 'center' }}>
+                                        <input
+                                          type="checkbox"
+                                          checked={!!wfMatrix[r]?.[key]}
+                                          disabled={r === 'OWNER' || !isAdminOrOwner}
+                                          onChange={() => toggleWorkflow(r, key)}
+                                          className={styles.matrixCheckbox}
+                                        />
+                                      </td>
+                                    ))}
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
                   )}
-
-                  {/* Members List */}
-                  <div className={styles.memberList}>
-                    {members.map((m) => (
-                      <div key={m.id} className={styles.memberRow}>
-                        <div className={styles.memberLeft}>
-                          <div className={styles.memberAvatar}>
-                            {m.user.name ? m.user.name[0].toUpperCase() : 'U'}
-                          </div>
-                          <div className={styles.memberMeta}>
-                            <span className={styles.memberName}>{m.user.name}</span>
-                            <span className={styles.memberEmail}>{m.user.email}</span>
-                          </div>
-                        </div>
-
-                        <div className={styles.memberActions}>
-                          {isOwner && m.userId !== projectData?.ownerUserId ? (
-                            <select
-                              value={m.role}
-                              onChange={(e) => handleChangeRole(m.userId, e.target.value)}
-                              className={styles.select}
-                              style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem' }}
-                            >
-                              <option value="OWNER">OWNER</option>
-                              <option value="ADMIN">ADMIN</option>
-                              <option value="MEMBER">MEMBER</option>
-                              <option value="VIEWER">VIEWER</option>
-                            </select>
-                          ) : (
-                            <span className={`${styles.roleBadge} ${m.role === 'OWNER' ? styles.roleOwner : m.role === 'ADMIN' ? styles.roleAdmin : m.role === 'MEMBER' ? styles.roleMember : styles.roleViewer}`}>
-                              {m.role}
-                            </span>
-                          )}
-
-                          {isOwner && m.userId !== projectData?.ownerUserId && (
-                            <button onClick={() => handleRemoveMember(m)} className={styles.iconBtn} title="Hapus dari proyek">
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
                 </div>
               )}
 
               {/* DANGER ZONE TAB */}
               {activeTab === 'danger' && isOwner && (
-                <div style={{ padding: '1.25rem', background: 'hsla(350, 85%, 50%, 0.08)', borderRadius: '12px', border: '1px solid hsla(350, 85%, 50%, 0.25)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'hsl(350, 95%, 85%)', fontWeight: 600 }}>
+                <div
+                  style={{
+                    padding: '1.25rem',
+                    background: 'hsla(350, 85%, 50%, 0.08)',
+                    borderRadius: '12px',
+                    border: '1px solid hsla(350, 85%, 50%, 0.25)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '1rem',
+                  }}
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.5rem',
+                      color: 'hsl(350, 95%, 85%)',
+                      fontWeight: 600,
+                    }}
+                  >
                     <AlertTriangle size={20} />
                     Hapus Proyek Ini
                   </div>
                   <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
-                    Tindakan ini tidak dapat dibatalkan. Seluruh tugas, lampiran, komentar, dan riwayat aktivitas yang terkait dengan proyek ini akan dihapus secara permanen dari basis data.
+                    Tindakan ini tidak dapat dibatalkan. Seluruh tugas, lampiran, komentar, dan
+                    riwayat aktivitas yang terkait dengan proyek ini akan dihapus secara permanen dari
+                    basis data.
                   </p>
-                  <button onClick={handleDeleteProject} className={styles.dangerBtn} style={{ alignSelf: 'flex-start' }}>
+                  <button
+                    onClick={handleDeleteProject}
+                    className={styles.dangerBtn}
+                    style={{ alignSelf: 'flex-start' }}
+                  >
                     Hapus Proyek Secara Permanen
                   </button>
                 </div>
@@ -528,6 +880,266 @@ export function ProjectSettingsModal({
           </button>
         </div>
       </div>
+
+      {/* ─── INVITE MEMBER SUB-DIALOG ─── */}
+      {isInviteDialogOpen && (
+        <div className={styles.modalOverlay} style={{ zIndex: 1100 }}>
+          <div className={styles.modalCard} style={{ maxWidth: '500px' }}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle}>
+                <UserPlus size={18} style={{ color: '#38bdf8' }} />
+                Invite Member
+              </div>
+              <button
+                onClick={() => {
+                  setIsInviteDialogOpen(false);
+                  setInviteSearchQuery('');
+                  setSelectedInviteUser(null);
+                  setSearchResults([]);
+                }}
+                className={styles.closeBtn}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleInviteMember}>
+              <div className={styles.modalBody}>
+                <div className={styles.formGroup} style={{ position: 'relative' }}>
+                  <label className={styles.label}>Cari Pengguna (Email atau Username) *</label>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder="Ketik minimal 3 karakter..."
+                      value={inviteSearchQuery}
+                      onChange={(e) => {
+                        setInviteSearchQuery(e.target.value);
+                        setSelectedInviteUser(null);
+                      }}
+                      className={styles.input}
+                      style={{ paddingLeft: '2.2rem' }}
+                      autoFocus
+                    />
+                    <Search
+                      size={15}
+                      style={{
+                        position: 'absolute',
+                        left: '0.8rem',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        color: '#94a3b8',
+                      }}
+                    />
+                  </div>
+
+                  {inviteSearchQuery.trim().length > 0 &&
+                    inviteSearchQuery.trim().length < 3 && (
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                        Ketik minimal 3 karakter untuk melakukan pencarian...
+                      </span>
+                    )}
+
+                  {isSearching && (
+                    <span style={{ fontSize: '0.75rem', color: '#38bdf8', marginTop: '0.2rem' }}>
+                      Mencari di server...
+                    </span>
+                  )}
+
+                  {searchResults.length > 0 && !selectedInviteUser && (
+                    <div
+                      style={{
+                        background: '#0f172a',
+                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        borderRadius: '8px',
+                        marginTop: '6px',
+                        maxHeight: '200px',
+                        overflowY: 'auto',
+                      }}
+                    >
+                      {searchResults.map((u) => (
+                        <div
+                          key={u.id}
+                          onClick={() => {
+                            setSelectedInviteUser(u);
+                            setInviteSearchQuery(u.name);
+                          }}
+                          style={{
+                            padding: '0.6rem 0.85rem',
+                            cursor: 'pointer',
+                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.6rem',
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: '28px',
+                              height: '28px',
+                              borderRadius: '50%',
+                              background: '#3b82f6',
+                              color: '#fff',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '0.75rem',
+                              fontWeight: 600,
+                            }}
+                          >
+                            {u.name ? u.name[0].toUpperCase() : 'U'}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#f8fafc' }}>
+                              {u.name}
+                            </div>
+                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                              {u.email} {u.username ? `(@${u.username})` : ''}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {selectedInviteUser && (
+                  <div
+                    style={{
+                      padding: '0.65rem 0.85rem',
+                      background: 'rgba(56, 189, 248, 0.1)',
+                      border: '1px solid rgba(56, 189, 248, 0.3)',
+                      borderRadius: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#f8fafc' }}>
+                        {selectedInviteUser.name}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                        {selectedInviteUser.email}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedInviteUser(null);
+                        setInviteSearchQuery('');
+                      }}
+                      style={{
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#94a3b8',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Project Role *</label>
+                  <select
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value as any)}
+                    className={styles.select}
+                  >
+                    <option value="ADMIN">Admin (Dapat mengelola task & mengundang anggota)</option>
+                    <option value="MEMBER">Member (Dapat membuat & mengedit task milik sendiri)</option>
+                    <option value="VIEWER">Viewer (Read-only / hanya membaca)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className={styles.modalFooter}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsInviteDialogOpen(false);
+                    setInviteSearchQuery('');
+                    setSelectedInviteUser(null);
+                    setSearchResults([]);
+                  }}
+                  className={styles.cancelBtn}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className={styles.submitBtn}
+                  disabled={!selectedInviteUser || isInviting}
+                  style={{ opacity: !selectedInviteUser || isInviting ? 0.5 : 1 }}
+                >
+                  {isInviting ? 'Inviting...' : 'Invite Member'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ─── TRANSFER OWNERSHIP CONFIRMATION DIALOG ─── */}
+      {transferTargetUser && (
+        <div className={styles.modalOverlay} style={{ zIndex: 1100 }}>
+          <div className={styles.modalCard} style={{ maxWidth: '480px' }}>
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle} style={{ color: '#fde047' }}>
+                <Crown size={20} />
+                Transfer Kepemilikan Proyek
+              </div>
+              <button
+                onClick={() => setTransferTargetUser(null)}
+                className={styles.closeBtn}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+                Apakah Anda yakin ingin mentransfer kepemilikan proyek{' '}
+                <strong>"{projectData?.projectName}"</strong> kepada{' '}
+                <strong>"{transferTargetUser.user.name}"</strong>?
+              </p>
+              <div
+                style={{
+                  padding: '0.75rem',
+                  background: 'rgba(234, 179, 8, 0.1)',
+                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  borderRadius: '8px',
+                  fontSize: '0.8rem',
+                  color: '#fde047',
+                }}
+              >
+                ⚠️ Perhatian: Setelah transfer, Anda akan menjadi <strong>Admin</strong> proyek ini dan
+                hanya <strong>{transferTargetUser.user.name}</strong> yang memiliki akses penuh sebagai Owner.
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                onClick={() => setTransferTargetUser(null)}
+                className={styles.cancelBtn}
+                disabled={isTransferring}
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleTransferOwnership}
+                className={styles.submitBtn}
+                style={{ background: 'linear-gradient(135deg, #eab308, #ca8a04)' }}
+                disabled={isTransferring}
+              >
+                <ArrowRightLeft size={16} />
+                {isTransferring ? 'Mentransfer...' : 'Transfer Kepemilikan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

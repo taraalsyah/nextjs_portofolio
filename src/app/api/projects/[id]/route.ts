@@ -43,7 +43,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
     }
 
-    const permissions = getProjectPermissions(membership.role);
+    const permissions = await getProjectPermissions(membership.role, projectId);
     return NextResponse.json({ project, permissions, currentRole: membership.role });
   } catch (err: any) {
     console.error('GET /api/projects/[id] error:', err);
@@ -66,7 +66,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const userId = parseInt((session.user as any).id || '0', 10);
     const membership = await getProjectMember(projectId, userId);
-    const permissions = getProjectPermissions(membership?.role);
+    const permissions = await getProjectPermissions(membership?.role, projectId);
 
     if (!permissions.canEditProject) {
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat mengubah detail proyek.' }, { status: 403 });
@@ -131,7 +131,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const userId = parseInt((session.user as any).id || '0', 10);
     const membership = await getProjectMember(projectId, userId);
-    const permissions = getProjectPermissions(membership?.role);
+    const permissions = await getProjectPermissions(membership?.role, projectId);
 
     if (!permissions.canDeleteProject) {
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat menghapus proyek.' }, { status: 403 });

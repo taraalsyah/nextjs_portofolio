@@ -148,6 +148,8 @@ model Project {
   members     ProjectMember[]
   tasks       Task[]
   activityLogs ActivityLog[]
+  rolePermissions ProjectRolePermission[]
+  workflowPermissions ProjectWorkflowPermission[]
 
   @@index([ownerUserId])
   @@map("projects")
@@ -284,3 +286,37 @@ model TaskHistory {
   @@index([userId])
   @@map("task_histories")
 }
+
+model ProjectRolePermission {
+  id            Int      @id @default(autoincrement())
+  projectId     Int      @map("project_id")
+  role          String   // OWNER, ADMIN, MEMBER, VIEWER
+  permissionKey String   @map("permission_key")
+  isAllowed     Boolean  @default(true) @map("is_allowed")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, role, permissionKey])
+  @@index([projectId, role])
+  @@map("project_role_permissions")
+}
+
+model ProjectWorkflowPermission {
+  id         Int      @id @default(autoincrement())
+  projectId  Int      @map("project_id")
+  role       String   // OWNER, ADMIN, MEMBER, VIEWER
+  fromStatus String   @map("from_status")
+  toStatus   String   @map("to_status")
+  isAllowed  Boolean  @default(true) @map("is_allowed")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, role, fromStatus, toStatus])
+  @@index([projectId, role])
+  @@map("project_workflow_permissions")
+}
+

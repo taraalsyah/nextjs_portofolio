@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTaskActivity } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
+import { validateWorkflowTransition } from '@/lib/project';
 
 export async function GET(
   req: NextRequest,
@@ -28,7 +29,6 @@ export async function GET(
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
-    // Filter out soft-deleted records and enforce active project isolation
     const task = await prisma.task.findFirst({
       where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
       select: {
@@ -132,22 +132,9 @@ export async function PUT(
       return NextResponse.json({ error: 'Task tidak ditemukan atau tidak berada pada proyek ini.' }, { status: 404 });
     }
 
-    // Role-based permission check
     const permissions = activeProject.permissions;
     if (permissions.role === 'VIEWER') {
       return NextResponse.json({ error: 'Peran Anda (VIEWER) tidak memiliki izin memperbarui task.' }, { status: 403 });
-    }
-
-    const canEdit =
-      permissions.canUpdateAnyTask ||
-      oldTask.createdById === sessionUserId ||
-      oldTask.assigneeId === sessionUserId;
-
-    if (!canEdit) {
-      return NextResponse.json(
-        { error: 'Akses ditolak. Anda tidak memiliki izin untuk memperbarui task ini.' },
-        { status: 403 }
-      );
     }
 
     const body = await req.json();
@@ -162,6 +149,41 @@ export async function PUT(
       startDate,
       dueDate,
     } = body;
+
+    // 🔒 MEMBER ROLE RESTRICTION: Member cannot edit metadata (title, description, priority, etc.)
+    const isEditingMetadata =
+      (title !== undefined && title.trim() !== oldTask.title) ||
+      (description !== undefined && description.trim() !== oldTask.description) ||
+      (priority !== undefined && priority !== oldTask.priority) ||
+      (categoryId !== undefined && categoryId !== oldTask.categoryId) ||
+      (assigneeId !== undefined && assigneeId !== oldTask.assigneeId) ||
+      (tags !== undefined && tags !== oldTask.tags) ||
+      (startDate !== undefined && startDate !== oldTask.startDate) ||
+      (dueDate !== undefined && dueDate !== oldTask.dueDate);
+
+    if (permissions.role === 'MEMBER' && isEditingMetadata) {
+      return NextResponse.json(
+        { error: 'Sebagai Member, Anda tidak memiliki izin untuk mengubah atribut task ini.' },
+        { status: 403 }
+      );
+    }
+
+    // 🔒 WORKFLOW STATUS VALIDATION
+    if (status !== undefined && status !== oldTask.status) {
+      const val = await validateWorkflowTransition(
+        permissions.role,
+        permissions,
+        sessionUserId,
+        oldTask.assigneeId,
+        oldTask.status,
+        status,
+        activeProject.projectId
+      );
+
+      if (!val.allowed) {
+        return NextResponse.json({ error: val.reason || 'Akses ditolak.' }, { status: 403 });
+      }
+    }
 
     if (title !== undefined && (!title || !title.trim())) {
       return NextResponse.json({ error: 'Judul task wajib diisi.' }, { status: 400 });
@@ -183,14 +205,11 @@ export async function PUT(
     let newAssigneeId = oldTask.assigneeId;
     if (assigneeId !== undefined) {
       const parsedAssId = assigneeId ? parseInt(String(assigneeId), 10) : null;
-      
-      // Check permissions if trying to change assignee
       if (parsedAssId !== oldTask.assigneeId && !permissions.canAssignTask && permissions.role !== 'OWNER' && permissions.role !== 'ADMIN') {
         return NextResponse.json({ error: 'Hanya OWNER atau ADMIN yang dapat melakukan penugasan (assignee).' }, { status: 403 });
       }
 
       if (parsedAssId) {
-        // Backend validation: Ensure target assignee is member of active project
         const isMember = await prisma.projectMember.findUnique({
           where: {
             projectId_userId: {
@@ -207,7 +226,6 @@ export async function PUT(
       newAssigneeId = parsedAssId;
     }
 
-    // Prisma Transaction for Update & Activity Logging
     const updatedTask = await prisma.$transaction(async (tx) => {
       const taskRes = await tx.task.update({
         where: { id: taskId },
@@ -327,7 +345,6 @@ export async function DELETE(
       return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
     }
 
-    // Soft Delete inside Transaction
     await prisma.$transaction(async (tx) => {
       await tx.task.update({
         where: { id: taskId },

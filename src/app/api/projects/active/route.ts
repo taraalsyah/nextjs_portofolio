@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
       visibility: membership.project.visibility,
       ownerUserId: membership.project.ownerUserId,
       memberRole: role,
-      permissions: getProjectPermissions(role),
+      permissions: await getProjectPermissions(role, parsedProjectId),
     };
 
     const response = NextResponse.json({ activeProject, success: true });
