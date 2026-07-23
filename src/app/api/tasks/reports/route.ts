@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
+import { getActiveProjectContext } from '@/lib/active-project';
 
 export async function GET(req: NextRequest) {
   try {
@@ -10,28 +11,25 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
+    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
-    const isAdmin = role === 'Admin';
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
 
-    // 🔒 STRICT SOFT DELETE & ASSIGNEE FK CLAUSE
+    // 🔒 STRICT ACTIVE PROJECT & SOFT DELETE CLAUSE
     const accessWhere: any = {
+      projectId: activeProject.projectId,
       deletedAt: null,
     };
-
-    if (!isAdmin) {
-      accessWhere.assigneeId = sessionUserId;
-    }
 
     const now = new Date();
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // 🚀 SQL COUNT AGGREGATE QUERIES FOR MAXIMUM PERFORMANCE (100K+ RECORDS)
+    // 🚀 SQL COUNT AGGREGATE QUERIES SCOPED TO ACTIVE PROJECT
     const totalTasks = await prisma.task.count({ where: accessWhere });
 
-    // Group By Status in SQL
     const statusGroups = await prisma.task.groupBy({
       by: ['status'],
       where: accessWhere,
@@ -48,7 +46,6 @@ export async function GET(req: NextRequest) {
       statusCounts[g.status] = g._count.id;
     });
 
-    // Completed this month in SQL
     const completedThisMonth = await prisma.task.count({
       where: {
         ...accessWhere,
@@ -57,7 +54,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Overdue tasks count in SQL
     const overdueTasks = await prisma.task.count({
       where: {
         ...accessWhere,
@@ -66,7 +62,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Group By Priority in SQL
     const priorityGroups = await prisma.task.groupBy({
       by: ['priority'],
       where: accessWhere,
@@ -83,7 +78,6 @@ export async function GET(req: NextRequest) {
       priorityCounts[g.priority] = g._count.id;
     });
 
-    // Group By Category in SQL
     const categoryGroups = await prisma.task.groupBy({
       by: ['categoryId'],
       where: accessWhere,
@@ -103,21 +97,19 @@ export async function GET(req: NextRequest) {
       taskCount: g._count.id,
     }));
 
-    // Group By Assignee in SQL
     const assigneeGroups = await prisma.task.groupBy({
       by: ['assigneeId'],
       where: accessWhere,
       _count: { id: true },
     });
 
-    const assignees = await prisma.user.findMany({
-      where: isAdmin ? { status: 'ACTIVE' } : { id: sessionUserId },
-      select: { id: true, name: true, username: true },
-      orderBy: { name: 'asc' },
+    const projectMembers = await prisma.projectMember.findMany({
+      where: { projectId: activeProject.projectId },
+      select: { user: { select: { id: true, name: true, username: true } } },
     });
 
     const assigneeMap = new Map<number, { name: string; username?: string | null }>();
-    assignees.forEach((a) => assigneeMap.set(a.id, { name: a.name, username: a.username }));
+    projectMembers.forEach((m) => assigneeMap.set(m.user.id, { name: m.user.name, username: m.user.username }));
 
     const byAssignee = assigneeGroups.map((g) => ({
       id: g.assigneeId || 0,
@@ -144,6 +136,7 @@ export async function GET(req: NextRequest) {
       },
       byCategory,
       byAssignee,
+      activeProject,
     });
   } catch (err: any) {
     console.error('GET /api/tasks/reports error:', err);

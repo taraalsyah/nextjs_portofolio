@@ -202,6 +202,10 @@ export class OtpService {
         },
       });
 
+      // Automatic Personal Workspace Creation
+      const { ensurePersonalWorkspace } = await import('@/lib/project');
+      await ensurePersonalWorkspace(user.id, user.name, tx);
+
       // Hapus seluruh data OTP verifikasi terkait
       await tx.emailVerification.deleteMany({
         where: { userId: user.id },

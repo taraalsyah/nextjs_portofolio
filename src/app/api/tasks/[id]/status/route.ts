@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { isValidStatusTransition, logTaskActivity } from '@/lib/task';
+import { getActiveProjectContext } from '@/lib/active-project';
 
 export async function PATCH(
   req: NextRequest,
@@ -14,9 +15,16 @@ export async function PATCH(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
+    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
+
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
+
+    if (activeProject.permissions.role === 'VIEWER') {
+      return NextResponse.json({ error: 'Peran Anda (VIEWER) tidak memiliki izin mengubah status task.' }, { status: 403 });
+    }
 
     const { id } = await params;
     const taskId = parseInt(id, 10);
@@ -33,19 +41,11 @@ export async function PATCH(
     }
 
     const task = await prisma.task.findFirst({
-      where: { id: taskId, deletedAt: null },
+      where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
     });
 
     if (!task) {
-      return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
-    }
-
-    // 🔒 STRICT AUTHORIZATION CHECK
-    if (role !== 'Admin' && task.assigneeId !== sessionUserId) {
-      return NextResponse.json(
-        { error: 'Akses ditolak. Anda tidak memiliki izin untuk mengubah status task ini.' },
-        { status: 403 }
-      );
+      return NextResponse.json({ error: 'Task tidak ditemukan atau tidak berada pada proyek ini.' }, { status: 404 });
     }
 
     if (!isValidStatusTransition(task.status, status)) {
@@ -55,7 +55,6 @@ export async function PATCH(
       );
     }
 
-    // 🔒 PRISMA TRANSACTION FOR ATOMIC UPDATE + LOGGING
     const updatedTask = await prisma.$transaction(async (tx) => {
       const updated = await tx.task.update({
         where: { id: taskId },
@@ -63,6 +62,7 @@ export async function PATCH(
         select: {
           id: true,
           taskNumber: true,
+          projectId: true,
           title: true,
           status: true,
           priority: true,

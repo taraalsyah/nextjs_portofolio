@@ -8,13 +8,14 @@ import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { TaskKanbanBoard } from '@/components/task-management/TaskKanbanBoard';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
+import { useProjectMembers } from '@/hooks/useProjectMembers';
 
 export default function KanbanPage() {
   const { data: session, status } = useSession();
 
   const [tasks, setTasks] = useState<any[]>([]);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
-  const [users, setUsers] = useState<{ id: number; name: string }[]>([]);
+  const { users } = useProjectMembers();
   const [isLoading, setIsLoading] = useState(true);
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -31,11 +32,6 @@ export default function KanbanPage() {
     fetch('/api/task-categories')
       .then((res) => res.json())
       .then((data) => setCategories(data.categories || []))
-      .catch(() => {});
-
-    fetch('/api/users')
-      .then((res) => res.json())
-      .then((data) => setUsers(data.users || []))
       .catch(() => {});
   }, [status]);
 

@@ -9,13 +9,14 @@ import { TaskFilterBar } from '@/components/task-management/TaskFilterBar';
 import { TaskTable, TaskItem } from '@/components/task-management/TaskTable';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
+import { useProjectMembers } from '@/hooks/useProjectMembers';
 
 export default function MyTasksPage() {
   const { data: session, status } = useSession();
 
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
-  const [users, setUsers] = useState<{ id: number; name: string }[]>([]);
+  const { users } = useProjectMembers();
   const [isLoading, setIsLoading] = useState(true);
 
   // Pagination & Filter state
@@ -33,18 +34,13 @@ export default function MyTasksPage() {
   const isAdmin = role === 'Admin';
   const currentUserId = parseInt((session?.user as any)?.id || '0', 10);
 
-  // Fetch Categories & Users for select dropdowns
+  // Fetch Categories for select dropdowns
   useEffect(() => {
     if (status !== 'authenticated') return;
 
     fetch('/api/task-categories')
       .then((res) => res.json())
       .then((data) => setCategories(data.categories || []))
-      .catch(() => {});
-
-    fetch('/api/users')
-      .then((res) => res.json())
-      .then((data) => setUsers(data.users || []))
       .catch(() => {});
   }, [status]);
 

@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTaskActivity } from '@/lib/task';
+import { getActiveProjectContext } from '@/lib/active-project';
 
 export async function GET(
   req: NextRequest,
@@ -14,9 +15,12 @@ export async function GET(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
+    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
+
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
 
     const { id } = await params;
     const taskId = parseInt(id, 10);
@@ -24,12 +28,13 @@ export async function GET(
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
-    // Filter out soft-deleted records
+    // Filter out soft-deleted records and enforce active project isolation
     const task = await prisma.task.findFirst({
-      where: { id: taskId, deletedAt: null },
+      where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
       select: {
         id: true,
         taskNumber: true,
+        projectId: true,
         title: true,
         description: true,
         status: true,
@@ -86,18 +91,10 @@ export async function GET(
     });
 
     if (!task) {
-      return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
+      return NextResponse.json({ error: 'Task tidak ditemukan atau tidak berada pada proyek ini.' }, { status: 404 });
     }
 
-    // 🔒 STRICT AUTHORIZATION CHECK
-    if (role !== 'Admin' && task.assigneeId !== sessionUserId) {
-      return NextResponse.json(
-        { error: 'Akses ditolak. Anda tidak memiliki izin untuk mengakses task ini.' },
-        { status: 403 }
-      );
-    }
-
-    return NextResponse.json({ task });
+    return NextResponse.json({ task, userPermissions: activeProject.permissions });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
@@ -113,9 +110,12 @@ export async function PUT(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
+    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
+
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
 
     const { id } = await params;
     const taskId = parseInt(id, 10);
@@ -124,15 +124,26 @@ export async function PUT(
     }
 
     const oldTask = await prisma.task.findFirst({
-      where: { id: taskId, deletedAt: null },
+      where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
       include: { assignee: true, category: true },
     });
 
     if (!oldTask) {
-      return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
+      return NextResponse.json({ error: 'Task tidak ditemukan atau tidak berada pada proyek ini.' }, { status: 404 });
     }
 
-    if (role !== 'Admin' && oldTask.assigneeId !== sessionUserId) {
+    // Role-based permission check
+    const permissions = activeProject.permissions;
+    if (permissions.role === 'VIEWER') {
+      return NextResponse.json({ error: 'Peran Anda (VIEWER) tidak memiliki izin memperbarui task.' }, { status: 403 });
+    }
+
+    const canEdit =
+      permissions.canUpdateAnyTask ||
+      oldTask.createdById === sessionUserId ||
+      oldTask.assigneeId === sessionUserId;
+
+    if (!canEdit) {
       return NextResponse.json(
         { error: 'Akses ditolak. Anda tidak memiliki izin untuk memperbarui task ini.' },
         { status: 403 }
@@ -170,11 +181,33 @@ export async function PUT(
     }
 
     let newAssigneeId = oldTask.assigneeId;
-    if (role === 'Admin' && assigneeId !== undefined) {
-      newAssigneeId = assigneeId ? parseInt(String(assigneeId), 10) : null;
+    if (assigneeId !== undefined) {
+      const parsedAssId = assigneeId ? parseInt(String(assigneeId), 10) : null;
+      
+      // Check permissions if trying to change assignee
+      if (parsedAssId !== oldTask.assigneeId && !permissions.canAssignTask && permissions.role !== 'OWNER' && permissions.role !== 'ADMIN') {
+        return NextResponse.json({ error: 'Hanya OWNER atau ADMIN yang dapat melakukan penugasan (assignee).' }, { status: 403 });
+      }
+
+      if (parsedAssId) {
+        // Backend validation: Ensure target assignee is member of active project
+        const isMember = await prisma.projectMember.findUnique({
+          where: {
+            projectId_userId: {
+              projectId: activeProject.projectId,
+              userId: parsedAssId,
+            },
+          },
+        });
+
+        if (!isMember) {
+          return NextResponse.json({ error: 'Assignee harus merupakan anggota dari proyek ini.' }, { status: 403 });
+        }
+      }
+      newAssigneeId = parsedAssId;
     }
 
-    // 🔒 PRISMA TRANSACTION FOR UPDATE + LOGGING
+    // Prisma Transaction for Update & Activity Logging
     const updatedTask = await prisma.$transaction(async (tx) => {
       const taskRes = await tx.task.update({
         where: { id: taskId },
@@ -192,6 +225,7 @@ export async function PUT(
         select: {
           id: true,
           taskNumber: true,
+          projectId: true,
           title: true,
           description: true,
           status: true,
@@ -268,12 +302,15 @@ export async function DELETE(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
+    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
-    if (role !== 'Admin') {
-      return NextResponse.json({ error: 'Akses ditolak. Hanya Admin yang dapat menghapus task.' }, { status: 403 });
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
+
+    if (!activeProject.permissions.canDeleteTask) {
+      return NextResponse.json({ error: 'Akses ditolak. Hanya OWNER atau ADMIN proyek yang dapat menghapus task.' }, { status: 403 });
     }
 
     const { id } = await params;
@@ -283,18 +320,18 @@ export async function DELETE(
     }
 
     const task = await prisma.task.findFirst({
-      where: { id: taskId, deletedAt: null },
+      where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
     });
 
     if (!task) {
       return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
     }
 
-    // 🔒 PRISMA TRANSACTION FOR SOFT DELETE + ACTIVITY LOG
+    // Soft Delete inside Transaction
     await prisma.$transaction(async (tx) => {
       await tx.task.update({
         where: { id: taskId },
-        data: { deletedAt: new Date() }, // Soft Delete
+        data: { deletedAt: new Date() },
       });
 
       await logTaskActivity({

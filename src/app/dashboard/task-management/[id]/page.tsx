@@ -11,6 +11,7 @@ import { TaskCommentSection } from '@/components/task-management/TaskCommentSect
 import { TaskAttachmentSection } from '@/components/task-management/TaskAttachmentSection';
 import { TaskHistorySection } from '@/components/task-management/TaskHistorySection';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
+import { useProjectMembers } from '@/hooks/useProjectMembers';
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -21,7 +22,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
   const [task, setTask] = useState<any>(null);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
-  const [users, setUsers] = useState<{ id: number; name: string }[]>([]);
+  const { users } = useProjectMembers();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
@@ -36,11 +37,6 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     fetch('/api/task-categories')
       .then((res) => res.json())
       .then((data) => setCategories(data.categories || []))
-      .catch(() => {});
-
-    fetch('/api/users')
-      .then((res) => res.json())
-      .then((data) => setUsers(data.users || []))
       .catch(() => {});
   }, [status]);
 

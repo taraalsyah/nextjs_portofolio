@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateNextTaskNumber, logTaskActivity } from '@/lib/task';
+import { getActiveProjectContext } from '@/lib/active-project';
 
 export async function GET(req: NextRequest) {
   try {
@@ -11,9 +12,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
+    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
+
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
 
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get('mode') || 'all'; // 'all' | 'my' | 'kanban' | 'calendar'
@@ -29,20 +33,17 @@ export async function GET(req: NextRequest) {
     const sortBy = searchParams.get('sortBy') || 'createdAt';
     const sortOrder = (searchParams.get('sortOrder') || 'desc').toLowerCase() === 'asc' ? 'asc' : 'desc';
 
-    // 🔒 STRICT SOFT DELETE FILTER & FK ID QUERYING
+    // 🔒 STRICT PROJECT ISOLATION & SOFT DELETE FILTER
     const where: any = {
-      deletedAt: null, // Exclude soft deleted tasks
+      projectId: activeProject.projectId,
+      deletedAt: null,
     };
 
-    if (role !== 'Admin') {
+    if (mode === 'my') {
       where.assigneeId = sessionUserId;
-    } else {
-      if (mode === 'my') {
-        where.assigneeId = sessionUserId;
-      } else if (reqAssigneeId) {
-        const parsedAssId = parseInt(reqAssigneeId, 10);
-        if (!isNaN(parsedAssId)) where.assigneeId = parsedAssId;
-      }
+    } else if (reqAssigneeId) {
+      const parsedAssId = parseInt(reqAssigneeId, 10);
+      if (!isNaN(parsedAssId)) where.assigneeId = parsedAssId;
     }
 
     if (status) where.status = status;
@@ -63,7 +64,7 @@ export async function GET(req: NextRequest) {
       where.dueDate = { gte: startOfDay, lte: endOfDay };
     }
 
-    // Global Search directly in SQL database
+    // Search scoped to active project
     if (search.trim()) {
       const q = search.trim();
       where.OR = [
@@ -74,7 +75,6 @@ export async function GET(req: NextRequest) {
       ];
     }
 
-    // SQL Sorting
     let orderBy: any = { createdAt: 'desc' };
     if (sortBy === 'dueDate') orderBy = { dueDate: sortOrder };
     else if (sortBy === 'priority') orderBy = { priority: sortOrder };
@@ -83,7 +83,6 @@ export async function GET(req: NextRequest) {
 
     const totalItems = await prisma.task.count({ where });
 
-    // Minimal column select for maximum query performance (No heavy comments, attachments, or full history)
     const tasks = await prisma.task.findMany({
       where,
       orderBy,
@@ -92,6 +91,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         taskNumber: true,
+        projectId: true,
         title: true,
         description: true,
         status: true,
@@ -116,6 +116,7 @@ export async function GET(req: NextRequest) {
       totalItems,
       currentPage: page,
       totalPages: Math.ceil(totalItems / limit),
+      activeProject,
     });
   } catch (err: any) {
     console.error('GET /api/tasks error:', err);
@@ -130,11 +131,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
-    const body = await req.json();
+    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
+
+    // Permission check
+    if (!activeProject.permissions.canCreateTask) {
+      return NextResponse.json({ error: 'Peran Anda (VIEWER) tidak memiliki izin membuat task.' }, { status: 403 });
+    }
+
+    const body = await req.json();
     const {
       title,
       description,
@@ -147,7 +156,6 @@ export async function POST(req: NextRequest) {
       dueDate,
     } = body;
 
-    // Validation
     if (!title || !title.trim()) {
       return NextResponse.json({ error: 'Judul task wajib diisi.' }, { status: 400 });
     }
@@ -169,17 +177,34 @@ export async function POST(req: NextRequest) {
     }
 
     let targetAssigneeId = assigneeId ? parseInt(String(assigneeId), 10) : null;
-    if (role !== 'Admin') {
-      targetAssigneeId = sessionUserId;
+
+    // 🔒 BACKEND ASSIGNEE VALIDATION: Verify assignee belongs to active project
+    if (targetAssigneeId) {
+      const isMember = await prisma.projectMember.findUnique({
+        where: {
+          projectId_userId: {
+            projectId: activeProject.projectId,
+            userId: targetAssigneeId,
+          },
+        },
+      });
+
+      if (!isMember) {
+        return NextResponse.json(
+          { error: 'Assignee harus merupakan anggota dari proyek aktif ini.' },
+          { status: 403 }
+        );
+      }
     }
 
     const taskNumber = await generateNextTaskNumber();
 
-    // 🔒 PRISMA ATOMIC TRANSACTION FOR TASK CREATION + ACTIVITY LOG
+    // Atomic creation
     const task = await prisma.$transaction(async (tx) => {
       const createdTask = await tx.task.create({
         data: {
           taskNumber,
+          projectId: activeProject.projectId,
           title: title.trim(),
           description: description.trim(),
           status,
@@ -194,6 +219,7 @@ export async function POST(req: NextRequest) {
         select: {
           id: true,
           taskNumber: true,
+          projectId: true,
           title: true,
           description: true,
           status: true,

@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import styles from './layout.module.css';
 import { FullPageLoader } from '@/components/ui/loading';
+import { ProjectSwitcher } from '@/components/project/ProjectSwitcher';
 
 interface MenuItem {
   name: string;
@@ -145,6 +146,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </button>
           )}
         </div>
+
+        {/* ─── PROJECT SWITCHER ─── */}
+        {(!isCollapsed || isMobileOpen) && <ProjectSwitcher />}
 
         {/* Sidebar Nav Items */}
         <nav className={styles.navSection}>
