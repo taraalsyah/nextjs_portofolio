@@ -197,10 +197,10 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const taskNumber = await generateNextTaskNumber();
-
     // Atomic creation
     const task = await prisma.$transaction(async (tx) => {
+      const taskNumber = await generateNextTaskNumber(tx);
+
       const createdTask = await tx.task.create({
         data: {
           taskNumber,

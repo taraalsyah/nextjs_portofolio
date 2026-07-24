@@ -21,26 +21,56 @@ export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string 
 /**
  * Generates the next unique Task Number in the TSK-000001 format.
  */
-export async function generateNextTaskNumber(): Promise<string> {
-  const lastTask = await prisma.task.findFirst({
-    where: { deletedAt: null },
+export async function generateNextTaskNumber(tx?: any): Promise<string> {
+  const db = tx || prisma;
+
+  const lastTaskById = await db.task.findFirst({
     orderBy: { id: 'desc' },
     select: { id: true, taskNumber: true },
   });
 
-  if (!lastTask) {
-    return 'TSK-000001';
-  }
+  const lastTaskByNumber = await db.task.findFirst({
+    orderBy: { taskNumber: 'desc' },
+    select: { id: true, taskNumber: true },
+  });
 
-  let nextNum = lastTask.id + 1;
-  if (lastTask.taskNumber && lastTask.taskNumber.startsWith('TSK-')) {
-    const parsed = parseInt(lastTask.taskNumber.replace('TSK-', ''), 10);
-    if (!isNaN(parsed) && parsed >= nextNum) {
-      nextNum = parsed + 1;
+  let maxNum = 0;
+
+  if (lastTaskById) {
+    maxNum = Math.max(maxNum, lastTaskById.id);
+    if (lastTaskById.taskNumber && lastTaskById.taskNumber.startsWith('TSK-')) {
+      const parsed = parseInt(lastTaskById.taskNumber.replace('TSK-', ''), 10);
+      if (!isNaN(parsed)) {
+        maxNum = Math.max(maxNum, parsed);
+      }
     }
   }
 
-  return `TSK-${String(nextNum).padStart(6, '0')}`;
+  if (lastTaskByNumber && lastTaskByNumber.taskNumber && lastTaskByNumber.taskNumber.startsWith('TSK-')) {
+    const parsed = parseInt(lastTaskByNumber.taskNumber.replace('TSK-', ''), 10);
+    if (!isNaN(parsed)) {
+      maxNum = Math.max(maxNum, parsed);
+    }
+  }
+
+  let nextNum = maxNum + 1;
+  let candidate = `TSK-${String(nextNum).padStart(6, '0')}`;
+
+  let existing = await db.task.findUnique({
+    where: { taskNumber: candidate },
+    select: { id: true },
+  });
+
+  while (existing) {
+    nextNum++;
+    candidate = `TSK-${String(nextNum).padStart(6, '0')}`;
+    existing = await db.task.findUnique({
+      where: { taskNumber: candidate },
+      select: { id: true },
+    });
+  }
+
+  return candidate;
 }
 
 /**
