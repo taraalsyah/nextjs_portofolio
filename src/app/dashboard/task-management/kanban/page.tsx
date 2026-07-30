@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { Kanban, Plus } from 'lucide-react';
 import styles from '../task.module.css';
@@ -9,9 +9,12 @@ import { TaskKanbanBoard } from '@/components/task-management/TaskKanbanBoard';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
+import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 
 export default function KanbanPage() {
   const { data: session, status } = useSession();
+  const { activeProject } = useProjectContext();
+  const activeProjectId = activeProject?.projectId;
 
   const [tasks, setTasks] = useState<any[]>([]);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
@@ -26,33 +29,89 @@ export default function KanbanPage() {
   const isAdmin = role === 'Admin';
   const currentUserId = parseInt((session?.user as any)?.id || '0', 10);
 
+  // Ref to track latest active project ID for race condition prevention
+  const activeProjectRef = useRef<number | undefined>(activeProjectId);
+
   useEffect(() => {
-    if (status !== 'authenticated') return;
+    activeProjectRef.current = activeProjectId;
+  }, [activeProjectId]);
 
-    fetch('/api/task-categories')
-      .then((res) => res.json())
-      .then((data) => setCategories(data.categories || []))
-      .catch(() => {});
-  }, [status]);
+  // Clear state when active project changes
+  useEffect(() => {
+    setTasks([]);
+    setCategories([]);
+    setIsLoading(true);
+  }, [activeProjectId]);
 
-  const fetchKanbanTasks = async () => {
+  // Fetch Categories for select dropdowns
+  const fetchCategories = useCallback(async () => {
     if (status !== 'authenticated') return;
+    const targetProjectId = activeProjectId;
+
+    try {
+      const res = await fetch('/api/task-categories');
+      if (activeProjectRef.current !== targetProjectId) return;
+
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data.categories || []);
+      } else {
+        setCategories([]);
+      }
+    } catch {
+      if (activeProjectRef.current === targetProjectId) {
+        setCategories([]);
+      }
+    }
+  }, [status, activeProjectId]);
+
+  const fetchKanbanTasks = useCallback(async () => {
+    if (status !== 'authenticated') return;
+    const targetProjectId = activeProjectId;
+
     setIsLoading(true);
     try {
       const mode = isAdmin ? 'all' : 'my';
       const res = await fetch(`/api/tasks?mode=${mode}&limit=200`);
+      if (activeProjectRef.current !== targetProjectId) return;
+
       if (res.ok) {
         const data = await res.json();
         setTasks(data.tasks || []);
+      } else {
+        setTasks([]);
+      }
+    } catch {
+      if (activeProjectRef.current === targetProjectId) {
+        setTasks([]);
       }
     } finally {
-      setIsLoading(false);
+      if (activeProjectRef.current === targetProjectId) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [status, isAdmin, activeProjectId]);
 
   useEffect(() => {
+    fetchCategories();
     fetchKanbanTasks();
-  }, [status, isAdmin]);
+  }, [fetchCategories, fetchKanbanTasks]);
+
+  useEffect(() => {
+    const handleProjectChanged = () => {
+      setTasks([]);
+      setCategories([]);
+      fetchCategories();
+      fetchKanbanTasks();
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+      return () => {
+        window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+      };
+    }
+  }, [fetchCategories, fetchKanbanTasks]);
 
   const handleStatusChange = async (taskId: number, newStatus: string) => {
     const res = await fetch(`/api/tasks/${taskId}/status`, {
