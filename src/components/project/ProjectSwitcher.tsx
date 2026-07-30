@@ -1,72 +1,28 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
 import { Folder, ChevronDown, Plus, Settings, Check, Lock, Users } from 'lucide-react';
 import styles from './project.module.css';
 import { CreateProjectModal } from './CreateProjectModal';
 import { ProjectSettingsModal } from './ProjectSettingsModal';
-
-interface ProjectItem {
-  id: number;
-  projectName: string;
-  description?: string | null;
-  ownerUserId: number;
-  visibility: 'PRIVATE' | 'TEAM';
-  memberRole: string;
-  isOwner: boolean;
-}
-
-interface ActiveProjectContextItem {
-  projectId: number;
-  projectName: string;
-  visibility: 'PRIVATE' | 'TEAM';
-  ownerUserId: number;
-  memberRole: string;
-}
+import { useProjectContext } from '@/context/ProjectContext';
 
 export function ProjectSwitcher() {
-  const router = useRouter();
-  const [projects, setProjects] = useState<ProjectItem[]>([]);
-  const [activeProject, setActiveProject] = useState<ActiveProjectContextItem | null>(null);
+  const {
+    projects,
+    activeProject,
+    optimisticProject,
+    isSwitching,
+    switchProject,
+    fetchProjects,
+    fetchActiveProject,
+  } = useProjectContext();
+
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const fetchActiveProject = async () => {
-    try {
-      const res = await fetch('/api/projects/active');
-      if (res.ok) {
-        const data = await res.json();
-        setActiveProject(data.activeProject);
-      }
-    } catch (err) {
-      console.error('Failed to fetch active project:', err);
-    }
-  };
-
-  const fetchProjects = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/projects');
-      if (res.ok) {
-        const data = await res.json();
-        setProjects(data.projects || []);
-      }
-    } catch (err) {
-      console.error('Failed to fetch user projects:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchActiveProject();
-    fetchProjects();
-  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -79,29 +35,18 @@ export function ProjectSwitcher() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSwitchProject = async (projectId: number) => {
-    if (activeProject?.projectId === projectId) {
-      setIsOpen(false);
+  const handleSelectProject = (projectId: number) => {
+    // 1. Instantly close dropdown
+    setIsOpen(false);
+
+    // 2. Prevent switching if already switching or selecting current project
+    const currentId = (optimisticProject || activeProject)?.projectId;
+    if (isSwitching || currentId === projectId) {
       return;
     }
 
-    try {
-      const res = await fetch('/api/projects/active', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ projectId }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setActiveProject(data.activeProject);
-        setIsOpen(false);
-        // Refresh page data across dashboard
-        window.location.reload();
-      }
-    } catch (err) {
-      console.error('Failed to switch project:', err);
-    }
+    // 3. Trigger optimistic switch
+    switchProject(projectId);
   };
 
   const roleClass = (role?: string) => {
@@ -117,11 +62,14 @@ export function ProjectSwitcher() {
     }
   };
 
+  const currentDisplayProject = optimisticProject || activeProject;
+
   return (
     <div className={styles.switcherWrapper} ref={dropdownRef}>
       <button
-        onClick={() => setIsOpen(!isOpen)}
-        className={styles.switcherBtn}
+        onClick={() => !isSwitching && setIsOpen(!isOpen)}
+        disabled={isSwitching}
+        className={`${styles.switcherBtn} ${isSwitching ? styles.switcherBtnDisabled : ''}`}
         aria-label="Switch project"
       >
         <div className={styles.switcherLeft}>
@@ -130,10 +78,10 @@ export function ProjectSwitcher() {
           </div>
           <div className={styles.projectInfo}>
             <span className={styles.projectName}>
-              {activeProject ? activeProject.projectName : 'Memuat Proyek...'}
+              {currentDisplayProject ? currentDisplayProject.projectName : 'Memuat Proyek...'}
             </span>
             <div className={styles.projectMeta}>
-              {activeProject?.visibility === 'PRIVATE' ? (
+              {currentDisplayProject?.visibility === 'PRIVATE' ? (
                 <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
                   <Lock size={10} /> Private
                 </span>
@@ -142,27 +90,28 @@ export function ProjectSwitcher() {
                   <Users size={10} /> Team
                 </span>
               )}
-              {activeProject && (
-                <span className={`${styles.roleBadge} ${roleClass(activeProject.memberRole)}`}>
-                  {activeProject.memberRole}
+              {currentDisplayProject && (
+                <span className={`${styles.roleBadge} ${roleClass(currentDisplayProject.memberRole)}`}>
+                  {currentDisplayProject.memberRole}
                 </span>
               )}
             </div>
           </div>
         </div>
-        <ChevronDown size={14} style={{ opacity: 0.6 }} />
+        <ChevronDown size={14} style={{ opacity: isSwitching ? 0.3 : 0.6 }} />
       </button>
 
-      {isOpen && (
+      {isOpen && !isSwitching && (
         <div className={styles.dropdownMenu}>
           <div className={styles.dropdownTitle}>Proyek Saya</div>
 
           {projects.map((p) => {
-            const isActive = activeProject?.projectId === p.id;
+            const isActive = currentDisplayProject?.projectId === p.id;
             return (
               <button
                 key={p.id}
-                onClick={() => handleSwitchProject(p.id)}
+                onClick={() => handleSelectProject(p.id)}
+                disabled={isSwitching}
                 className={`${styles.projectOption} ${isActive ? styles.projectOptionActive : ''}`}
               >
                 <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -188,7 +137,7 @@ export function ProjectSwitcher() {
             <Plus size={16} /> Buat Proyek Baru
           </button>
 
-          {activeProject && (
+          {currentDisplayProject && (
             <button
               onClick={() => {
                 setIsOpen(false);
@@ -210,16 +159,15 @@ export function ProjectSwitcher() {
         onSuccess={() => {
           fetchProjects();
           fetchActiveProject();
-          window.location.reload();
         }}
       />
 
       {/* Project Settings Modal */}
-      {activeProject && (
+      {currentDisplayProject && (
         <ProjectSettingsModal
           isOpen={isSettingsOpen}
           onClose={() => setIsSettingsOpen(false)}
-          activeProjectId={activeProject.projectId}
+          activeProjectId={currentDisplayProject.projectId}
           onProjectUpdated={() => {
             fetchProjects();
             fetchActiveProject();

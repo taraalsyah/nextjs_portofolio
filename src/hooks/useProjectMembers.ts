@@ -51,8 +51,10 @@ export function useProjectMembers() {
     };
 
     window.addEventListener(PROJECT_MEMBERS_UPDATED_EVENT, handleUpdate);
+    window.addEventListener('active-project-changed', handleUpdate);
     return () => {
       window.removeEventListener(PROJECT_MEMBERS_UPDATED_EVENT, handleUpdate);
+      window.removeEventListener('active-project-changed', handleUpdate);
     };
   }, [fetchMembers]);
 

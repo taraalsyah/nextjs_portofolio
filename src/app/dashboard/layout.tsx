@@ -16,11 +16,14 @@ import {
   History,
   Users,
   Shield,
-  ListTodo
+  ListTodo,
+  FolderSync
 } from 'lucide-react';
 import styles from './layout.module.css';
 import { FullPageLoader } from '@/components/ui/loading';
 import { ProjectSwitcher } from '@/components/project/ProjectSwitcher';
+import { ToastProvider } from '@/components/ui/Toast';
+import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
 
 interface MenuItem {
   name: string;
@@ -38,10 +41,12 @@ const MENU_ITEMS: MenuItem[] = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
   const router = useRouter();
+
+  const { isSwitching, optimisticProject } = useProjectContext();
 
   // Sidebar states
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
@@ -117,7 +122,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className={styles.layoutContainer}>
+    <div className={`${styles.layoutContainer} ${isSwitching ? styles.isSwitchingCursor : ''}`}>
       {/* ─── MOBILE BACKDROP OVERLAY ─── */}
       <div
         className={`${styles.drawerOverlay} ${isMobileOpen ? styles.overlayActive : ''}`}
@@ -303,9 +308,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Content body layout */}
         <main className={styles.contentContainer}>
+          {/* Glassmorphic switching loading overlay over main content area */}
+          {isSwitching && (
+            <div className={styles.switchingOverlay}>
+              <div className={styles.switchingCard}>
+                <div className={styles.switchingSpinner} />
+                <div className={styles.switchingTitle}>Mengalihkan Proyek...</div>
+                {optimisticProject && (
+                  <div className={styles.switchingSubtext}>
+                    <FolderSync size={14} style={{ color: '#60a5fa' }} /> Memuat workspace{' '}
+                    <span className={styles.switchingProjectBadge}>
+                      {optimisticProject.projectName}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {children}
         </main>
       </div>
     </div>
+  );
+}
+
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <ToastProvider>
+      <ProjectProvider>
+        <DashboardLayoutInner>{children}</DashboardLayoutInner>
+      </ProjectProvider>
+    </ToastProvider>
   );
 }

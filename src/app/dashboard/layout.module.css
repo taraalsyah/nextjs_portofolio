@@ -404,3 +404,107 @@
     pointer-events: auto;
   }
 }
+
+/* ─── PROJECT SWITCHING OVERLAY ────────────────────────────────────────────────── */
+.isSwitchingCursor,
+.isSwitchingCursor * {
+  cursor: progress !important;
+}
+
+.switchingOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 85;
+  background: rgba(15, 23, 42, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+  animation: overlayFadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  pointer-events: auto;
+  user-select: none;
+}
+
+@keyframes overlayFadeIn {
+  from {
+    opacity: 0;
+    backdrop-filter: blur(0px);
+  }
+  to {
+    opacity: 1;
+    backdrop-filter: blur(8px);
+  }
+}
+
+.switchingCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.75rem 2.5rem;
+  background: rgba(30, 41, 59, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 1rem;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
+  transform: translateY(0);
+  animation: cardPop 250ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes cardPop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.switchingSpinner {
+  width: 42px;
+  height: 42px;
+  border: 3px solid rgba(96, 165, 250, 0.15);
+  border-top-color: #60a5fa;
+  border-right-color: #a855f7;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  box-shadow: 0 0 15px rgba(96, 165, 250, 0.3);
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.switchingTitle {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #f8fafc;
+  letter-spacing: -0.01em;
+}
+
+.switchingSubtext {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.switchingProjectBadge {
+  color: #60a5fa;
+  font-weight: 600;
+  background: rgba(96, 165, 250, 0.1);
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.375rem;
+  border: 1px solid rgba(96, 165, 250, 0.2);
+}
+
