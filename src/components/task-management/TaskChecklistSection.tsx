@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Plus, CheckSquare, Square, Trash2 } from 'lucide-react';
+import { Plus, CheckSquare, Square, Trash2, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import { InlineSpinner } from '@/components/ui/loading';
 
 interface ChecklistItem {
   id: number;
@@ -19,6 +20,7 @@ interface TaskChecklistSectionProps {
 export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChecklistSectionProps) {
   const [newItemTitle, setNewItemTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const completedCount = checklists.filter((c) => c.isCompleted).length;
   const totalCount = checklists.length;
@@ -28,6 +30,7 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
     e.preventDefault();
     if (!newItemTitle.trim() || isAdding) return;
 
+    setError(null);
     setIsAdding(true);
     try {
       const res = await fetch(`/api/tasks/${taskId}/checklists`, {
@@ -35,10 +38,16 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title: newItemTitle.trim() }),
       });
+
       if (res.ok) {
         setNewItemTitle('');
         onRefresh();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menambahkan item checklist.');
       }
+    } catch (err: any) {
+      setError(err.message || 'Gagal menambahkan item checklist. Silakan coba lagi.');
     } finally {
       setIsAdding(false);
     }
@@ -67,6 +76,25 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
           Checklist ({completedCount} / {totalCount} Completed - {percentage}%)
         </h4>
       </div>
+
+      {error && (
+        <div
+          style={{
+            padding: '0.5rem 0.75rem',
+            borderRadius: '8px',
+            background: 'hsla(350, 90%, 55%, 0.15)',
+            border: '1px solid hsla(350, 90%, 55%, 0.3)',
+            color: 'hsl(350, 95%, 85%)',
+            fontSize: '0.78rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <AlertCircle size={14} />
+          {error}
+        </div>
+      )}
 
       {/* Progress Bar */}
       {totalCount > 0 && (
@@ -150,10 +178,25 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
           onChange={(e) => setNewItemTitle(e.target.value)}
           className={styles.input}
           style={{ flex: 1 }}
+          disabled={isAdding}
         />
-        <button type="submit" className={styles.createBtn} disabled={isAdding}>
-          <Plus size={14} />
-          Tambah
+        <button
+          type="submit"
+          className={styles.createBtn}
+          disabled={isAdding}
+          style={{ cursor: isAdding ? 'not-allowed' : 'pointer', minWidth: '110px' }}
+        >
+          {isAdding ? (
+            <>
+              <InlineSpinner size={14} />
+              Menambahkan...
+            </>
+          ) : (
+            <>
+              <Plus size={14} />
+              Tambah
+            </>
+          )}
         </button>
       </form>
     </div>

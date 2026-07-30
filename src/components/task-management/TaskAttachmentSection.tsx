@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Image as ImageIcon, Upload, Download, Trash2, Eye } from 'lucide-react';
+import { Image as ImageIcon, Upload, Download, Trash2, Eye, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import { InlineSpinner } from '@/components/ui/loading';
 
 interface AttachmentItem {
   id: number;
@@ -32,7 +33,7 @@ export function TaskAttachmentSection({
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files || files.length === 0) return;
+    if (!files || files.length === 0 || isUploading) return;
 
     setError(null);
     setIsUploading(true);
@@ -72,14 +73,14 @@ export function TaskAttachmentSection({
         });
 
         if (!res.ok) {
-          const json = await res.json();
+          const json = await res.json().catch(() => ({}));
           throw new Error(json.error || 'Gagal mengunggah lampiran.');
         }
       }
 
       onRefresh();
     } catch (err: any) {
-      setError(err.message || 'Gagal mengunggah gambar.');
+      setError(err.message || 'Gagal mengunggah gambar. Silakan coba lagi.');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -108,13 +109,27 @@ export function TaskAttachmentSection({
           Lampiran Gambar ({attachments.length})
         </h4>
         <button
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => !isUploading && fileInputRef.current?.click()}
           className={styles.createBtn}
-          style={{ padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}
+          style={{
+            padding: '0.35rem 0.65rem',
+            fontSize: '0.75rem',
+            cursor: isUploading ? 'not-allowed' : 'pointer',
+            minWidth: '120px',
+          }}
           disabled={isUploading}
         >
-          <Upload size={13} />
-          {isUploading ? 'Unggah...' : 'Tambah Gambar'}
+          {isUploading ? (
+            <>
+              <InlineSpinner size={13} />
+              Menambahkan...
+            </>
+          ) : (
+            <>
+              <Upload size={13} />
+              Tambah Gambar
+            </>
+          )}
         </button>
         <input
           type="file"
@@ -122,12 +137,26 @@ export function TaskAttachmentSection({
           onChange={handleFileSelect}
           accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
           multiple
+          disabled={isUploading}
           style={{ display: 'none' }}
         />
       </div>
 
       {error && (
-        <div style={{ fontSize: '0.78rem', color: 'hsl(350, 95%, 80%)' }}>
+        <div
+          style={{
+            padding: '0.5rem 0.75rem',
+            borderRadius: '8px',
+            background: 'hsla(350, 90%, 55%, 0.15)',
+            border: '1px solid hsla(350, 90%, 55%, 0.3)',
+            color: 'hsl(350, 95%, 85%)',
+            fontSize: '0.78rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <AlertCircle size={14} />
           {error}
         </div>
       )}

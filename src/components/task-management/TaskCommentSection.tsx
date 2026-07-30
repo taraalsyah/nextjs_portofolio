@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageSquare, Send, Edit2, Trash2, Check, X } from 'lucide-react';
+import { MessageSquare, Send, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import { InlineSpinner } from '@/components/ui/loading';
 
 interface CommentItem {
   id: number;
@@ -28,11 +29,13 @@ export function TaskCommentSection({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim() || isSubmitting) return;
 
+    setError(null);
     setIsSubmitting(true);
     try {
       const res = await fetch(`/api/tasks/${taskId}/comments`, {
@@ -40,10 +43,16 @@ export function TaskCommentSection({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ content: newComment.trim() }),
       });
+
       if (res.ok) {
         setNewComment('');
         onRefresh();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menambahkan komentar.');
       }
+    } catch (err: any) {
+      setError(err.message || 'Gagal menambahkan komentar. Silakan coba lagi.');
     } finally {
       setIsSubmitting(false);
     }
@@ -81,6 +90,25 @@ export function TaskCommentSection({
       <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>
         Diskusi & Komentar ({comments.length})
       </h4>
+
+      {error && (
+        <div
+          style={{
+            padding: '0.5rem 0.75rem',
+            borderRadius: '8px',
+            background: 'hsla(350, 90%, 55%, 0.15)',
+            border: '1px solid hsla(350, 90%, 55%, 0.3)',
+            color: 'hsl(350, 95%, 85%)',
+            fontSize: '0.78rem',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+          }}
+        >
+          <AlertCircle size={14} />
+          {error}
+        </div>
+      )}
 
       {/* Comment List (Chronological: Newest last) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
@@ -174,10 +202,25 @@ export function TaskCommentSection({
           onChange={(e) => setNewComment(e.target.value)}
           className={styles.input}
           style={{ flex: 1 }}
+          disabled={isSubmitting}
         />
-        <button type="submit" className={styles.createBtn} disabled={isSubmitting}>
-          <Send size={14} />
-          Kirim
+        <button
+          type="submit"
+          className={styles.createBtn}
+          disabled={isSubmitting}
+          style={{ cursor: isSubmitting ? 'not-allowed' : 'pointer', minWidth: '110px' }}
+        >
+          {isSubmitting ? (
+            <>
+              <InlineSpinner size={14} />
+              Menambahkan...
+            </>
+          ) : (
+            <>
+              <Send size={14} />
+              Kirim
+            </>
+          )}
         </button>
       </form>
     </div>
