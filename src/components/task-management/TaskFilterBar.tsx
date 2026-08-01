@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, X, Filter } from 'lucide-react';
+import { Search, X, ChevronDown } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 
 interface TaskFilterBarProps {
@@ -59,90 +59,125 @@ export function TaskFilterBar({
 
   return (
     <div className={styles.filterBar}>
-      <div className={styles.searchWrapper}>
-        <input
-          type="text"
-          placeholder="Cari nomor task, judul, deskripsi, atau tags..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className={styles.searchInput}
-        />
-        <Search size={15} className={styles.searchIcon} />
+      <div className={`${styles.filterItem} ${styles.filterItemSearch}`}>
+        <label className={styles.filterLabel}>Pencarian</label>
+        <div className={styles.searchWrapper}>
+          <input
+            type="text"
+            placeholder="Cari nomor task, judul, deskripsi, atau tags..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={styles.searchInput}
+          />
+          <Search size={15} className={styles.searchIcon} />
+        </div>
       </div>
 
-      <select
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-        className={styles.filterSelect}
-      >
-        <option value="">Semua Status</option>
-        <option value="BACKLOG">Backlog</option>
-        <option value="OPEN">Open</option>
-        <option value="IN_PROGRESS">In Progress</option>
-        <option value="DONE">Done</option>
-      </select>
+      <div className={styles.filterItem}>
+        <label className={styles.filterLabel}>Status</label>
+        <div className={styles.selectWrapper}>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">Klik untuk memuat Status</option>
+            <option value="BACKLOG">Backlog</option>
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="DONE">Done</option>
+          </select>
+          <ChevronDown size={15} className={styles.selectIcon} />
+        </div>
+      </div>
 
-      <select
-        value={priority}
-        onChange={(e) => setPriority(e.target.value)}
-        className={styles.filterSelect}
-      >
-        <option value="">Semua Prioritas</option>
-        <option value="LOW">Low</option>
-        <option value="MEDIUM">Medium</option>
-        <option value="HIGH">High</option>
-        <option value="CRITICAL">Critical</option>
-      </select>
+      <div className={styles.filterItem}>
+        <label className={styles.filterLabel}>Priority</label>
+        <div className={styles.selectWrapper}>
+          <select
+            value={priority}
+            onChange={(e) => setPriority(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">Klik untuk memuat Priority</option>
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+            <option value="CRITICAL">Critical</option>
+          </select>
+          <ChevronDown size={15} className={styles.selectIcon} />
+        </div>
+      </div>
 
-      <select
-        value={categoryId}
-        onChange={(e) => setCategoryId(e.target.value)}
-        className={styles.filterSelect}
-      >
-        <option value="">Semua Kategori</option>
-        {categories.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name}
-          </option>
-        ))}
-      </select>
+      <div className={styles.filterItem}>
+        <label className={styles.filterLabel}>Category</label>
+        <div className={styles.selectWrapper}>
+          <select
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+            className={styles.filterSelect}
+          >
+            <option value="">Klik untuk memuat Category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={15} className={styles.selectIcon} />
+        </div>
+      </div>
 
       {!hideAssigneeFilter && (
-        <select
-          value={assigneeId}
-          onChange={(e) => setAssigneeId(e.target.value)}
-          className={styles.filterSelect}
-        >
-          <option value="">Semua Assignee</option>
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
-          ))}
-        </select>
+        <div className={styles.filterItem}>
+          <label className={styles.filterLabel}>Assignee</label>
+          <div className={styles.selectWrapper}>
+            <select
+              value={assigneeId}
+              onChange={(e) => setAssigneeId(e.target.value)}
+              className={styles.filterSelect}
+            >
+              <option value="">Klik untuk memuat Assignee</option>
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown size={15} className={styles.selectIcon} />
+          </div>
+        </div>
       )}
 
-      <select
-        value={`${sortBy}-${sortOrder}`}
-        onChange={(e) => {
-          const [by, order] = e.target.value.split('-');
-          setSortBy(by);
-          setSortOrder(order);
-        }}
-        className={styles.filterSelect}
-      >
-        <option value="createdAt-desc">Terbaru</option>
-        <option value="createdAt-asc">Terlama</option>
-        <option value="dueDate-asc">Deadline Terdekat</option>
-        <option value="dueDate-desc">Deadline Terjauh</option>
-        <option value="priority-desc">Prioritas Tertinggi</option>
-      </select>
+      <div className={styles.filterItem}>
+        <label className={styles.filterLabel}>Urutan</label>
+        <div className={styles.selectWrapper}>
+          <select
+            value={`${sortBy}-${sortOrder}`}
+            onChange={(e) => {
+              const [by, order] = e.target.value.split('-');
+              setSortBy(by);
+              setSortOrder(order);
+            }}
+            className={styles.filterSelect}
+          >
+            <option value="createdAt-desc">Klik untuk memuat Urutan (Terbaru)</option>
+            <option value="createdAt-asc">Terlama</option>
+            <option value="dueDate-asc">Deadline Terdekat</option>
+            <option value="dueDate-desc">Deadline Terjauh</option>
+            <option value="priority-desc">Prioritas Tertinggi</option>
+          </select>
+          <ChevronDown size={15} className={styles.selectIcon} />
+        </div>
+      </div>
 
       {hasActiveFilters && (
-        <button onClick={handleReset} className={styles.clearFilterBtn}>
-          <X size={14} />
-          Reset Filter
-        </button>
+        <div className={styles.filterActionItem}>
+          <button onClick={handleReset} className={styles.clearFilterBtn}>
+            <X size={14} />
+            Reset Filter
+          </button>
+        </div>
       )}
     </div>
   );
