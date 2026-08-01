@@ -59,25 +59,15 @@ export function TaskFilterBar({
 
   return (
     <div className={styles.filterBar}>
-      <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
+      <div className={styles.searchWrapper}>
         <input
           type="text"
           placeholder="Cari nomor task, judul, deskripsi, atau tags..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className={styles.searchInput}
-          style={{ paddingLeft: '2.2rem' }}
         />
-        <Search
-          size={15}
-          style={{
-            position: 'absolute',
-            left: '0.75rem',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            color: 'hsla(0,0%,100%,0.4)',
-          }}
-        />
+        <Search size={15} className={styles.searchIcon} />
       </div>
 
       <select

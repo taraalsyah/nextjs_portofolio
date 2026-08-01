@@ -129,12 +129,18 @@
   gap: 0.75rem;
   margin-bottom: 1.25rem;
   flex-wrap: wrap;
+  width: 100%;
+}
+
+.searchWrapper {
+  position: relative;
+  flex: 1 1 240px;
+  min-width: 220px;
 }
 
 .searchInput {
-  flex: 1;
-  min-width: 220px;
-  padding: 0.5rem 0.75rem;
+  width: 100%;
+  padding: 0.5rem 0.75rem 0.5rem 2.4rem;
   border-radius: 8px;
   border: 1px solid var(--glass-border);
   background: var(--bg-color);
@@ -142,10 +148,21 @@
   font-size: 0.82rem;
   outline: none;
   height: 38px;
+  transition: var(--transition);
 }
 
 .searchInput:focus {
   border-color: var(--secondary);
+  box-shadow: 0 0 0 2px var(--secondary-glow);
+}
+
+.searchIcon {
+  position: absolute;
+  left: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: hsla(0, 0%, 100%, 0.4);
+  pointer-events: none;
 }
 
 .filterSelect {
@@ -159,6 +176,10 @@
   height: 38px;
   cursor: pointer;
   min-width: 130px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: var(--transition);
 }
 
 .filterSelect:focus {
@@ -168,22 +189,25 @@
 .clearFilterBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.3rem;
-  padding: 0.4rem 0.75rem;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.85rem;
   border-radius: 8px;
   border: 1px solid var(--glass-border);
   background: var(--glass);
-  color: hsla(0, 0%, 100%, 0.6);
+  color: hsla(0, 0%, 100%, 0.7);
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   height: 38px;
   transition: var(--transition);
+  white-space: nowrap;
 }
 
 .clearFilterBtn:hover {
-  background: hsla(0, 0%, 100%, 0.05);
+  background: hsla(0, 0%, 100%, 0.08);
   color: var(--fg-color);
+  border-color: var(--secondary);
 }
 
 /* Table View */
@@ -691,5 +715,45 @@
 
   .calendarGrid {
     font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .filterBar {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+    width: 100%;
+  }
+
+  .searchWrapper {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .searchInput {
+    height: 42px;
+    font-size: 0.85rem;
+  }
+
+  .filterSelect {
+    width: 100%;
+    min-width: 0;
+    height: 42px;
+    font-size: 0.85rem;
+  }
+
+  .clearFilterBtn {
+    grid-column: 1 / -1;
+    height: 42px;
+    font-size: 0.82rem;
+    width: 100%;
+  }
+}
+
+@media (max-width: 380px) {
+  .filterBar {
+    grid-template-columns: 1fr;
   }
 }
