@@ -883,8 +883,22 @@ export function ProjectSettingsModal({
 
       {/* ─── INVITE MEMBER SUB-DIALOG ─── */}
       {isInviteDialogOpen && (
-        <div className={styles.modalOverlay} style={{ zIndex: 1100 }}>
-          <div className={styles.modalCard} style={{ maxWidth: '500px' }}>
+        <div
+          className={styles.modalOverlay}
+          style={{ zIndex: 1100 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsInviteDialogOpen(false);
+            setInviteSearchQuery('');
+            setSelectedInviteUser(null);
+            setSearchResults([]);
+          }}
+        >
+          <div
+            className={styles.modalCard}
+            style={{ maxWidth: '500px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <div className={styles.modalTitle}>
                 <UserPlus size={18} style={{ color: '#38bdf8' }} />
@@ -1083,8 +1097,19 @@ export function ProjectSettingsModal({
 
       {/* ─── TRANSFER OWNERSHIP CONFIRMATION DIALOG ─── */}
       {transferTargetUser && (
-        <div className={styles.modalOverlay} style={{ zIndex: 1100 }}>
-          <div className={styles.modalCard} style={{ maxWidth: '480px' }}>
+        <div
+          className={styles.modalOverlay}
+          style={{ zIndex: 1100 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setTransferTargetUser(null);
+          }}
+        >
+          <div
+            className={styles.modalCard}
+            style={{ maxWidth: '480px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className={styles.modalHeader}>
               <div className={styles.modalTitle} style={{ color: '#fde047' }}>
                 <Crown size={20} />
