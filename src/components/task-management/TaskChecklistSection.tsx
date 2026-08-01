@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Plus, CheckSquare, Square, Trash2, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
+import { useToast } from '@/components/ui/Toast';
 
 interface ChecklistItem {
   id: number;
@@ -20,7 +21,13 @@ interface TaskChecklistSectionProps {
 export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChecklistSectionProps) {
   const [newItemTitle, setNewItemTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  let toastCtx: any = null;
+  try {
+    toastCtx = useToast();
+  } catch {}
 
   const completedCount = checklists.filter((c) => c.isCompleted).length;
   const totalCount = checklists.length;
@@ -47,7 +54,9 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
         throw new Error(json.error || 'Gagal menambahkan item checklist.');
       }
     } catch (err: any) {
-      setError(err.message || 'Gagal menambahkan item checklist. Silakan coba lagi.');
+      const errMsg = err.message || 'Gagal menambahkan item checklist. Silakan coba lagi.';
+      setError(errMsg);
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
       setIsAdding(false);
     }
@@ -63,10 +72,29 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
   };
 
   const handleDeleteItem = async (itemId: number) => {
-    await fetch(`/api/tasks/${taskId}/checklists?itemId=${itemId}`, {
-      method: 'DELETE',
-    });
-    onRefresh();
+    if (deletingIds.includes(itemId)) return;
+
+    setError(null);
+    setDeletingIds((prev) => [...prev, itemId]);
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/checklists?itemId=${itemId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        onRefresh();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menghapus item checklist.');
+      }
+    } catch (err: any) {
+      const errMsg = err.message || 'Gagal menghapus item checklist. Silakan coba lagi.';
+      setError(errMsg);
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
+    } finally {
+      setDeletingIds((prev) => prev.filter((id) => id !== itemId));
+    }
   };
 
   return (
@@ -120,53 +148,66 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
 
       {/* Item List */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
-        {checklists.map((item) => (
-          <div
-            key={item.id}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '0.5rem 0.75rem',
-              borderRadius: '8px',
-              background: 'var(--glass)',
-              border: '1px solid var(--glass-border)',
-            }}
-          >
+        {checklists.map((item) => {
+          const isDeleting = deletingIds.includes(item.id);
+
+          return (
             <div
-              onClick={() => handleToggleItem(item.id, item.isCompleted)}
+              key={item.id}
               style={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.5rem',
-                cursor: 'pointer',
-                flex: 1,
+                justifyContent: 'space-between',
+                padding: '0.5rem 0.75rem',
+                borderRadius: '8px',
+                background: 'var(--glass)',
+                border: '1px solid var(--glass-border)',
+                opacity: isDeleting ? 0.7 : 1,
               }}
             >
-              {item.isCompleted ? (
-                <CheckSquare size={16} style={{ color: 'var(--secondary)' }} />
-              ) : (
-                <Square size={16} style={{ color: 'hsla(0,0%,100%,0.4)' }} />
-              )}
-              <span
+              <div
+                onClick={() => !isDeleting && handleToggleItem(item.id, item.isCompleted)}
                 style={{
-                  fontSize: '0.82rem',
-                  textDecoration: item.isCompleted ? 'line-through' : 'none',
-                  color: item.isCompleted ? 'hsla(0,0%,100%,0.4)' : 'var(--fg-color)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  flex: 1,
                 }}
               >
-                {item.title}
-              </span>
+                {item.isCompleted ? (
+                  <CheckSquare size={16} style={{ color: 'var(--secondary)' }} />
+                ) : (
+                  <Square size={16} style={{ color: 'hsla(0,0%,100%,0.4)' }} />
+                )}
+                <span
+                  style={{
+                    fontSize: '0.82rem',
+                    textDecoration: item.isCompleted ? 'line-through' : 'none',
+                    color: item.isCompleted ? 'hsla(0,0%,100%,0.4)' : 'var(--fg-color)',
+                  }}
+                >
+                  {item.title}
+                </span>
+              </div>
+              {isDeleting ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--secondary)' }}>
+                  <InlineSpinner size={12} color="var(--secondary)" />
+                  <span>Menghapus...</span>
+                </div>
+              ) : (
+                <button
+                  onClick={() => handleDeleteItem(item.id)}
+                  disabled={isDeleting}
+                  className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                  style={{ width: '24px', height: '24px' }}
+                >
+                  <Trash2 size={12} />
+                </button>
+              )}
             </div>
-            <button
-              onClick={() => handleDeleteItem(item.id)}
-              className={`${styles.actionBtn} ${styles.deleteBtn}`}
-              style={{ width: '24px', height: '24px' }}
-            >
-              <Trash2 size={12} />
-            </button>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Add Form */}

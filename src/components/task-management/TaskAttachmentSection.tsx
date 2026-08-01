@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { Image as ImageIcon, Upload, Download, Trash2, Eye, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
+import { useToast } from '@/components/ui/Toast';
 
 interface AttachmentItem {
   id: number;
@@ -27,9 +28,15 @@ export function TaskAttachmentSection({
   onRefresh,
 }: TaskAttachmentSectionProps) {
   const [isUploading, setIsUploading] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  let toastCtx: any = null;
+  try {
+    toastCtx = useToast();
+  } catch {}
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -80,7 +87,9 @@ export function TaskAttachmentSection({
 
       onRefresh();
     } catch (err: any) {
-      setError(err.message || 'Gagal mengunggah gambar. Silakan coba lagi.');
+      const errMsg = err.message || 'Gagal mengunggah gambar. Silakan coba lagi.';
+      setError(errMsg);
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -88,10 +97,29 @@ export function TaskAttachmentSection({
   };
 
   const handleDeleteAttachment = async (attachmentId: number) => {
-    await fetch(`/api/tasks/${taskId}/attachments?attachmentId=${attachmentId}`, {
-      method: 'DELETE',
-    });
-    onRefresh();
+    if (deletingIds.includes(attachmentId)) return;
+
+    setError(null);
+    setDeletingIds((prev) => [...prev, attachmentId]);
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/attachments?attachmentId=${attachmentId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        onRefresh();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menghapus lampiran.');
+      }
+    } catch (err: any) {
+      const errMsg = err.message || 'Gagal menghapus lampiran. Silakan coba lagi.';
+      setError(errMsg);
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
+    } finally {
+      setDeletingIds((prev) => prev.filter((id) => id !== attachmentId));
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -174,73 +202,99 @@ export function TaskAttachmentSection({
             Belum ada lampiran gambar pada task ini.
           </p>
         ) : (
-          attachments.map((att) => (
-            <div
-              key={att.id}
-              style={{
-                borderRadius: '8px',
-                background: 'var(--glass)',
-                border: '1px solid var(--glass-border)',
-                overflow: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
+          attachments.map((att) => {
+            const isDeleting = deletingIds.includes(att.id);
+
+            return (
               <div
+                key={att.id}
                 style={{
-                  height: '110px',
-                  background: '#000',
-                  position: 'relative',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  borderRadius: '8px',
+                  background: 'var(--glass)',
+                  border: '1px solid var(--glass-border)',
                   overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  position: 'relative',
+                  opacity: isDeleting ? 0.7 : 1,
                 }}
               >
-                <img
-                  src={att.fileUrl}
-                  alt={att.fileName}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
                 <div
                   style={{
-                    position: 'absolute',
-                    inset: 0,
-                    background: 'rgba(0,0,0,0.4)',
+                    height: '110px',
+                    background: '#000',
+                    position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '0.5rem',
-                    opacity: 0,
-                    transition: 'opacity 0.2s ease',
+                    overflow: 'hidden',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
-                  onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
                 >
-                  <button
-                    onClick={() => setPreviewUrl(att.fileUrl)}
-                    className={styles.actionBtn}
-                    title="Pratinjau Gambar"
-                  >
-                    <Eye size={13} />
-                  </button>
-                  <a
-                    href={att.fileUrl}
-                    download={att.fileName}
-                    className={styles.actionBtn}
-                    title="Unduh Gambar"
-                  >
-                    <Download size={13} />
-                  </a>
-                  <button
-                    onClick={() => handleDeleteAttachment(att.id)}
-                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                    title="Hapus Lampiran"
-                  >
-                    <Trash2 size={13} />
-                  </button>
+                  <img
+                    src={att.fileUrl}
+                    alt={att.fileName}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  {isDeleting ? (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0, 0, 0, 0.65)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.4rem',
+                        color: 'var(--secondary)',
+                        fontSize: '0.75rem',
+                        fontWeight: 600,
+                      }}
+                    >
+                      <InlineSpinner size={20} color="var(--secondary)" />
+                      <span>Menghapus...</span>
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: 'rgba(0,0,0,0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        opacity: 0,
+                        transition: 'opacity 0.2s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+                      onMouseLeave={(e) => (e.currentTarget.style.opacity = '0')}
+                    >
+                      <button
+                        onClick={() => setPreviewUrl(att.fileUrl)}
+                        className={styles.actionBtn}
+                        title="Pratinjau Gambar"
+                      >
+                        <Eye size={13} />
+                      </button>
+                      <a
+                        href={att.fileUrl}
+                        download={att.fileName}
+                        className={styles.actionBtn}
+                        title="Unduh Gambar"
+                      >
+                        <Download size={13} />
+                      </a>
+                      <button
+                        onClick={() => handleDeleteAttachment(att.id)}
+                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                        title="Hapus Lampiran"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
               <div style={{ padding: '0.45rem 0.6rem' }}>
                 <p
                   style={{
@@ -259,8 +313,9 @@ export function TaskAttachmentSection({
                 </span>
               </div>
             </div>
-          ))
-        )}
+          );
+        })
+      )}
       </div>
 
       {/* Full Preview Modal */}

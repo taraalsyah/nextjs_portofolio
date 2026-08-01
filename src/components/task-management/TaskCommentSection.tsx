@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { MessageSquare, Send, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
+import { useToast } from '@/components/ui/Toast';
 
 interface CommentItem {
   id: number;
@@ -29,7 +30,13 @@ export function TaskCommentSection({
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editContent, setEditContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
+
+  let toastCtx: any = null;
+  try {
+    toastCtx = useToast();
+  } catch {}
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +59,9 @@ export function TaskCommentSection({
         throw new Error(json.error || 'Gagal menambahkan komentar.');
       }
     } catch (err: any) {
-      setError(err.message || 'Gagal menambahkan komentar. Silakan coba lagi.');
+      const errMsg = err.message || 'Gagal menambahkan komentar. Silakan coba lagi.';
+      setError(errMsg);
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
       setIsSubmitting(false);
     }
@@ -70,10 +79,29 @@ export function TaskCommentSection({
   };
 
   const handleDeleteComment = async (commentId: number) => {
-    await fetch(`/api/tasks/${taskId}/comments?commentId=${commentId}`, {
-      method: 'DELETE',
-    });
-    onRefresh();
+    if (deletingIds.includes(commentId)) return;
+
+    setError(null);
+    setDeletingIds((prev) => [...prev, commentId]);
+
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/comments?commentId=${commentId}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        onRefresh();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menghapus komentar.');
+      }
+    } catch (err: any) {
+      const errMsg = err.message || 'Gagal menghapus komentar. Silakan coba lagi.';
+      setError(errMsg);
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
+    } finally {
+      setDeletingIds((prev) => prev.filter((id) => id !== commentId));
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -120,6 +148,7 @@ export function TaskCommentSection({
           comments.map((c) => {
             const isOwner = c.user.id === currentUserId;
             const isEditing = editingId === c.id;
+            const isDeleting = deletingIds.includes(c.id);
 
             return (
               <div
@@ -132,6 +161,7 @@ export function TaskCommentSection({
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.35rem',
+                  opacity: isDeleting ? 0.7 : 1,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -142,13 +172,19 @@ export function TaskCommentSection({
                     <span style={{ fontSize: '0.7rem', color: 'hsla(0,0%,100%,0.4)' }}>
                       {formatDate(c.createdAt)}
                     </span>
-                    {isOwner && !isEditing && (
+                    {isDeleting ? (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--secondary)' }}>
+                        <InlineSpinner size={12} color="var(--secondary)" />
+                        <span>Menghapus...</span>
+                      </div>
+                    ) : isOwner && !isEditing ? (
                       <>
                         <button
                           onClick={() => {
                             setEditingId(c.id);
                             setEditContent(c.content);
                           }}
+                          disabled={isDeleting}
                           className={styles.actionBtn}
                           style={{ width: '22px', height: '22px' }}
                         >
@@ -156,13 +192,14 @@ export function TaskCommentSection({
                         </button>
                         <button
                           onClick={() => handleDeleteComment(c.id)}
+                          disabled={isDeleting}
                           className={`${styles.actionBtn} ${styles.deleteBtn}`}
                           style={{ width: '22px', height: '22px' }}
                         >
                           <Trash2 size={11} />
                         </button>
                       </>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
