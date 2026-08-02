@@ -19,6 +19,7 @@ model User {
   status            String              @default("PENDING") // PENDING, ACTIVE, BLOCKED
   phone             String?
   image             String?
+  apiToken          String?             @unique @map("api_token")
   otpAttemptCount   Int                 @default(0) @map("otp_attempt_count")
   otpSoftBlockUntil DateTime?           @map("otp_soft_block_until")
   otpSoftBlockCount Int                 @default(0) @map("otp_soft_block_count")

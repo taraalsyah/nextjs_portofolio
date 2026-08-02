@@ -1,46 +1,82 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { userQuerySchema } from '@/validators/user';
+import { getUsersList } from '@/services/user/user.service';
+import { verifyApiTokenHeader } from '@/services/user/api-token.service';
 import { verifyApiPermission } from '@/lib/apiHelper';
 
-// ─── GET /api/users ───────────────────────────────────────────────────────────
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
-  const auth = await verifyApiPermission(request, 'User Management', 'View');
-  if (!auth.authorized) return auth.response!;
+  let currentUserRole = '';
+  let isAuthenticated = false;
 
+  // 1. Primary Authentication: Personal API Token via Authorization: Bearer <token>
+  const tokenAuth = await verifyApiTokenHeader(request);
+  if (tokenAuth.authenticated && tokenAuth.user) {
+    isAuthenticated = true;
+    currentUserRole = tokenAuth.user.role || '';
+  } else {
+    // Fallback Authentication: NextAuth Session (for Web Dashboard UI)
+    const sessionAuth = await verifyApiPermission(request, 'User Management', 'View');
+    if (sessionAuth.authorized && sessionAuth.userId) {
+      isAuthenticated = true;
+      // Get role from session check or default to Admin if authorized
+      currentUserRole = 'Admin';
+    }
+  }
+
+  if (!isAuthenticated) {
+    return NextResponse.json(
+      { success: false, message: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  // 2. Authorization RBAC Check: Only 'Super Admin' or 'Admin' allowed
+  const normalizedRole = currentUserRole.toLowerCase();
+  const isAuthorizedRole =
+    normalizedRole.includes('admin') ||
+    normalizedRole.includes('super admin') ||
+    normalizedRole.includes('superadmin');
+
+  if (!isAuthorizedRole) {
+    return NextResponse.json(
+      { success: false, message: 'Forbidden' },
+      { status: 403 }
+    );
+  }
+
+  // 3. Zod Input Query Validation
   try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        username: true,
-        email: true,
-        role: true,
-        roleId: true,
-        roleRel: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-          },
+    const { searchParams } = new URL(request.url);
+    const queryParams = {
+      page: searchParams.get('page') || undefined,
+      pageSize: searchParams.get('pageSize') || undefined,
+      search: searchParams.get('search') || undefined,
+      sort: searchParams.get('sort') || undefined,
+      order: searchParams.get('order') || undefined,
+    };
+
+    const parseResult = userQuerySchema.safeParse(queryParams);
+    if (!parseResult.success) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'Validation Error',
+          errors: parseResult.error.flatten().fieldErrors,
         },
-        status: true,
-        phone: true,
-        createdAt: true,
-      },
-      orderBy: { id: 'asc' },
-    });
+        { status: 400 }
+      );
+    }
 
-    const roles = await prisma.role.findMany({
-      select: {
-        id: true,
-        name: true,
-      },
-      orderBy: { id: 'asc' },
-    });
+    // 4. Delegate Business Logic to User Service
+    const result = await getUsersList(parseResult.data);
 
-    return NextResponse.json({ success: true, users, roles }, { status: 200 });
-  } catch (error: any) {
-    console.error('GET /api/users error:', error);
-    return NextResponse.json({ message: 'Terjadi kesalahan pada server.' }, { status: 500 });
+    return NextResponse.json(result, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, message: 'Internal Server Error' },
+      { status: 500 }
+    );
   }
 }

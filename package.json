@@ -7,9 +7,25 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "cap:sync": "npx cap sync",
+    "cap:copy": "npx cap copy",
+    "cap:open": "npx cap open android",
+    "android:sync": "export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && npm run build && npx cap sync android && printf 'toolchainVersion=21\\n' > android/gradle/gradle-daemon-jvm.properties",
+    "android:open": "npx cap open android",
+    "android:build": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleDebug",
+    "android:build:debug": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleDebug",
+    "android:build:release": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleRelease",
+    "generate-token": "npx tsx scripts/generate-token.ts"
   },
   "dependencies": {
+    "@capacitor/android": "^7.0.1",
+    "@capacitor/app": "^7.0.0",
+    "@capacitor/core": "^7.0.1",
+    "@capacitor/keyboard": "^7.0.0",
+    "@capacitor/network": "^7.0.0",
+    "@capacitor/splash-screen": "^7.0.0",
+    "@capacitor/status-bar": "^7.0.0",
     "@hookform/resolvers": "^5.4.0",
     "@prisma/client": "^5.22.0",
     "bcryptjs": "^3.0.3",
@@ -26,6 +42,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.0.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.1",

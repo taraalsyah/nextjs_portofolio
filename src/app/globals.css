@@ -16,6 +16,12 @@
   --glass: hsla(0, 0%, 100%, 0.03);
   --glass-border: hsla(0, 0%, 100%, 0.08);
   
+  /* Safe Area Insets for Android Notches & Navigation */
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+  
   /* Typography */
   --font-heading: 'Outfit', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -28,6 +34,7 @@
   box-sizing: border-box;
   padding: 0;
   margin: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
 html {
@@ -41,6 +48,13 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  padding-top: var(--sat);
+  padding-bottom: var(--sab);
+}
+
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -118,4 +132,56 @@ body::before {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 2rem;
+}
+
+/* ─── EXCLUSIVE ANDROID CAPACITOR NATIVE STYLES ───────────────────────────────── */
+/* These rules apply ONLY when the app is running as an Android APK (Capacitor). */
+/* They do NOT use media queries or screen width, and do NOT affect web browsers. */
+
+body.is-android-native {
+  padding-top: max(0.5rem, var(--sat, 0px)) !important;
+  padding-bottom: max(1rem, var(--sab, 0px)) !important;
+}
+
+/* Safe Topbar / Navbar Spacing for Android APK */
+body.is-android-native [class*="topbar"] {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0px)) !important;
+  padding-left: max(1.25rem, env(safe-area-inset-left, 0px)) !important;
+  padding-right: max(1.25rem, env(safe-area-inset-right, 0px)) !important;
+  min-height: calc(56px + env(safe-area-inset-top, 0px)) !important;
+  box-sizing: border-box !important;
+}
+
+/* Sidebar Toggle Collapse Button in Android APK */
+body.is-android-native [class*="menuToggle"] {
+  margin-left: 0.75rem !important; /* 16-20dp safe margin from left screen edge */
+  min-width: 40px !important;
+  min-height: 40px !important;
+  border-radius: 10px !important;
+}
+
+/* Main Content Area Spacing in Android APK */
+body.is-android-native [class*="contentContainer"],
+body.is-android-native [class*="mainWrapper"] {
+  padding-left: max(1.25rem, env(safe-area-inset-left, 0px)) !important;
+  padding-right: max(1.25rem, env(safe-area-inset-right, 0px)) !important;
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 0px)) !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+/* Page Containers, Cards, Tables, Forms in Android APK */
+body.is-android-native [class*="container"],
+body.is-android-native [class*="tableCard"],
+body.is-android-native [class*="profileCard"],
+body.is-android-native [class*="card"] {
+  box-sizing: border-box !important;
+}
+
+/* Sidebar Mobile Drawer in Android APK */
+body.is-android-native [class*="sidebar"] {
+  padding-top: max(1rem, env(safe-area-inset-top, 0px)) !important;
+  padding-bottom: max(1rem, env(safe-area-inset-bottom, 0px)) !important;
+  padding-left: max(0.5rem, env(safe-area-inset-left, 0px)) !important;
+  box-sizing: border-box !important;
 }

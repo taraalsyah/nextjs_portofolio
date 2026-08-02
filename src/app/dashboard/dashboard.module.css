@@ -206,11 +206,15 @@
 
 /* Responsive adjustment */
 @media (max-width: 480px) {
+  .main {
+    padding: calc(1.5rem + var(--sat, 0px)) max(1rem, var(--sal, 0px)) calc(2rem + var(--sab, 0px)) max(1rem, var(--sar, 0px));
+  }
   .card {
-    padding: 2rem 1.5rem;
+    padding: 1.75rem 1.25rem;
+    border-radius: 18px;
   }
   .title {
-    font-size: 1.8rem;
+    font-size: 1.75rem;
   }
   .actions {
     flex-direction: column;
