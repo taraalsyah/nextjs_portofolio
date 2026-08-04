@@ -8,6 +8,7 @@ import { TaskCommentSection } from './TaskCommentSection';
 import { TaskAttachmentSection } from './TaskAttachmentSection';
 import { TaskHistorySection } from './TaskHistorySection';
 import { ProjectPermissions } from '@/lib/project';
+import { notifyTaskMutated } from '@/lib/task-event';
 
 interface TaskDetailData {
   id: number;
@@ -84,6 +85,7 @@ interface TaskDetailModalProps {
   onClose: () => void;
   currentUserId: number;
   onEditRequest: (task: TaskDetailData) => void;
+  onTaskUpdated?: () => void;
 }
 
 export function TaskDetailModal({
@@ -92,12 +94,23 @@ export function TaskDetailModal({
   onClose,
   currentUserId,
   onEditRequest,
+  onTaskUpdated,
 }: TaskDetailModalProps) {
   const [task, setTask] = useState<TaskDetailData | null>(null);
   const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
   const [statusMsg, setStatusMsg] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  const hasChangesRef = React.useRef(false);
+
+  const notifyUpdate = React.useCallback(() => {
+    hasChangesRef.current = true;
+    onTaskUpdated?.();
+    if (taskId) {
+      notifyTaskMutated(taskId);
+    }
+  }, [onTaskUpdated, taskId]);
 
   // Close Request state
   const [isCloseRequestLoading, setIsCloseRequestLoading] = useState(false);
@@ -138,6 +151,13 @@ export function TaskDetailModal({
   }, [taskId]);
 
   const handleCloseWithReset = () => {
+    if (hasChangesRef.current) {
+      onTaskUpdated?.();
+      if (taskId) {
+        notifyTaskMutated(taskId);
+      }
+      hasChangesRef.current = false;
+    }
     setTask(null);
     setUserPermissions(null);
     setStatusMsg(null);
@@ -154,6 +174,7 @@ export function TaskDetailModal({
 
   useEffect(() => {
     if (isOpen && taskId) {
+      hasChangesRef.current = false;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- setState only fires after await; this is a false positive
       fetchTaskDetails();
     }
@@ -208,6 +229,7 @@ export function TaskDetailModal({
         type: 'success',
         message: `Workflow status berhasil diubah ke ${data.task.status}.`,
       });
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : 'Gagal mengubah status workflow.';
@@ -249,6 +271,7 @@ export function TaskDetailModal({
       });
       setShowDoneNoteInput(false);
       setDoneRequestNoteText('');
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -285,6 +308,7 @@ export function TaskDetailModal({
         type: 'success',
         message: 'Done Request disetujui. Task status otomatis diperbarui menjadi Done.',
       });
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -324,6 +348,7 @@ export function TaskDetailModal({
       });
       setShowDoneRejectModal(false);
       setDoneRejectReasonText('');
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -360,6 +385,7 @@ export function TaskDetailModal({
         type: 'success',
         message: 'Done Request berhasil dibatalkan.',
       });
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -400,6 +426,7 @@ export function TaskDetailModal({
       });
       setShowReasonInput(false);
       setRequestReasonText('');
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -436,6 +463,7 @@ export function TaskDetailModal({
         type: 'success',
         message: 'Close Request disetujui. Task telah ditutup (Closed).',
       });
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -475,6 +503,7 @@ export function TaskDetailModal({
       });
       setShowRejectModal(false);
       setRejectReasonText('');
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -511,6 +540,7 @@ export function TaskDetailModal({
         type: 'success',
         message: 'Close Request berhasil dibatalkan.',
       });
+      notifyUpdate();
       fetchTaskDetails();
     } catch (err: unknown) {
       setStatusMsg({
@@ -1278,13 +1308,10 @@ export function TaskDetailModal({
                           <option value="BACKLOG">Backlog</option>
                           <option value="OPEN">Open</option>
                           <option value="IN_PROGRESS">In Progress</option>
-                          {/* Done & Closed options disabled for Member role */}
                           <option value="DONE" disabled={!isOwnerOrAdmin}>
                             Done {!isOwnerOrAdmin ? '(Membutuhkan Approval)' : ''}
                           </option>
-                          <option value="CLOSED" disabled={!isOwnerOrAdmin}>
-                            Closed {!isOwnerOrAdmin ? '(Owner/Admin Only)' : ''}
-                          </option>
+                          {task.status === 'CLOSED' && <option value="CLOSED">Closed</option>}
                         </select>
                       ) : (
                         <span className={`${styles.badge} ${styles[`status${task.status}`]}`}>
@@ -1352,7 +1379,10 @@ export function TaskDetailModal({
               <TaskChecklistSection
                 taskId={task.id}
                 checklists={task.checklists || []}
-                onRefresh={fetchTaskDetails}
+                onRefresh={() => {
+                  notifyUpdate();
+                  fetchTaskDetails();
+                }}
                 canUpdateProgress={canUpdateProgress}
               />
             )}
@@ -1362,7 +1392,10 @@ export function TaskDetailModal({
                 taskId={task.id}
                 comments={task.comments || []}
                 currentUserId={currentUserId}
-                onRefresh={fetchTaskDetails}
+                onRefresh={() => {
+                  notifyUpdate();
+                  fetchTaskDetails();
+                }}
                 canUpdateProgress={canUpdateProgress}
               />
             )}
@@ -1371,7 +1404,10 @@ export function TaskDetailModal({
               <TaskAttachmentSection
                 taskId={task.id}
                 attachments={task.attachments || []}
-                onRefresh={fetchTaskDetails}
+                onRefresh={() => {
+                  notifyUpdate();
+                  fetchTaskDetails();
+                }}
                 canUpdateProgress={canUpdateProgress}
                 currentUserId={currentUserId}
               />

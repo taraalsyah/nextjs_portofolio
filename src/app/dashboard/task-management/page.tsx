@@ -12,6 +12,7 @@ import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
+import { TASK_MUTATED_EVENT, notifyTaskMutated } from '@/lib/task-event';
 
 export default function AllTasksPage() {
   const { data: session, status } = useSession();
@@ -139,10 +140,16 @@ export default function AllTasksPage() {
       fetchTasks();
     };
 
+    const handleTaskMutated = () => {
+      fetchTasks();
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+      window.addEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       return () => {
         window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+        window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       };
     }
   }, [fetchCategories, fetchTasks]);
@@ -255,6 +262,7 @@ export default function AllTasksPage() {
         onClose={() => setSelectedTaskId(null)}
         currentUserId={currentUserId}
         onEditRequest={(t) => setEditingTask(t as unknown as TaskItem)}
+        onTaskUpdated={fetchTasks}
       />
     </div>
   );

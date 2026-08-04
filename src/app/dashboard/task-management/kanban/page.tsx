@@ -10,6 +10,7 @@ import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
+import { TASK_MUTATED_EVENT, notifyTaskMutated } from '@/lib/task-event';
 
 export default function KanbanPage() {
   const { data: session, status } = useSession();
@@ -105,10 +106,16 @@ export default function KanbanPage() {
       fetchKanbanTasks();
     };
 
+    const handleTaskMutated = () => {
+      fetchKanbanTasks();
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+      window.addEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       return () => {
         window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+        window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       };
     }
   }, [fetchCategories, fetchKanbanTasks]);
@@ -121,6 +128,7 @@ export default function KanbanPage() {
     });
 
     if (res.ok) {
+      notifyTaskMutated(taskId, 'status_change');
       fetchKanbanTasks();
     } else {
       const json = await res.json();
@@ -201,6 +209,7 @@ export default function KanbanPage() {
         onClose={() => setSelectedTaskId(null)}
         currentUserId={currentUserId}
         onEditRequest={(t) => setEditingTask(t)}
+        onTaskUpdated={fetchKanbanTasks}
       />
     </div>
   );

@@ -10,6 +10,7 @@ import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
+import { TASK_MUTATED_EVENT } from '@/lib/task-event';
 
 export default function CalendarPage() {
   const { data: session, status } = useSession();
@@ -105,10 +106,16 @@ export default function CalendarPage() {
       fetchCalendarTasks();
     };
 
+    const handleTaskMutated = () => {
+      fetchCalendarTasks();
+    };
+
     if (typeof window !== 'undefined') {
       window.addEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+      window.addEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       return () => {
         window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+        window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       };
     }
   }, [fetchCategories, fetchCalendarTasks]);
@@ -185,6 +192,7 @@ export default function CalendarPage() {
         onClose={() => setSelectedTaskId(null)}
         currentUserId={currentUserId}
         onEditRequest={(t) => setEditingTask(t)}
+        onTaskUpdated={fetchCalendarTasks}
       />
     </div>
   );

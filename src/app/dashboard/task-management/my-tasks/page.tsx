@@ -11,6 +11,7 @@ import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
+import { TASK_MUTATED_EVENT } from '@/lib/task-event';
 
 interface TaskFormData {
   title: string;
@@ -132,9 +133,11 @@ export default function MyTasksPage() {
     };
 
     const handleProjectChanged = () => loadData();
+    const handleTaskMutated = () => fetchTasks();
 
     if (typeof window !== 'undefined') {
       window.addEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+      window.addEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
     }
 
     // Initial data load on mount
@@ -146,6 +149,7 @@ export default function MyTasksPage() {
     return () => {
       if (typeof window !== 'undefined') {
         window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
+        window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       }
     };
     // Only run on mount and when callbacks change due to activeProjectId / status
@@ -254,6 +258,7 @@ export default function MyTasksPage() {
         onClose={() => setSelectedTaskId(null)}
         currentUserId={currentUserId}
         onEditRequest={(t) => setEditingTask(t as unknown as TaskItem)}
+        onTaskUpdated={fetchTasks}
       />
     </div>
   );
