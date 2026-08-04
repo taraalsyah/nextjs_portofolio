@@ -4,33 +4,36 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTaskActivity } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
-import { validateWorkflowTransition } from '@/lib/project';
+import { validateWorkflowTransition, getProjectMember, getProjectPermissions, ProjectRole } from '@/lib/project';
+import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 
+// Updated route with Done Request Approval Workflow & Stale-Client Purging
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    await ensureDoneRequestColumns().catch(() => {});
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const sessionUserId = parseInt(session.user.id || '0', 10);
     const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
     if (!activeProject) {
       return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
     }
 
-    const { id } = await params;
-    const taskId = parseInt(id, 10);
+    const { id: getParamsId } = await params;
+    const taskId = parseInt(getParamsId, 10);
     if (isNaN(taskId)) {
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
     const task = await prisma.task.findFirst({
-      where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
+      where: { id: taskId, deletedAt: null },
       select: {
         id: true,
         taskNumber: true,
@@ -47,6 +50,24 @@ export async function GET(
         dueDate: true,
         createdAt: true,
         updatedAt: true,
+        closeRequestStatus: true,
+        closeRequestedById: true,
+        closeRequestedAt: true,
+        closeRequestReason: true,
+        closeReviewedById: true,
+        closeReviewedAt: true,
+        closeRejectReason: true,
+        closeRequestedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+        closeReviewedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+        doneRequestStatus: true,
+        doneRequestedById: true,
+        doneRequestedAt: true,
+        doneRequestNote: true,
+        doneReviewedById: true,
+        doneReviewedAt: true,
+        doneRejectReason: true,
+        doneRequestedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+        doneReviewedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
         assignee: { select: { id: true, name: true, username: true, email: true, image: true } },
         createdBy: { select: { id: true, name: true, username: true, email: true, image: true } },
         category: { select: { id: true, name: true, description: true } },
@@ -90,13 +111,23 @@ export async function GET(
       },
     });
 
-    if (!task) {
-      return NextResponse.json({ error: 'Task tidak ditemukan atau tidak berada pada proyek ini.' }, { status: 404 });
+    if (!task || !task.projectId) {
+      return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
     }
 
-    return NextResponse.json({ task, userPermissions: activeProject.permissions });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+    let userPermissions = activeProject.permissions;
+    if (task.projectId !== activeProject.projectId) {
+      const membership = await getProjectMember(task.projectId, sessionUserId);
+      if (!membership) {
+        return NextResponse.json({ error: 'Anda tidak memiliki akses ke proyek task ini.' }, { status: 403 });
+      }
+      userPermissions = await getProjectPermissions(membership.role as ProjectRole, task.projectId);
+    }
+
+    return NextResponse.json({ task, userPermissions });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -110,15 +141,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const sessionUserId = parseInt(session.user.id || '0', 10);
     const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
     if (!activeProject) {
       return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
     }
 
-    const { id } = await params;
-    const taskId = parseInt(id, 10);
+    const { id: putParamsId } = await params;
+    const taskId = parseInt(putParamsId, 10);
     if (isNaN(taskId)) {
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
@@ -133,8 +164,13 @@ export async function PUT(
     }
 
     const permissions = activeProject.permissions;
-    if (permissions.role === 'VIEWER') {
-      return NextResponse.json({ error: 'Peran Anda (VIEWER) tidak memiliki izin memperbarui task.' }, { status: 403 });
+
+    // 🔒 PATCH/PUT full task update: ONLY OWNER or ADMIN
+    if (permissions.role !== 'OWNER' && permissions.role !== 'ADMIN') {
+      return NextResponse.json(
+        { error: 'Anda tidak memiliki izin untuk memperbarui task ini. Hanya OWNER atau ADMIN yang dapat mengubah informasi task.' },
+        { status: 403 }
+      );
     }
 
     const body = await req.json();
@@ -149,24 +185,6 @@ export async function PUT(
       startDate,
       dueDate,
     } = body;
-
-    // 🔒 MEMBER ROLE RESTRICTION: Member cannot edit metadata (title, description, priority, etc.)
-    const isEditingMetadata =
-      (title !== undefined && title.trim() !== oldTask.title) ||
-      (description !== undefined && description.trim() !== oldTask.description) ||
-      (priority !== undefined && priority !== oldTask.priority) ||
-      (categoryId !== undefined && categoryId !== oldTask.categoryId) ||
-      (assigneeId !== undefined && assigneeId !== oldTask.assigneeId) ||
-      (tags !== undefined && tags !== oldTask.tags) ||
-      (startDate !== undefined && startDate !== oldTask.startDate) ||
-      (dueDate !== undefined && dueDate !== oldTask.dueDate);
-
-    if (permissions.role === 'MEMBER' && isEditingMetadata) {
-      return NextResponse.json(
-        { error: 'Sebagai Member, Anda tidak memiliki izin untuk mengubah atribut task ini.' },
-        { status: 403 }
-      );
-    }
 
     // 🔒 WORKFLOW STATUS VALIDATION
     if (status !== undefined && status !== oldTask.status) {
@@ -305,8 +323,9 @@ export async function PUT(
     });
 
     return NextResponse.json({ task: updatedTask });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -320,7 +339,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
+    const sessionUserId = parseInt(session.user.id || '0', 10);
     const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
     if (!activeProject) {
@@ -331,8 +350,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Akses ditolak. Hanya OWNER atau ADMIN proyek yang dapat menghapus task.' }, { status: 403 });
     }
 
-    const { id } = await params;
-    const taskId = parseInt(id, 10);
+    const { id: deleteParamsId } = await params;
+    const taskId = parseInt(deleteParamsId, 10);
     if (isNaN(taskId)) {
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
@@ -361,7 +380,8 @@ export async function DELETE(
     });
 
     return NextResponse.json({ message: 'Task berhasil dihapus (Soft Delete).' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

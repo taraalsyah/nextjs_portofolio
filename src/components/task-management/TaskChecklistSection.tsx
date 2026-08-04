@@ -6,7 +6,7 @@ import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
 import { useToast } from '@/components/ui/Toast';
 
-interface ChecklistItem {
+export interface ChecklistItem {
   id: number;
   title: string;
   isCompleted: boolean;
@@ -16,18 +16,16 @@ interface TaskChecklistSectionProps {
   taskId: number;
   checklists: ChecklistItem[];
   onRefresh: () => void;
+  canUpdateProgress: boolean;
 }
 
-export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChecklistSectionProps) {
+export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateProgress }: TaskChecklistSectionProps) {
   const [newItemTitle, setNewItemTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  let toastCtx: any = null;
-  try {
-    toastCtx = useToast();
-  } catch {}
+  const toastCtx = useToast();
 
   const completedCount = checklists.filter((c) => c.isCompleted).length;
   const totalCount = checklists.length;
@@ -53,8 +51,8 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
         const json = await res.json().catch(() => ({}));
         throw new Error(json.error || 'Gagal menambahkan item checklist.');
       }
-    } catch (err: any) {
-      const errMsg = err.message || 'Gagal menambahkan item checklist. Silakan coba lagi.';
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal menambahkan item checklist. Silakan coba lagi.';
       setError(errMsg);
       if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
@@ -88,8 +86,8 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
         const json = await res.json().catch(() => ({}));
         throw new Error(json.error || 'Gagal menghapus item checklist.');
       }
-    } catch (err: any) {
-      const errMsg = err.message || 'Gagal menghapus item checklist. Silakan coba lagi.';
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal menghapus item checklist. Silakan coba lagi.';
       setError(errMsg);
       if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
@@ -166,12 +164,12 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
               }}
             >
               <div
-                onClick={() => !isDeleting && handleToggleItem(item.id, item.isCompleted)}
+                onClick={() => canUpdateProgress && !isDeleting && handleToggleItem(item.id, item.isCompleted)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
-                  cursor: isDeleting ? 'not-allowed' : 'pointer',
+                  cursor: canUpdateProgress && !isDeleting ? 'pointer' : 'default',
                   flex: 1,
                 }}
               >
@@ -195,7 +193,7 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
                   <InlineSpinner size={12} color="var(--secondary)" />
                   <span>Menghapus...</span>
                 </div>
-              ) : (
+              ) : canUpdateProgress ? (
                 <button
                   onClick={() => handleDeleteItem(item.id)}
                   disabled={isDeleting}
@@ -204,42 +202,44 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh }: TaskChec
                 >
                   <Trash2 size={12} />
                 </button>
-              )}
+              ) : null}
             </div>
           );
         })}
       </div>
 
-      {/* Add Form */}
-      <form onSubmit={handleAddItem} style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
-        <input
-          type="text"
-          placeholder="Tambah item checklist..."
-          value={newItemTitle}
-          onChange={(e) => setNewItemTitle(e.target.value)}
-          className={styles.input}
-          style={{ flex: 1 }}
-          disabled={isAdding}
-        />
-        <button
-          type="submit"
-          className={styles.createBtn}
-          disabled={isAdding}
-          style={{ cursor: isAdding ? 'not-allowed' : 'pointer', minWidth: '110px' }}
-        >
-          {isAdding ? (
-            <>
-              <InlineSpinner size={14} />
-              Menambahkan...
-            </>
-          ) : (
-            <>
-              <Plus size={14} />
-              Tambah
-            </>
-          )}
-        </button>
-      </form>
+      {/* Add Form - only show if user has update progress permission */}
+      {canUpdateProgress && (
+        <form onSubmit={handleAddItem} style={{ display: 'flex', gap: '0.4rem', marginTop: '0.2rem' }}>
+          <input
+            type="text"
+            placeholder="Tambah item checklist..."
+            value={newItemTitle}
+            onChange={(e) => setNewItemTitle(e.target.value)}
+            className={styles.input}
+            style={{ flex: 1 }}
+            disabled={isAdding}
+          />
+          <button
+            type="submit"
+            className={styles.createBtn}
+            disabled={isAdding}
+            style={{ cursor: isAdding ? 'not-allowed' : 'pointer', minWidth: '110px' }}
+          >
+            {isAdding ? (
+              <>
+                <InlineSpinner size={14} />
+                Menambahkan...
+              </>
+            ) : (
+              <>
+                <Plus size={14} />
+                Tambah
+              </>
+            )}
+          </button>
+        </form>
+      )}
     </div>
   );
 }

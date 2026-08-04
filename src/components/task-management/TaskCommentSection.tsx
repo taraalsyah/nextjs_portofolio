@@ -1,10 +1,10 @@
 'use client';
 
 import React, { useState } from 'react';
-import { MessageSquare, Send, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react';
+import { Send, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
-import { useToast } from '@/components/ui/Toast';
+import { useSafeToast } from '@/components/ui/Toast';
 
 interface CommentItem {
   id: number;
@@ -18,6 +18,7 @@ interface TaskCommentSectionProps {
   comments: CommentItem[];
   currentUserId: number;
   onRefresh: () => void;
+  canUpdateProgress: boolean;
 }
 
 export function TaskCommentSection({
@@ -25,6 +26,7 @@ export function TaskCommentSection({
   comments,
   currentUserId,
   onRefresh,
+  canUpdateProgress,
 }: TaskCommentSectionProps) {
   const [newComment, setNewComment] = useState('');
   const [editingId, setEditingId] = useState<number | null>(null);
@@ -33,10 +35,7 @@ export function TaskCommentSection({
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  let toastCtx: any = null;
-  try {
-    toastCtx = useToast();
-  } catch {}
+  const toastCtx = useSafeToast();
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,8 +57,8 @@ export function TaskCommentSection({
         const json = await res.json().catch(() => ({}));
         throw new Error(json.error || 'Gagal menambahkan komentar.');
       }
-    } catch (err: any) {
-      const errMsg = err.message || 'Gagal menambahkan komentar. Silakan coba lagi.';
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal menambahkan komentar. Silakan coba lagi.';
       setError(errMsg);
       if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
@@ -95,8 +94,8 @@ export function TaskCommentSection({
         const json = await res.json().catch(() => ({}));
         throw new Error(json.error || 'Gagal menghapus komentar.');
       }
-    } catch (err: any) {
-      const errMsg = err.message || 'Gagal menghapus komentar. Silakan coba lagi.';
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal menghapus komentar. Silakan coba lagi.';
       setError(errMsg);
       if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
@@ -230,36 +229,38 @@ export function TaskCommentSection({
         )}
       </div>
 
-      {/* Add Comment Form */}
-      <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem' }}>
-        <input
-          type="text"
-          placeholder="Tulis komentar..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className={styles.input}
-          style={{ flex: 1 }}
-          disabled={isSubmitting}
-        />
-        <button
-          type="submit"
-          className={styles.createBtn}
-          disabled={isSubmitting}
-          style={{ cursor: isSubmitting ? 'not-allowed' : 'pointer', minWidth: '110px' }}
-        >
-          {isSubmitting ? (
-            <>
-              <InlineSpinner size={14} />
-              Menambahkan...
-            </>
-          ) : (
-            <>
-              <Send size={14} />
-              Kirim
-            </>
-          )}
-        </button>
-      </form>
+      {/* Add Comment Form - only show if user has update progress permission */}
+      {canUpdateProgress && (
+        <form onSubmit={handleAddComment} style={{ display: 'flex', gap: '0.4rem', marginTop: '0.4rem' }}>
+          <input
+            type="text"
+            placeholder="Tulis komentar..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className={styles.input}
+            style={{ flex: 1 }}
+            disabled={isSubmitting}
+          />
+          <button
+            type="submit"
+            className={styles.createBtn}
+            disabled={isSubmitting}
+            style={{ cursor: isSubmitting ? 'not-allowed' : 'pointer', minWidth: '110px' }}
+          >
+            {isSubmitting ? (
+              <>
+                <InlineSpinner size={14} />
+                Menambahkan...
+              </>
+            ) : (
+              <>
+                <Send size={14} />
+                Kirim
+              </>
+            )}
+          </button>
+        </form>
+      )}
     </div>
   );
 }

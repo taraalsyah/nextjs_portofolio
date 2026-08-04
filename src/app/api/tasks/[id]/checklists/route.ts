@@ -3,40 +3,73 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTaskActivity } from '@/lib/task';
+import { getActiveProjectContext } from '@/lib/active-project';
+
+/**
+ * Resolves whether the current user can interact with task checklists.
+ * OWNER/ADMIN: Full access.
+ * MEMBER (Assignee): Can add/check/uncheck/delete checklist items.
+ * VIEWER / Non-assignee MEMBER: No access.
+ */
+async function resolveChecklistPermission(
+  req: NextRequest,
+  params: Promise<{ id: string }>
+): Promise<{
+  authorized: boolean;
+  status: number;
+  error?: string;
+  sessionUserId: number;
+  taskId: number;
+  isOwnerOrAdmin: boolean;
+}> {
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    return { authorized: false, status: 401, error: 'Session expired.', sessionUserId: 0, taskId: 0, isOwnerOrAdmin: false };
+  }
+
+  const rawId = session.user.id || '0';
+  const sessionUserId = parseInt(String(rawId), 10);
+
+  const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
+  if (!activeProject) {
+    return { authorized: false, status: 404, error: 'Proyek tidak ditemukan.', sessionUserId, taskId: 0, isOwnerOrAdmin: false };
+  }
+
+  const { id } = await params;
+  const taskId = parseInt(id, 10);
+  if (isNaN(taskId)) {
+    return { authorized: false, status: 400, error: 'ID Task tidak valid.', sessionUserId, taskId: 0, isOwnerOrAdmin: false };
+  }
+
+  const task = await prisma.task.findFirst({
+    where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
+    select: { id: true, assigneeId: true },
+  });
+
+  if (!task) {
+    return { authorized: false, status: 404, error: 'Task tidak ditemukan atau tidak berada pada proyek ini.', sessionUserId, taskId, isOwnerOrAdmin: false };
+  }
+
+  const role = activeProject.permissions.role;
+  const isOwnerOrAdmin = role === 'OWNER' || role === 'ADMIN';
+  const isAssignee = task.assigneeId === sessionUserId;
+
+  // 🔒 OWNER/ADMIN + Assignee can manage checklists
+  if (!isOwnerOrAdmin && !isAssignee) {
+    return { authorized: false, status: 403, error: 'Anda tidak memiliki izin untuk mengelola checklist pada task ini.', sessionUserId, taskId, isOwnerOrAdmin: false };
+  }
+
+  return { authorized: true, status: 200, sessionUserId, taskId, isOwnerOrAdmin };
+}
 
 export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
-    }
-
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
-
-    const { id } = await params;
-    const taskId = parseInt(id, 10);
-
-    if (isNaN(taskId)) {
-      return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
-    }
-
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-      select: { id: true, assigneeId: true },
-    });
-
-    if (!task) {
-      return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
-    }
-
-    // 🔒 STRICT AUTHORIZATION CHECK
-    if (role !== 'Admin' && task.assigneeId !== sessionUserId) {
-      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
+    const perm = await resolveChecklistPermission(req, params);
+    if (!perm.authorized) {
+      return NextResponse.json({ error: perm.error }, { status: perm.status });
     }
 
     const body = await req.json();
@@ -48,23 +81,24 @@ export async function POST(
 
     const item = await prisma.taskChecklist.create({
       data: {
-        taskId,
+        taskId: perm.taskId,
         title: title.trim(),
         isCompleted: false,
       },
     });
 
     await logTaskActivity({
-      taskId,
-      userId: sessionUserId,
+      taskId: perm.taskId,
+      userId: perm.sessionUserId,
       action: 'CHECKLIST_ADDED',
       description: `Menambahkan item checklist "${item.title}"`,
       newValue: item.title,
     });
 
     return NextResponse.json({ item }, { status: 201 });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -73,30 +107,9 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
-    }
-
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
-
-    const { id } = await params;
-    const taskId = parseInt(id, 10);
-
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-      select: { id: true, assigneeId: true },
-    });
-
-    if (!task) {
-      return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
-    }
-
-    // 🔒 STRICT AUTHORIZATION CHECK
-    if (role !== 'Admin' && task.assigneeId !== sessionUserId) {
-      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
+    const perm = await resolveChecklistPermission(req, params);
+    if (!perm.authorized) {
+      return NextResponse.json({ error: perm.error }, { status: perm.status });
     }
 
     const body = await req.json();
@@ -123,8 +136,8 @@ export async function PATCH(
     });
 
     await logTaskActivity({
-      taskId,
-      userId: sessionUserId,
+      taskId: perm.taskId,
+      userId: perm.sessionUserId,
       action: 'CHECKLIST_UPDATED',
       description: `Memperbarui checklist "${updatedItem.title}": ${updatedItem.isCompleted ? 'Completed' : 'Pending'}`,
       previousValue: String(oldItem.isCompleted),
@@ -132,8 +145,9 @@ export async function PATCH(
     });
 
     return NextResponse.json({ item: updatedItem });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -142,30 +156,9 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    if (!session || !session.user) {
-      return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
-    }
-
-    const role = (session.user as any).role || 'Staff';
-    const rawId = (session.user as any).id || (session.user as any).sub || '0';
-    const sessionUserId = parseInt(String(rawId), 10) || 0;
-
-    const { id } = await params;
-    const taskId = parseInt(id, 10);
-
-    const task = await prisma.task.findUnique({
-      where: { id: taskId },
-      select: { id: true, assigneeId: true },
-    });
-
-    if (!task) {
-      return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
-    }
-
-    // 🔒 STRICT AUTHORIZATION CHECK
-    if (role !== 'Admin' && task.assigneeId !== sessionUserId) {
-      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
+    const perm = await resolveChecklistPermission(req, params);
+    if (!perm.authorized) {
+      return NextResponse.json({ error: perm.error }, { status: perm.status });
     }
 
     const { searchParams } = new URL(req.url);
@@ -188,14 +181,15 @@ export async function DELETE(
     });
 
     await logTaskActivity({
-      taskId,
-      userId: sessionUserId,
+      taskId: perm.taskId,
+      userId: perm.sessionUserId,
       action: 'CHECKLIST_DELETED',
       description: `Menghapus item checklist "${item.title}"`,
     });
 
     return NextResponse.json({ message: 'Item checklist berhasil dihapus.' });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Internal server error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

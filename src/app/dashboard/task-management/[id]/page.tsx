@@ -12,6 +12,45 @@ import { TaskAttachmentSection } from '@/components/task-management/TaskAttachme
 import { TaskHistorySection } from '@/components/task-management/TaskHistorySection';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
+import type { ProjectPermissions } from '@/lib/project';
+import type { TaskStatus, TaskPriority } from '@/lib/task';
+
+interface TaskDetail {
+  id: number;
+  taskNumber: string;
+  projectId: number;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assigneeId: number | null;
+  createdById: number;
+  categoryId: number | null;
+  tags: string | null;
+  startDate: string | null;
+  dueDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  assignee: { id: number; name: string; username?: string; email?: string; image?: string | null } | null;
+  createdBy: { id: number; name: string; username?: string; email?: string; image?: string | null } | null;
+  category: { id: number; name: string; description?: string } | null;
+  checklists: { id: number; title: string; isCompleted: boolean }[];
+  comments: { id: number; content: string; createdAt: string; userId: number; user: { id: number; name: string; username?: string; image?: string } }[];
+  attachments: { id: number; fileName: string; fileUrl: string; fileSize: number; fileType: string; createdAt: string; uploadedById: number; uploadedBy: { id: number; name: string } }[];
+  histories: { id: number; action: string; fieldName: string | null; previousValue: string | null; newValue: string | null; createdAt: string; userId: number; user: { id: number; name: string } }[];
+}
+
+interface TaskFormData {
+  title?: string;
+  description?: string;
+  status?: TaskStatus;
+  priority?: TaskPriority;
+  assigneeId?: number | null;
+  categoryId?: number | null;
+  tags?: string;
+  startDate?: string | null;
+  dueDate?: string | null;
+}
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -20,16 +59,21 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  const [task, setTask] = useState<any>(null);
+  const [task, setTask] = useState<TaskDetail | null>(null);
+  const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const { users } = useProjectMembers();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
 
-  const role = (session?.user as any)?.role || 'Staff';
-  const isAdmin = role === 'Admin';
-  const currentUserId = parseInt((session?.user as any)?.id || '0', 10);
+  const currentUserId = parseInt(session?.user?.id || '0', 10);
+
+  const taskRole = userPermissions?.role || 'MEMBER';
+  const isOwnerOrAdmin = taskRole === 'OWNER' || taskRole === 'ADMIN';
+  const isAssignee = task?.assigneeId === currentUserId;
+  const canEditMetadata = isOwnerOrAdmin;
+  const canUpdateProgress = isOwnerOrAdmin || isAssignee;
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -48,6 +92,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
       if (res.ok) {
         const data = await res.json();
         setTask(data.task);
+        setUserPermissions(data.userPermissions);
       }
     } finally {
       setIsLoading(false);
@@ -55,10 +100,16 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   useEffect(() => {
-    fetchTaskDetails();
+    if (status !== 'loading') {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      void (async () => {
+        await fetchTaskDetails();
+      })();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [taskId, status]);
 
-  const handleUpdateTask = async (formData: any) => {
+  const handleUpdateTask = async (formData: TaskFormData) => {
     const res = await fetch(`/api/tasks/${taskId}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
@@ -75,6 +126,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   };
 
   const handleDeleteTask = async () => {
+    if (!task) return;
     if (!confirm(`Apakah Anda yakin ingin menghapus task ${task.taskNumber}?`)) return;
 
     const res = await fetch(`/api/tasks/${taskId}`, {
@@ -119,19 +171,21 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button onClick={() => setIsEditing(true)} className={styles.createBtn}>
-              <Edit3 size={15} />
-              Edit Task
-            </button>
-            {isAdmin && (
-              <button
-                onClick={handleDeleteTask}
-                className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                style={{ width: '38px', height: '38px' }}
-                title="Hapus Task"
-              >
-                <Trash2 size={16} />
-              </button>
+            {canEditMetadata && (
+              <>
+                <button onClick={() => setIsEditing(true)} className={styles.createBtn}>
+                  <Edit3 size={15} />
+                  Edit Task
+                </button>
+                <button
+                  onClick={handleDeleteTask}
+                  className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                  style={{ width: '38px', height: '38px' }}
+                  title="Hapus Task"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </>
             )}
           </div>
         </div>
@@ -246,11 +300,12 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           </div>
         )}
 
-        {activeTab === 'checklist' && (
+            {activeTab === 'checklist' && (
           <TaskChecklistSection
             taskId={task.id}
             checklists={task.checklists || []}
             onRefresh={fetchTaskDetails}
+            canUpdateProgress={canUpdateProgress}
           />
         )}
 
@@ -260,6 +315,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             comments={task.comments || []}
             currentUserId={currentUserId}
             onRefresh={fetchTaskDetails}
+            canUpdateProgress={canUpdateProgress}
           />
         )}
 
@@ -268,6 +324,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
             taskId={task.id}
             attachments={task.attachments || []}
             onRefresh={fetchTaskDetails}
+            canUpdateProgress={canUpdateProgress}
+            currentUserId={currentUserId}
           />
         )}
 

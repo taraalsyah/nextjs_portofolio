@@ -68,8 +68,8 @@ export const authOptions: AuthOptions = {
           email: user.email,
           role: user.role,
           password: user.password,
-          username: user.username,
-          image: user.image,
+          username: user.username || undefined,
+          image: user.image || undefined,
         };
       },
     }),
@@ -118,7 +118,8 @@ export const authOptions: AuthOptions = {
 
         if (!dbUser || dbUser.password !== token.passwordHash) {
           console.log('JWT CALLBACK - Session invalidated (password mismatch or user not found)');
-          return {}; // Session ter-invalidate
+          token.id = '';
+          return token;
         }
 
         // Cache role and permissions in the JWT token

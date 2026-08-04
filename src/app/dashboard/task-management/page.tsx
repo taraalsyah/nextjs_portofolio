@@ -35,23 +35,15 @@ export default function AllTasksPage() {
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 
-  const role = (session?.user as any)?.role || 'Staff';
+  const role = session?.user?.role || 'Staff';
   const isAdmin = role === 'Admin';
-  const currentUserId = parseInt((session?.user as any)?.id || '0', 10);
+  const currentUserId = parseInt(session?.user?.id || '0', 10);
 
   // Ref to track latest active project ID for race condition prevention
   const activeProjectRef = useRef<number | undefined>(activeProjectId);
 
   useEffect(() => {
     activeProjectRef.current = activeProjectId;
-  }, [activeProjectId]);
-
-  // Clear state when active project changes
-  useEffect(() => {
-    setTasks([]);
-    setCategories([]);
-    setCurrentPage(1);
-    setIsLoading(true);
   }, [activeProjectId]);
 
   // Redirect Non-Admin users to My Tasks page
@@ -72,9 +64,13 @@ export default function AllTasksPage() {
 
       if (res.ok) {
         const data = await res.json();
-        setCategories(data.categories || []);
+        if (activeProjectRef.current === targetProjectId) {
+          setCategories(data.categories || []);
+        }
       } else {
-        setCategories([]);
+        if (activeProjectRef.current === targetProjectId) {
+          setCategories([]);
+        }
       }
     } catch {
       if (activeProjectRef.current === targetProjectId) {
@@ -124,8 +120,13 @@ export default function AllTasksPage() {
     }
   }, [status, activeProjectId, currentPage, filterParams]);
 
+  // Data fetching effect — called on mount and when fetch functions change.
+  // The fetch functions call setState in response to external API results, which is
+  // the intended use of effects as described in the React docs.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching from external API is the intended use of effects; the setState calls inside fetchTasks power the loading UI
     fetchCategories();
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching from external API is the intended use of effects; the setState calls inside fetchTasks power the loading UI
     fetchTasks();
   }, [fetchCategories, fetchTasks]);
 
@@ -146,7 +147,7 @@ export default function AllTasksPage() {
     }
   }, [fetchCategories, fetchTasks]);
 
-  const handleCreateOrUpdateTask = async (formData: any) => {
+  const handleCreateOrUpdateTask = async (formData: Record<string, unknown>) => {
     const url = editingTask ? `/api/tasks/${editingTask.id}` : '/api/tasks';
     const method = editingTask ? 'PUT' : 'POST';
 
@@ -253,7 +254,7 @@ export default function AllTasksPage() {
         isOpen={selectedTaskId !== null}
         onClose={() => setSelectedTaskId(null)}
         currentUserId={currentUserId}
-        onEditRequest={(t) => setEditingTask(t)}
+        onEditRequest={(t) => setEditingTask(t as unknown as TaskItem)}
       />
     </div>
   );

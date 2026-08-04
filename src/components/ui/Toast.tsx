@@ -12,7 +12,7 @@ export interface ToastMessage {
   message: string;
 }
 
-interface ToastContextType {
+export interface ToastContextType {
   showToast: (message: string, type?: ToastType) => void;
   removeToast: (id: string) => void;
 }
@@ -67,4 +67,9 @@ export function useToast() {
     throw new Error('useToast must be used within a ToastProvider');
   }
   return context;
+}
+
+export function useSafeToast(): ToastContextType | null {
+  const context = useContext(ToastContext);
+  return context ?? null;
 }

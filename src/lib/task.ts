@@ -1,7 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@/lib/activity';
+import { Prisma } from '@prisma/client';
 
-export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE';
+export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export const TASK_STATUSES: { key: TaskStatus; label: string; color: string }[] = [
@@ -9,6 +10,7 @@ export const TASK_STATUSES: { key: TaskStatus; label: string; color: string }[] 
   { key: 'OPEN', label: 'Open', color: 'hsl(210, 90%, 70%)' },
   { key: 'IN_PROGRESS', label: 'In Progress', color: 'hsl(38, 95%, 65%)' },
   { key: 'DONE', label: 'Done', color: 'hsl(145, 80%, 65%)' },
+  { key: 'CLOSED', label: 'Closed', color: 'hsl(270, 40%, 65%)' },
 ];
 
 export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string }[] = [
@@ -18,10 +20,15 @@ export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string 
   { key: 'CRITICAL', label: 'Critical', color: 'hsl(350, 90%, 75%)' },
 ];
 
+type PrismaTransaction = Omit<
+  typeof prisma,
+  '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'
+>;
+
 /**
  * Generates the next unique Task Number in the TSK-000001 format.
  */
-export async function generateNextTaskNumber(tx?: any): Promise<string> {
+export async function generateNextTaskNumber(tx?: PrismaTransaction): Promise<string> {
   const db = tx || prisma;
 
   const lastTaskById = await db.task.findFirst({
@@ -83,6 +90,7 @@ export function isValidStatusTransition(currentStatus: string, nextStatus: strin
     OPEN: ['BACKLOG', 'IN_PROGRESS', 'DONE'],
     IN_PROGRESS: ['OPEN', 'BACKLOG', 'DONE'],
     DONE: ['IN_PROGRESS', 'OPEN', 'BACKLOG'],
+    CLOSED: ['DONE'],
   };
   return allowedMap[currentStatus]?.includes(nextStatus) ?? true;
 }
@@ -111,7 +119,7 @@ export async function logTaskActivity({
   newValue?: string | null;
   ipAddress?: string | null;
   userAgent?: string | null;
-  tx?: any;
+  tx?: PrismaTransaction;
 }) {
   const db = tx || prisma;
 

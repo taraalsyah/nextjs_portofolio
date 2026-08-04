@@ -9,7 +9,7 @@ export interface TaskItem {
   taskNumber: string;
   title: string;
   description: string;
-  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE';
+  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   assignee?: { id: number; name: string; username?: string; image?: string } | null;
   createdBy?: { id: number; name: string } | null;

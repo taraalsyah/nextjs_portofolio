@@ -1,19 +1,89 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, User, Tag, CheckSquare, MessageSquare, Image, History, Edit3, ShieldAlert } from 'lucide-react';
+import { X, Edit3, ShieldAlert, CheckCircle, XCircle, Clock, Send, Ban, CheckSquare } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
-import { TaskChecklistSection } from './TaskChecklistSection';
+import { TaskChecklistSection, ChecklistItem } from './TaskChecklistSection';
 import { TaskCommentSection } from './TaskCommentSection';
 import { TaskAttachmentSection } from './TaskAttachmentSection';
 import { TaskHistorySection } from './TaskHistorySection';
+import { ProjectPermissions } from '@/lib/project';
+
+interface TaskDetailData {
+  id: number;
+  taskNumber: string;
+  projectId: number;
+  title: string;
+  description: string;
+  status: string;
+  priority: string;
+  assigneeId: number | null;
+  createdById: number;
+  categoryId: number | null;
+  tags: string | null;
+  startDate: string | null;
+  dueDate: string | null;
+  createdAt: string;
+  updatedAt: string;
+  // Done Request fields
+  doneRequestStatus?: string;
+  doneRequestedById?: number | null;
+  doneRequestedAt?: string | null;
+  doneRequestNote?: string | null;
+  doneReviewedById?: number | null;
+  doneReviewedAt?: string | null;
+  doneRejectReason?: string | null;
+  doneRequestedBy?: { id: number; name: string; username: string; email: string; image: string | null } | null;
+  doneReviewedBy?: { id: number; name: string; username: string; email: string; image: string | null } | null;
+  // Close Request fields
+  closeRequestStatus?: string;
+  closeRequestedById?: number | null;
+  closeRequestedAt?: string | null;
+  closeRequestReason?: string | null;
+  closeReviewedById?: number | null;
+  closeReviewedAt?: string | null;
+  closeRejectReason?: string | null;
+  closeRequestedBy?: { id: number; name: string; username: string; email: string; image: string | null } | null;
+  closeReviewedBy?: { id: number; name: string; username: string; email: string; image: string | null } | null;
+  assignee: { id: number; name: string; username: string; email: string; image: string | null } | null;
+  createdBy: { id: number; name: string; username: string; email: string; image: string | null } | null;
+  category: { id: number; name: string; description: string } | null;
+  checklists: ChecklistItem[];
+  comments: Array<{
+    id: number;
+    content: string;
+    createdAt: string;
+    userId: number;
+    user: { id: number; name: string; username?: string; image?: string };
+  }>;
+  attachments: Array<{
+    id: number;
+    fileName: string;
+    fileUrl: string;
+    fileSize: number;
+    fileType: string;
+    createdAt: string;
+    uploadedById: number;
+    uploadedBy: { id: number; name: string };
+  }>;
+  histories: Array<{
+    id: number;
+    action: string;
+    fieldName: string | null;
+    previousValue: string | null;
+    newValue: string | null;
+    createdAt: string;
+    userId: number;
+    user: { id: number; name: string };
+  }>;
+}
 
 interface TaskDetailModalProps {
   taskId: number | null;
   isOpen: boolean;
   onClose: () => void;
   currentUserId: number;
-  onEditRequest: (task: any) => void;
+  onEditRequest: (task: TaskDetailData) => void;
 }
 
 export function TaskDetailModal({
@@ -23,45 +93,93 @@ export function TaskDetailModal({
   currentUserId,
   onEditRequest,
 }: TaskDetailModalProps) {
-  const [task, setTask] = useState<any>(null);
-  const [userPermissions, setUserPermissions] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [task, setTask] = useState<TaskDetailData | null>(null);
+  const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
   const [statusMsg, setStatusMsg] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const fetchTaskDetails = async () => {
+  // Close Request state
+  const [isCloseRequestLoading, setIsCloseRequestLoading] = useState(false);
+  const [showReasonInput, setShowReasonInput] = useState(false);
+  const [requestReasonText, setRequestReasonText] = useState('');
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectReasonText, setRejectReasonText] = useState('');
+
+  // Done Request state
+  const [isDoneRequestLoading, setIsDoneRequestLoading] = useState(false);
+  const [showDoneNoteInput, setShowDoneNoteInput] = useState(false);
+  const [doneRequestNoteText, setDoneRequestNoteText] = useState('');
+  const [showDoneRejectModal, setShowDoneRejectModal] = useState(false);
+  const [doneRejectReasonText, setDoneRejectReasonText] = useState('');
+
+  const isLoading = task === null && isOpen && taskId !== null;
+
+  const fetchTaskDetails = React.useCallback(async () => {
     if (!taskId) return;
-    setIsLoading(true);
-    setStatusMsg(null);
     try {
       const res = await fetch(`/api/tasks/${taskId}`);
       if (res.ok) {
         const json = await res.json();
         setTask(json.task);
         setUserPermissions(json.userPermissions);
+      } else {
+        setStatusMsg({
+          type: 'error',
+          message: 'Gagal memuat detail task.',
+        });
       }
-    } finally {
-      setIsLoading(false);
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal memuat detail task.',
+      });
     }
+  }, [taskId]);
+
+  const handleCloseWithReset = () => {
+    setTask(null);
+    setUserPermissions(null);
+    setStatusMsg(null);
+    setShowReasonInput(false);
+    setRequestReasonText('');
+    setShowRejectModal(false);
+    setRejectReasonText('');
+    setShowDoneNoteInput(false);
+    setDoneRequestNoteText('');
+    setShowDoneRejectModal(false);
+    setDoneRejectReasonText('');
+    onClose();
   };
 
   useEffect(() => {
     if (isOpen && taskId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- setState only fires after await; this is a false positive
       fetchTaskDetails();
-    } else {
-      setTask(null);
-      setUserPermissions(null);
-      setStatusMsg(null);
     }
-  }, [isOpen, taskId]);
+  }, [isOpen, taskId, fetchTaskDetails]);
 
   if (!isOpen || !taskId) return null;
 
   const role = userPermissions?.role || 'MEMBER';
   const isOwnerOrAdmin = role === 'OWNER' || role === 'ADMIN';
   const isAssignee = task?.assigneeId === currentUserId;
-  const canEditMetadata = isOwnerOrAdmin || (userPermissions?.canUpdateAnyTask ?? false);
+  const canEditMetadata = isOwnerOrAdmin;
+  const canUpdateProgress = isOwnerOrAdmin || isAssignee;
+
+  // Done Request State
+  const doneRequestStatus = task?.doneRequestStatus || 'NONE';
+  const showRequestDoneButton = isAssignee && !isOwnerOrAdmin && task?.status === 'IN_PROGRESS' && doneRequestStatus !== 'PENDING';
+  const showPendingDoneBadge = isAssignee && doneRequestStatus === 'PENDING';
+  const showDoneApprovalCard = isOwnerOrAdmin && doneRequestStatus === 'PENDING';
+  const showDoneRejectedInfo = doneRequestStatus === 'REJECTED' && !isOwnerOrAdmin;
+
+  // Close Request State
+  const closeRequestStatus = task?.closeRequestStatus || 'NONE';
+  const showRequestCloseButton = isAssignee && !isOwnerOrAdmin && task?.status === 'DONE' && closeRequestStatus !== 'PENDING';
+  const showPendingBadge = isAssignee && closeRequestStatus === 'PENDING';
+  const showApprovalCard = isOwnerOrAdmin && closeRequestStatus === 'PENDING';
+  const showRejectedInfo = closeRequestStatus === 'REJECTED' && !isOwnerOrAdmin;
 
   const handleStatusChange = async (newStatus: string) => {
     if (!task || isUpdatingStatus) return;
@@ -85,24 +203,338 @@ export function TaskDetailModal({
         return;
       }
 
-      setTask((prev: any) => ({ ...prev, status: data.task.status }));
+      setTask((prev: TaskDetailData | null) => prev ? { ...prev, status: data.task.status } : prev);
       setStatusMsg({
         type: 'success',
         message: `Workflow status berhasil diubah ke ${data.task.status}.`,
       });
       fetchTaskDetails();
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal mengubah status workflow.';
       setStatusMsg({
         type: 'error',
-        message: err.message || 'Gagal mengubah status workflow.',
+        message: errMsg,
       });
     } finally {
       setIsUpdatingStatus(false);
     }
   };
 
+  // ─── Done Request Handlers ──────────────────────────────────────────────────
+  const handleRequestDone = async () => {
+    if (!task || isDoneRequestLoading) return;
+    setIsDoneRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/request-done`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ note: doneRequestNoteText }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal mengajukan Request to Done.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Request to Done berhasil diajukan. Menunggu persetujuan Owner/Admin.',
+      });
+      setShowDoneNoteInput(false);
+      setDoneRequestNoteText('');
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal mengajukan Request to Done.',
+      });
+    } finally {
+      setIsDoneRequestLoading(false);
+    }
+  };
+
+  const handleApproveDone = async () => {
+    if (!task || isDoneRequestLoading) return;
+    setIsDoneRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/approve-done`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal menyetujui Done Request.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Done Request disetujui. Task status otomatis diperbarui menjadi Done.',
+      });
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal menyetujui Done Request.',
+      });
+    } finally {
+      setIsDoneRequestLoading(false);
+    }
+  };
+
+  const handleRejectDone = async () => {
+    if (!task || isDoneRequestLoading) return;
+    setIsDoneRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/reject-done`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rejectReason: doneRejectReasonText }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal menolak Done Request.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Done Request ditolak. Task tetap berada dalam status In Progress.',
+      });
+      setShowDoneRejectModal(false);
+      setDoneRejectReasonText('');
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal menolak Done Request.',
+      });
+    } finally {
+      setIsDoneRequestLoading(false);
+    }
+  };
+
+  const handleCancelDone = async () => {
+    if (!task || isDoneRequestLoading) return;
+    setIsDoneRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/cancel-done`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal membatalkan Done Request.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Done Request berhasil dibatalkan.',
+      });
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal membatalkan Done Request.',
+      });
+    } finally {
+      setIsDoneRequestLoading(false);
+    }
+  };
+
+  // ─── Close Request Handlers ─────────────────────────────────────────────────
+  const handleRequestClose = async () => {
+    if (!task || isCloseRequestLoading) return;
+    setIsCloseRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/request-close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ requestReason: requestReasonText }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal mengajukan Close Request.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Close Request berhasil diajukan. Menunggu persetujuan Owner/Admin.',
+      });
+      setShowReasonInput(false);
+      setRequestReasonText('');
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal mengajukan Close Request.',
+      });
+    } finally {
+      setIsCloseRequestLoading(false);
+    }
+  };
+
+  const handleApproveClose = async () => {
+    if (!task || isCloseRequestLoading) return;
+    setIsCloseRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/approve-close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal menyetujui Close Request.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Close Request disetujui. Task telah ditutup (Closed).',
+      });
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal menyetujui Close Request.',
+      });
+    } finally {
+      setIsCloseRequestLoading(false);
+    }
+  };
+
+  const handleRejectClose = async () => {
+    if (!task || isCloseRequestLoading) return;
+    setIsCloseRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/reject-close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rejectReason: rejectReasonText }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal menolak Close Request.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Close Request ditolak. Task kembali ke status DONE.',
+      });
+      setShowRejectModal(false);
+      setRejectReasonText('');
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal menolak Close Request.',
+      });
+    } finally {
+      setIsCloseRequestLoading(false);
+    }
+  };
+
+  const handleCancelClose = async () => {
+    if (!task || isCloseRequestLoading) return;
+    setIsCloseRequestLoading(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/cancel-close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Gagal membatalkan Close Request.',
+        });
+        return;
+      }
+
+      setStatusMsg({
+        type: 'success',
+        message: 'Close Request berhasil dibatalkan.',
+      });
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      setStatusMsg({
+        type: 'error',
+        message: err instanceof Error ? err.message : 'Gagal membatalkan Close Request.',
+      });
+    } finally {
+      setIsCloseRequestLoading(false);
+    }
+  };
+
+  const formatDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return '-';
+    return new Date(dateStr).toLocaleDateString('id-ID', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
+    <div className={styles.modalOverlay} onClick={handleCloseWithReset}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
         <div className={styles.modalHeader}>
           <div>
@@ -140,7 +572,7 @@ export function TaskDetailModal({
                 </button>
               )
             )}
-            <button onClick={onClose} className={styles.closeBtn}>
+            <button onClick={handleCloseWithReset} className={styles.closeBtn}>
               <X size={18} />
             </button>
           </div>
@@ -164,6 +596,626 @@ export function TaskDetailModal({
           >
             {statusMsg.type === 'error' && <ShieldAlert size={16} />}
             {statusMsg.message}
+          </div>
+        )}
+
+        {/* ─── DONE REQUEST PANELS ───────────────────────────────────────────── */}
+
+        {/* Done Request Approval Card - for Owner/Admin */}
+        {showDoneApprovalCard && task && (
+          <div
+            style={{
+              padding: '0.85rem',
+              borderRadius: '10px',
+              margin: '0.5rem 0',
+              background: 'hsla(145, 80%, 45%, 0.1)',
+              border: '1px solid hsla(145, 80%, 45%, 0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Clock size={16} style={{ color: 'hsl(145, 80%, 65%)' }} />
+                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'hsl(145, 80%, 85%)' }}>
+                  Done Request Pending (Permintaan Penyelesaian)
+                </span>
+              </div>
+              <button
+                onClick={handleCancelDone}
+                disabled={isDoneRequestLoading}
+                title="Batalkan Done Request"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid hsla(0,0%,100%,0.2)',
+                  color: 'hsla(0,0%,100%,0.7)',
+                  borderRadius: '4px',
+                  padding: '0.2rem 0.5rem',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.2rem',
+                }}
+              >
+                <Ban size={12} />
+                Cancel Request
+              </button>
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'hsla(0,0%,100%,0.7)', marginBottom: '0.3rem' }}>
+              <strong>Requested By:</strong> {task.doneRequestedBy?.name || 'Assignee'}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'hsla(0,0%,100%,0.7)', marginBottom: '0.3rem' }}>
+              <strong>Requested At:</strong> {formatDate(task.doneRequestedAt)}
+            </div>
+            {task.doneRequestNote && (
+              <div style={{ fontSize: '0.8rem', color: 'hsla(0,0%,100%,0.7)', marginBottom: '0.5rem' }}>
+                <strong>Completion Note:</strong> {task.doneRequestNote}
+              </div>
+            )}
+
+            {showDoneRejectModal ? (
+              <div style={{ marginTop: '0.6rem', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: '#fff', marginBottom: '0.3rem' }}>
+                  Alasan Penolakan Done (Opsional):
+                </label>
+                <input
+                  type="text"
+                  value={doneRejectReasonText}
+                  onChange={(e) => setDoneRejectReasonText(e.target.value)}
+                  placeholder="Masukkan alasan penolakan..."
+                  className={styles.input}
+                  style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem', marginBottom: '0.5rem', width: '100%' }}
+                />
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button
+                    onClick={handleRejectDone}
+                    disabled={isDoneRequestLoading}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: 'hsl(350, 90%, 55%)',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Konfirmasi Tolak
+                  </button>
+                  <button
+                    onClick={() => setShowDoneRejectModal(false)}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid hsla(0,0%,100%,0.2)',
+                      background: 'transparent',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button
+                  onClick={handleApproveDone}
+                  disabled={isDoneRequestLoading}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'hsl(145, 80%, 45%)',
+                    color: '#fff',
+                    cursor: isDoneRequestLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    opacity: isDoneRequestLoading ? 0.6 : 1,
+                  }}
+                >
+                  <CheckCircle size={14} />
+                  Approve Done
+                </button>
+                <button
+                  onClick={() => setShowDoneRejectModal(true)}
+                  disabled={isDoneRequestLoading}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'hsl(350, 90%, 55%)',
+                    color: '#fff',
+                    cursor: isDoneRequestLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    opacity: isDoneRequestLoading ? 0.6 : 1,
+                  }}
+                >
+                  <XCircle size={14} />
+                  Reject Request
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Done Request Button + Input - for Assignee */}
+        {showRequestDoneButton && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              margin: '0.5rem 0',
+              background: 'hsla(145, 80%, 45%, 0.1)',
+              border: '1px solid hsla(145, 80%, 45%, 0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.8rem', color: 'hsla(145, 60%, 85%, 1)' }}>
+                Pekerjaan telah selesai? Ajukan permintaan untuk mengubah status ke Done.
+              </span>
+              <button
+                onClick={() => setShowDoneNoteInput(!showDoneNoteInput)}
+                disabled={isDoneRequestLoading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'hsl(145, 80%, 40%)',
+                  color: '#fff',
+                  cursor: isDoneRequestLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  opacity: isDoneRequestLoading ? 0.6 : 1,
+                }}
+              >
+                <CheckSquare size={14} />
+                Request to Done
+              </button>
+            </div>
+
+            {showDoneNoteInput && (
+              <div style={{ marginTop: '0.6rem', paddingTop: '0.5rem', borderTop: '1px dashed hsla(145, 80%, 45%, 0.3)' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.8)', marginBottom: '0.3rem' }}>
+                  Completion Note / Summary of Work (Opsional):
+                </label>
+                <input
+                  type="text"
+                  value={doneRequestNoteText}
+                  onChange={(e) => setDoneRequestNoteText(e.target.value)}
+                  placeholder="Rincian hasil pekerjaan & testing..."
+                  className={styles.input}
+                  style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem', marginBottom: '0.5rem', width: '100%' }}
+                />
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button
+                    onClick={handleRequestDone}
+                    disabled={isDoneRequestLoading}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: 'hsl(145, 80%, 45%)',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Kirim Request
+                  </button>
+                  <button
+                    onClick={() => setShowDoneNoteInput(false)}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid hsla(0,0%,100%,0.2)',
+                      background: 'transparent',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Pending Done Badge View - for Assignee */}
+        {showPendingDoneBadge && task && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              margin: '0.5rem 0',
+              background: 'hsla(38, 95%, 55%, 0.1)',
+              border: '1px solid hsla(38, 95%, 55%, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Clock size={16} style={{ color: 'hsl(38, 95%, 65%)' }} />
+              <div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'hsl(38, 95%, 85%)' }}>
+                  Badge: Waiting Owner Approval (Request to Done)
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'hsla(0,0%,100%,0.7)', marginTop: '0.15rem' }}>
+                  <strong>Requested By:</strong> {task.doneRequestedBy?.name || 'Assignee'} | <strong>Requested At:</strong> {formatDate(task.doneRequestedAt)}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleCancelDone}
+              disabled={isDoneRequestLoading}
+              title="Batalkan Request"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.2rem',
+                padding: '0.3rem 0.6rem',
+                borderRadius: '6px',
+                border: '1px solid hsla(0,0%,100%,0.2)',
+                background: 'transparent',
+                color: 'hsla(0,0%,100%,0.8)',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+              }}
+            >
+              <Ban size={12} />
+              Cancel Request
+            </button>
+          </div>
+        )}
+
+        {/* Done Rejected Info Banner */}
+        {showDoneRejectedInfo && task && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              margin: '0.5rem 0',
+              background: 'hsla(350, 90%, 55%, 0.1)',
+              border: '1px solid hsla(350, 90%, 55%, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <XCircle size={16} style={{ color: 'hsl(350, 95%, 75%)' }} />
+            <div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'hsl(350, 95%, 85%)' }}>
+                Done Request Ditolak
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.5)', marginTop: '0.15rem' }}>
+                {task.doneRejectReason
+                  ? `Alasan: ${task.doneRejectReason}`
+                  : 'Silakan perbaiki dan ajukan kembali jika diperlukan.'}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ─── CLOSE REQUEST PANELS ──────────────────────────────────────────── */}
+
+        {/* Close Request Approval Card - for Owner/Admin */}
+        {showApprovalCard && task && (
+          <div
+            style={{
+              padding: '0.85rem',
+              borderRadius: '10px',
+              margin: '0.5rem 0',
+              background: 'hsla(38, 95%, 55%, 0.1)',
+              border: '1px solid hsla(38, 95%, 55%, 0.3)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Clock size={16} style={{ color: 'hsl(38, 95%, 65%)' }} />
+                <span style={{ fontWeight: 600, fontSize: '0.85rem', color: 'hsl(38, 95%, 85%)' }}>
+                  Close Request Pending
+                </span>
+              </div>
+              <button
+                onClick={handleCancelClose}
+                disabled={isCloseRequestLoading}
+                title="Batalkan Close Request"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid hsla(0,0%,100%,0.2)',
+                  color: 'hsla(0,0%,100%,0.7)',
+                  borderRadius: '4px',
+                  padding: '0.2rem 0.5rem',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.2rem',
+                }}
+              >
+                <Ban size={12} />
+                Cancel Request
+              </button>
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'hsla(0,0%,100%,0.7)', marginBottom: '0.3rem' }}>
+              <strong>Requested By:</strong> {task.closeRequestedBy?.name || 'Unknown'}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'hsla(0,0%,100%,0.7)', marginBottom: '0.3rem' }}>
+              <strong>Tanggal:</strong> {formatDate(task.closeRequestedAt)}
+            </div>
+            {task.closeRequestReason && (
+              <div style={{ fontSize: '0.8rem', color: 'hsla(0,0%,100%,0.7)', marginBottom: '0.5rem' }}>
+                <strong>Alasan:</strong> {task.closeRequestReason}
+              </div>
+            )}
+
+            {showRejectModal ? (
+              <div style={{ marginTop: '0.6rem', padding: '0.5rem', background: 'rgba(0,0,0,0.2)', borderRadius: '6px' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: '#fff', marginBottom: '0.3rem' }}>
+                  Alasan Penolakan Close (Opsional):
+                </label>
+                <input
+                  type="text"
+                  value={rejectReasonText}
+                  onChange={(e) => setRejectReasonText(e.target.value)}
+                  placeholder="Masukkan alasan penolakan..."
+                  className={styles.input}
+                  style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem', marginBottom: '0.5rem', width: '100%' }}
+                />
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button
+                    onClick={handleRejectClose}
+                    disabled={isCloseRequestLoading}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: 'hsl(350, 90%, 55%)',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Konfirmasi Tolak
+                  </button>
+                  <button
+                    onClick={() => setShowRejectModal(false)}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid hsla(0,0%,100%,0.2)',
+                      background: 'transparent',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button
+                  onClick={handleApproveClose}
+                  disabled={isCloseRequestLoading}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'hsl(145, 80%, 45%)',
+                    color: '#fff',
+                    cursor: isCloseRequestLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    opacity: isCloseRequestLoading ? 0.6 : 1,
+                  }}
+                >
+                  <CheckCircle size={14} />
+                  Approve Close
+                </button>
+                <button
+                  onClick={() => setShowRejectModal(true)}
+                  disabled={isCloseRequestLoading}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: 'hsl(350, 90%, 55%)',
+                    color: '#fff',
+                    cursor: isCloseRequestLoading ? 'not-allowed' : 'pointer',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    opacity: isCloseRequestLoading ? 0.6 : 1,
+                  }}
+                >
+                  <XCircle size={14} />
+                  Reject Request
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Close Request Button + Reason Input - for Assignee */}
+        {showRequestCloseButton && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              margin: '0.5rem 0',
+              background: 'hsla(270, 40%, 55%, 0.1)',
+              border: '1px solid hsla(270, 40%, 55%, 0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.8rem', color: 'hsla(270, 60%, 85%, 1)' }}>
+                Pekerjaan selesai? Ajukan permintaan untuk menutup task.
+              </span>
+              <button
+                onClick={() => setShowReasonInput(!showReasonInput)}
+                disabled={isCloseRequestLoading}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                  padding: '0.35rem 0.75rem',
+                  borderRadius: '6px',
+                  border: 'none',
+                  background: 'hsl(270, 40%, 55%)',
+                  color: '#fff',
+                  cursor: isCloseRequestLoading ? 'not-allowed' : 'pointer',
+                  fontSize: '0.8rem',
+                  fontWeight: 500,
+                  opacity: isCloseRequestLoading ? 0.6 : 1,
+                }}
+              >
+                <Send size={14} />
+                Request to Close
+              </button>
+            </div>
+
+            {showReasonInput && (
+              <div style={{ marginTop: '0.6rem', paddingTop: '0.5rem', borderTop: '1px dashed hsla(270, 40%, 55%, 0.3)' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.8)', marginBottom: '0.3rem' }}>
+                  Alasan Permintaan Penutupan (Opsional):
+                </label>
+                <input
+                  type="text"
+                  value={requestReasonText}
+                  onChange={(e) => setRequestReasonText(e.target.value)}
+                  placeholder="Contoh: Seluruh fitur & pengujian telah selesai..."
+                  className={styles.input}
+                  style={{ fontSize: '0.8rem', padding: '0.35rem 0.5rem', marginBottom: '0.5rem', width: '100%' }}
+                />
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button
+                    onClick={handleRequestClose}
+                    disabled={isCloseRequestLoading}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: 'none',
+                      background: 'hsl(270, 50%, 60%)',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Kirim Request
+                  </button>
+                  <button
+                    onClick={() => setShowReasonInput(false)}
+                    style={{
+                      padding: '0.3rem 0.75rem',
+                      borderRadius: '6px',
+                      border: '1px solid hsla(0,0%,100%,0.2)',
+                      background: 'transparent',
+                      color: '#fff',
+                      fontSize: '0.8rem',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Pending Close Badge View - for Assignee */}
+        {showPendingBadge && task && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              margin: '0.5rem 0',
+              background: 'hsla(38, 95%, 55%, 0.1)',
+              border: '1px solid hsla(38, 95%, 55%, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Clock size={16} style={{ color: 'hsl(38, 95%, 65%)' }} />
+              <div>
+                <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'hsl(38, 95%, 85%)' }}>
+                  Badge: Waiting Owner Approval (Request to Close)
+                </div>
+                <div style={{ fontSize: '0.75rem', color: 'hsla(0,0%,100%,0.7)', marginTop: '0.15rem' }}>
+                  <strong>Requested By:</strong> {task.closeRequestedBy?.name || 'Assignee'} | <strong>Requested At:</strong> {formatDate(task.closeRequestedAt)}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={handleCancelClose}
+              disabled={isCloseRequestLoading}
+              title="Batalkan Request"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.2rem',
+                padding: '0.3rem 0.6rem',
+                borderRadius: '6px',
+                border: '1px solid hsla(0,0%,100%,0.2)',
+                background: 'transparent',
+                color: 'hsla(0,0%,100%,0.8)',
+                fontSize: '0.75rem',
+                cursor: 'pointer',
+              }}
+            >
+              <Ban size={12} />
+              Cancel Request
+            </button>
+          </div>
+        )}
+
+        {/* Close Rejected Info Banner */}
+        {showRejectedInfo && task && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              margin: '0.5rem 0',
+              background: 'hsla(350, 90%, 55%, 0.1)',
+              border: '1px solid hsla(350, 90%, 55%, 0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            <XCircle size={16} style={{ color: 'hsl(350, 95%, 75%)' }} />
+            <div>
+              <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'hsl(350, 95%, 85%)' }}>
+                Close Request Ditolak
+              </div>
+              <div style={{ fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.5)', marginTop: '0.15rem' }}>
+                {task.closeRejectReason
+                  ? `Alasan: ${task.closeRejectReason}`
+                  : 'Silakan perbaiki dan ajukan kembali jika diperlukan.'}
+              </div>
+            </div>
           </div>
         )}
 
@@ -220,15 +1272,18 @@ export function TaskDetailModal({
                           value={task.status}
                           onChange={(e) => handleStatusChange(e.target.value)}
                           className={styles.select}
-                          disabled={isUpdatingStatus}
+                          disabled={isUpdatingStatus || task.status === 'CLOSED'}
                           style={{ padding: '0.35rem 0.65rem', fontSize: '0.85rem' }}
                         >
                           <option value="BACKLOG">Backlog</option>
                           <option value="OPEN">Open</option>
                           <option value="IN_PROGRESS">In Progress</option>
-                          {/* Done option disabled for Member role */}
+                          {/* Done & Closed options disabled for Member role */}
                           <option value="DONE" disabled={!isOwnerOrAdmin}>
                             Done {!isOwnerOrAdmin ? '(Membutuhkan Approval)' : ''}
+                          </option>
+                          <option value="CLOSED" disabled={!isOwnerOrAdmin}>
+                            Closed {!isOwnerOrAdmin ? '(Owner/Admin Only)' : ''}
                           </option>
                         </select>
                       ) : (
@@ -298,6 +1353,7 @@ export function TaskDetailModal({
                 taskId={task.id}
                 checklists={task.checklists || []}
                 onRefresh={fetchTaskDetails}
+                canUpdateProgress={canUpdateProgress}
               />
             )}
 
@@ -307,6 +1363,7 @@ export function TaskDetailModal({
                 comments={task.comments || []}
                 currentUserId={currentUserId}
                 onRefresh={fetchTaskDetails}
+                canUpdateProgress={canUpdateProgress}
               />
             )}
 
@@ -315,6 +1372,8 @@ export function TaskDetailModal({
                 taskId={task.id}
                 attachments={task.attachments || []}
                 onRefresh={fetchTaskDetails}
+                canUpdateProgress={canUpdateProgress}
+                currentUserId={currentUserId}
               />
             )}
 

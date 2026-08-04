@@ -20,12 +20,16 @@ interface TaskAttachmentSectionProps {
   taskId: number;
   attachments: AttachmentItem[];
   onRefresh: () => void;
+  canUpdateProgress: boolean;
+  currentUserId: number;
 }
 
 export function TaskAttachmentSection({
   taskId,
   attachments,
   onRefresh,
+  canUpdateProgress,
+  currentUserId,
 }: TaskAttachmentSectionProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
@@ -33,10 +37,7 @@ export function TaskAttachmentSection({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  let toastCtx: any = null;
-  try {
-    toastCtx = useToast();
-  } catch {}
+  const toastCtx = useToast();
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -86,8 +87,9 @@ export function TaskAttachmentSection({
       }
 
       onRefresh();
-    } catch (err: any) {
-      const errMsg = err.message || 'Gagal mengunggah gambar. Silakan coba lagi.';
+    } catch (err: unknown) {
+      const errMsg =
+        err instanceof Error ? err.message : 'Gagal mengunggah gambar. Silakan coba lagi.';
       setError(errMsg);
       if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
@@ -113,8 +115,9 @@ export function TaskAttachmentSection({
         const json = await res.json().catch(() => ({}));
         throw new Error(json.error || 'Gagal menghapus lampiran.');
       }
-    } catch (err: any) {
-      const errMsg = err.message || 'Gagal menghapus lampiran. Silakan coba lagi.';
+    } catch (err: unknown) {
+      const errMsg =
+        err instanceof Error ? err.message : 'Gagal menghapus lampiran. Silakan coba lagi.';
       setError(errMsg);
       if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     } finally {
@@ -136,36 +139,38 @@ export function TaskAttachmentSection({
         <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>
           Lampiran Gambar ({attachments.length})
         </h4>
-        <button
-          onClick={() => !isUploading && fileInputRef.current?.click()}
-          className={styles.createBtn}
-          style={{
-            padding: '0.35rem 0.65rem',
-            fontSize: '0.75rem',
-            cursor: isUploading ? 'not-allowed' : 'pointer',
-            minWidth: '120px',
-          }}
-          disabled={isUploading}
-        >
-          {isUploading ? (
-            <>
-              <InlineSpinner size={13} />
-              Menambahkan...
-            </>
-          ) : (
-            <>
-              <Upload size={13} />
-              Tambah Gambar
-            </>
-          )}
-        </button>
+        {canUpdateProgress && (
+          <button
+            onClick={() => !isUploading && fileInputRef.current?.click()}
+            className={styles.createBtn}
+            style={{
+              padding: '0.35rem 0.65rem',
+              fontSize: '0.75rem',
+              cursor: isUploading ? 'not-allowed' : 'pointer',
+              minWidth: '120px',
+            }}
+            disabled={isUploading}
+          >
+            {isUploading ? (
+              <>
+                <InlineSpinner size={13} />
+                Menambahkan...
+              </>
+            ) : (
+              <>
+                <Upload size={13} />
+                Tambah Gambar
+              </>
+            )}
+          </button>
+        )}
         <input
           type="file"
           ref={fileInputRef}
           onChange={handleFileSelect}
           accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp"
           multiple
-          disabled={isUploading}
+          disabled={isUploading || !canUpdateProgress}
           style={{ display: 'none' }}
         />
       </div>
@@ -204,6 +209,7 @@ export function TaskAttachmentSection({
         ) : (
           attachments.map((att) => {
             const isDeleting = deletingIds.includes(att.id);
+            const canDelete = canUpdateProgress && att.uploadedBy.id === currentUserId;
 
             return (
               <div
@@ -285,13 +291,15 @@ export function TaskAttachmentSection({
                       >
                         <Download size={13} />
                       </a>
-                      <button
-                        onClick={() => handleDeleteAttachment(att.id)}
-                        className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                        title="Hapus Lampiran"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      {canDelete && (
+                        <button
+                          onClick={() => handleDeleteAttachment(att.id)}
+                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                          title="Hapus Lampiran"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
                     </div>
                   )}
                 </div>

@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import type { Prisma } from '@prisma/client';
 
 export type ProjectRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 export type ProjectVisibility = 'PRIVATE' | 'TEAM';
@@ -317,14 +318,14 @@ export async function validateWorkflowTransition(
   if (toStatus === 'DONE') {
     return {
       allowed: false,
-      reason: 'Hanya Owner atau Admin yang dapat menyetujui (Approve) atau menyelesaikan task ini ke status DONE.',
+      reason: 'Hanya Owner atau Admin yang dapat mengubah status task ke DONE secara langsung. Anggota dapat mengajukan Request to Done.',
     };
   }
 
-  if (fromStatus === 'DONE') {
+  if (toStatus === 'CLOSED') {
     return {
       allowed: false,
-      reason: 'Hanya Owner atau Admin yang dapat membuka kembali (Reopen) task yang sudah selesai (DONE).',
+      reason: 'Hanya Owner atau Admin yang dapat menutup task secara langsung (CLOSED). Anggota dapat mengajukan Request to Close.',
     };
   }
 
@@ -334,7 +335,7 @@ export async function validateWorkflowTransition(
 /**
  * Ensures a user has a Personal Workspace. Automatically creates one if not present.
  */
-export async function ensurePersonalWorkspace(userId: number, userName: string, tx?: any) {
+export async function ensurePersonalWorkspace(userId: number, userName: string, tx?: Prisma.TransactionClient) {
   const db = tx || prisma;
 
   const existingMembership = await db.projectMember.findFirst({
