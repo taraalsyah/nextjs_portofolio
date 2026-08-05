@@ -107,7 +107,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       });
 
       return proj;
-    });
+    }, { maxWait: 10000, timeout: 10000 });
 
     return NextResponse.json({ project: updated });
   } catch (err: any) {

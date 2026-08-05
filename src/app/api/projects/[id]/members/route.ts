@@ -167,7 +167,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       });
 
       return created;
-    });
+    }, { maxWait: 10000, timeout: 10000 });
 
     return NextResponse.json({ member }, { status: 201 });
   } catch (err: any) {
@@ -252,7 +252,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       });
 
       return updated;
-    });
+    }, { maxWait: 10000, timeout: 10000 });
 
     return NextResponse.json({ member: updatedMember });
   } catch (err: any) {
@@ -331,7 +331,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
           description: `Member Removed: Menghapus anggota "${targetUser?.name || targetUserId}" dari proyek.`,
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 10000 });
 
     return NextResponse.json({ success: true, message: 'Anggota berhasil dihapus dari proyek.' });
   } catch (err: any) {

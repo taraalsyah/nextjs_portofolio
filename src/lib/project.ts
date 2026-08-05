@@ -455,7 +455,7 @@ export async function migrateTasksToPersonalWorkspace() {
           where: { id: { in: taskIds } },
           data: { projectId: workspace.id },
         });
-      });
+      }, { maxWait: 10000, timeout: 10000 });
     }
   } catch (err) {
     console.error('Task migration error:', err);

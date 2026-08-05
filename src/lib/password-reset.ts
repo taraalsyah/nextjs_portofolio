@@ -157,7 +157,7 @@ export class PasswordResetService {
           expiresAt: new Date(),
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 10000 });
 
     return { success: true };
   }

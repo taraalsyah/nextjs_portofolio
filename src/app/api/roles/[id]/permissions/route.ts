@@ -66,7 +66,7 @@ export async function PUT(
           })),
         });
       }
-    });
+    }, { maxWait: 10000, timeout: 10000 });
 
     // 5. Tulis log audit untuk setiap perubahan hak akses
     // Log perizinan yang dicabut

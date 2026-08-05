@@ -88,7 +88,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
           description: `Ownership Transferred: Mentransfer kepemilikan proyek "${project.projectName}" kepada "${targetMember.user.name}".`,
         },
       });
-    });
+    }, { maxWait: 10000, timeout: 10000 });
 
     return NextResponse.json({
       success: true,

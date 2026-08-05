@@ -13,7 +13,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await ensureDoneRequestColumns().catch(() => {});
+    await ensureDoneRequestColumns().catch(() => { });
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
