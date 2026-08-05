@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, X, ChevronDown } from 'lucide-react';
+import { Search, X } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
 
 interface TaskFilterBarProps {
   onFilterChange: (filters: Record<string, string>) => void;
@@ -11,6 +12,30 @@ interface TaskFilterBarProps {
   initialFilters?: Record<string, string>;
   hideAssigneeFilter?: boolean;
 }
+
+const STATUS_FILTER_OPTIONS: CustomDropdownOption[] = [
+  { value: '', label: 'Semua Status', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+  { value: 'BACKLOG', label: 'Backlog', dotColor: '#94a3b8', color: 'hsl(215, 20%, 85%)', bgColor: 'hsla(215, 20%, 65%, 0.15)', borderColor: 'hsla(215, 20%, 65%, 0.3)' },
+  { value: 'OPEN', label: 'Open', dotColor: '#38bdf8', color: 'hsl(210, 90%, 82%)', bgColor: 'hsla(210, 90%, 65%, 0.15)', borderColor: 'hsla(210, 90%, 65%, 0.3)' },
+  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 95%, 55%, 0.18)', borderColor: 'hsla(38, 95%, 55%, 0.35)' },
+  { value: 'DONE', label: 'Done', dotColor: '#10b981', color: 'hsl(145, 80%, 78%)', bgColor: 'hsla(145, 80%, 45%, 0.15)', borderColor: 'hsla(145, 80%, 45%, 0.3)' },
+];
+
+const PRIORITY_FILTER_OPTIONS: CustomDropdownOption[] = [
+  { value: '', label: 'Semua Priority', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+  { value: 'LOW', label: 'Low', dotColor: '#38bdf8', color: 'hsl(210, 90%, 80%)', bgColor: 'hsla(210, 80%, 55%, 0.12)', borderColor: 'hsla(210, 80%, 55%, 0.25)' },
+  { value: 'MEDIUM', label: 'Medium', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 90%, 55%, 0.15)', borderColor: 'hsla(38, 90%, 55%, 0.25)' },
+  { value: 'HIGH', label: 'High', dotColor: '#f97316', color: 'hsl(15, 95%, 80%)', bgColor: 'hsla(15, 90%, 60%, 0.18)', borderColor: 'hsla(15, 90%, 60%, 0.3)' },
+  { value: 'CRITICAL', label: 'Critical', dotColor: '#f43f5e', color: 'hsl(350, 95%, 82%)', bgColor: 'hsla(350, 90%, 60%, 0.2)', borderColor: 'hsla(350, 90%, 60%, 0.35)' },
+];
+
+const SORT_FILTER_OPTIONS: CustomDropdownOption[] = [
+  { value: 'createdAt-desc', label: 'Terbaru (Default)', dotColor: '#38bdf8' },
+  { value: 'createdAt-asc', label: 'Terlama', dotColor: '#64748b' },
+  { value: 'dueDate-asc', label: 'Deadline Terdekat', dotColor: '#f59e0b' },
+  { value: 'dueDate-desc', label: 'Deadline Terjauh', dotColor: '#a855f7' },
+  { value: 'priority-desc', label: 'Prioritas Tertinggi', dotColor: '#f43f5e' },
+];
 
 export function TaskFilterBar({
   onFilterChange,
@@ -57,6 +82,24 @@ export function TaskFilterBar({
   const hasActiveFilters =
     search || status || priority || categoryId || assigneeId || sortBy !== 'createdAt' || sortOrder !== 'desc';
 
+  const categoryOptions: CustomDropdownOption[] = [
+    { value: '', label: 'Semua Category', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+    ...categories.map((c) => ({
+      value: String(c.id),
+      label: c.name,
+      dotColor: '#a855f7',
+    })),
+  ];
+
+  const assigneeOptions: CustomDropdownOption[] = [
+    { value: '', label: 'Semua Assignee', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+    ...users.map((u) => ({
+      value: String(u.id),
+      label: u.name,
+      dotColor: '#06b6d4',
+    })),
+  ];
+
   return (
     <div className={styles.filterBar}>
       <div className={`${styles.filterItem} ${styles.filterItemSearch}`}>
@@ -75,100 +118,53 @@ export function TaskFilterBar({
 
       <div className={styles.filterItem}>
         <label className={styles.filterLabel}>Status</label>
-        <div className={styles.selectWrapper}>
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className={`${styles.filterSelect} ${status ? styles.activeSelect : ''}`}
-          >
-            <option value="">Semua Status</option>
-            <option value="BACKLOG">Backlog</option>
-            <option value="OPEN">Open</option>
-            <option value="IN_PROGRESS">In Progress</option>
-            <option value="DONE">Done</option>
-          </select>
-          <ChevronDown size={15} className={styles.selectIcon} />
-        </div>
+        <CustomDropdown
+          value={status}
+          options={STATUS_FILTER_OPTIONS}
+          onChange={(val) => setStatus(val)}
+        />
       </div>
 
       <div className={styles.filterItem}>
         <label className={styles.filterLabel}>Priority</label>
-        <div className={styles.selectWrapper}>
-          <select
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            className={`${styles.filterSelect} ${priority ? styles.activeSelect : ''}`}
-          >
-            <option value="">Semua Priority</option>
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-            <option value="CRITICAL">Critical</option>
-          </select>
-          <ChevronDown size={15} className={styles.selectIcon} />
-        </div>
+        <CustomDropdown
+          value={priority}
+          options={PRIORITY_FILTER_OPTIONS}
+          onChange={(val) => setPriority(val)}
+        />
       </div>
 
       <div className={styles.filterItem}>
         <label className={styles.filterLabel}>Category</label>
-        <div className={styles.selectWrapper}>
-          <select
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-            className={`${styles.filterSelect} ${categoryId ? styles.activeSelect : ''}`}
-          >
-            <option value="">Semua Category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={15} className={styles.selectIcon} />
-        </div>
+        <CustomDropdown
+          value={categoryId}
+          options={categoryOptions}
+          onChange={(val) => setCategoryId(val)}
+        />
       </div>
 
       {!hideAssigneeFilter && (
         <div className={styles.filterItem}>
           <label className={styles.filterLabel}>Assignee</label>
-          <div className={styles.selectWrapper}>
-            <select
-              value={assigneeId}
-              onChange={(e) => setAssigneeId(e.target.value)}
-              className={`${styles.filterSelect} ${assigneeId ? styles.activeSelect : ''}`}
-            >
-              <option value="">Semua Assignee</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown size={15} className={styles.selectIcon} />
-          </div>
+          <CustomDropdown
+            value={assigneeId}
+            options={assigneeOptions}
+            onChange={(val) => setAssigneeId(val)}
+          />
         </div>
       )}
 
       <div className={styles.filterItem}>
         <label className={styles.filterLabel}>Urutan</label>
-        <div className={styles.selectWrapper}>
-          <select
-            value={`${sortBy}-${sortOrder}`}
-            onChange={(e) => {
-              const [by, order] = e.target.value.split('-');
-              setSortBy(by);
-              setSortOrder(order);
-            }}
-            className={`${styles.filterSelect} ${sortBy !== 'createdAt' || sortOrder !== 'desc' ? styles.activeSelect : ''}`}
-          >
-            <option value="createdAt-desc">Terbaru (Default)</option>
-            <option value="createdAt-asc">Terlama</option>
-            <option value="dueDate-asc">Deadline Terdekat</option>
-            <option value="dueDate-desc">Deadline Terjauh</option>
-            <option value="priority-desc">Prioritas Tertinggi</option>
-          </select>
-          <ChevronDown size={15} className={styles.selectIcon} />
-        </div>
+        <CustomDropdown
+          value={`${sortBy}-${sortOrder}`}
+          options={SORT_FILTER_OPTIONS}
+          onChange={(val) => {
+            const [by, order] = val.split('-');
+            setSortBy(by);
+            setSortOrder(order);
+          }}
+        />
       </div>
 
       {hasActiveFilters && (
