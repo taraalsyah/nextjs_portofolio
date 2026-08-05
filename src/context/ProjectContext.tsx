@@ -56,11 +56,13 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         setActiveProject(data.activeProject);
         setOptimisticProject(data.activeProject);
+      } else if (res.status === 401) {
+        router.push('/login?error=SessionExpired');
       }
     } catch (err) {
       console.error('Failed to fetch active project:', err);
     }
-  }, []);
+  }, [router]);
 
   const fetchProjects = useCallback(async () => {
     setIsLoading(true);
@@ -69,13 +71,15 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setProjects(data.projects || []);
+      } else if (res.status === 401) {
+        router.push('/login?error=SessionExpired');
       }
     } catch (err) {
       console.error('Failed to fetch user projects:', err);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     fetchActiveProject();
@@ -113,6 +117,12 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
+        if (res.status === 401 || errData.error === 'Session expired.') {
+          setOptimisticProject(currentActive);
+          showToast('Sesi Anda telah berakhir. Silakan login kembali.', 'error');
+          router.push('/login?error=SessionExpired');
+          return false;
+        }
         throw new Error(errData.error || 'Gagal mengubah proyek aktif.');
       }
 
