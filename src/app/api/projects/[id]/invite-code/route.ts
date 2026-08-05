@@ -19,6 +19,14 @@ function generateProjectInviteCode(): string {
   return `PM-${part1}-${part2}`;
 }
 
+async function ensureInviteCodeColumnExists() {
+  try {
+    await prisma.$executeRawUnsafe(`ALTER TABLE projects ADD COLUMN invite_code VARCHAR(191) UNIQUE NULL;`);
+  } catch (err) {
+    // Column already exists or table structure is ready
+  }
+}
+
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions);
@@ -38,6 +46,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     if (!member || member.role !== 'OWNER') {
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat melihat dan mengelola Invite Code.' }, { status: 403 });
     }
+
+    await ensureInviteCodeColumnExists();
 
     let project: any = null;
     try {
@@ -81,6 +91,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat membuat atau memperbarui Invite Code.' }, { status: 403 });
     }
 
+    await ensureInviteCodeColumnExists();
+
     // Generate unique code
     let inviteCode = generateProjectInviteCode();
     let isUnique = false;
@@ -88,14 +100,23 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     while (!isUnique && attempts < 10) {
       attempts++;
-      const existing = await prisma.project.findUnique({
-        where: { inviteCode },
-        select: { id: true },
-      });
-      if (!existing) {
-        isUnique = true;
-      } else {
-        inviteCode = generateProjectInviteCode();
+      try {
+        const existing = await prisma.project.findUnique({
+          where: { inviteCode },
+          select: { id: true },
+        });
+        if (!existing) {
+          isUnique = true;
+        } else {
+          inviteCode = generateProjectInviteCode();
+        }
+      } catch {
+        const rawCheck: any[] = await prisma.$queryRaw`SELECT id FROM projects WHERE invite_code = ${inviteCode} LIMIT 1`;
+        if (!rawCheck || rawCheck.length === 0) {
+          isUnique = true;
+        } else {
+          inviteCode = generateProjectInviteCode();
+        }
       }
     }
 
@@ -104,11 +125,18 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     }
 
     const updatedProject = await prisma.$transaction(async (tx) => {
-      const proj = await tx.project.update({
-        where: { id: projectId },
-        data: { inviteCode },
-        select: { id: true, inviteCode: true, projectName: true },
-      });
+      let proj: any = null;
+      try {
+        proj = await tx.project.update({
+          where: { id: projectId },
+          data: { inviteCode },
+          select: { id: true, inviteCode: true, projectName: true },
+        });
+      } catch {
+        await tx.$executeRaw`UPDATE projects SET invite_code = ${inviteCode} WHERE id = ${projectId}`;
+        const projRaw: any[] = await tx.$queryRaw`SELECT id, project_name FROM projects WHERE id = ${projectId} LIMIT 1`;
+        proj = { id: projectId, inviteCode, projectName: projRaw[0]?.project_name || '' };
+      }
 
       await tx.activityLog.create({
         data: {
