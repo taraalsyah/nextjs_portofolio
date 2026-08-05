@@ -17,6 +17,11 @@ import {
   ArrowRightLeft,
   Shield,
   Save,
+  Copy,
+  RefreshCw,
+  Key,
+  Ban,
+  CheckCircle2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import styles from './project.module.css';
@@ -41,6 +46,7 @@ interface ProjectData {
   description: string | null;
   ownerUserId: number;
   visibility: 'PRIVATE' | 'TEAM';
+  inviteCode?: string | null;
   createdAt: string;
   updatedAt: string;
   owner?: { id: number; name: string; email: string; image: string | null };
@@ -99,6 +105,11 @@ export function ProjectSettingsModal({
   const [inviteRole, setInviteRole] = useState<'ADMIN' | 'MEMBER' | 'VIEWER'>('MEMBER');
   const [isInviting, setIsInviting] = useState(false);
 
+  // Invite Code State
+  const [inviteCode, setInviteCode] = useState<string | null>(null);
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [isCopyingCode, setIsCopyingCode] = useState(false);
+
   // Transfer Ownership Dialog states
   const [transferTargetUser, setTransferTargetUser] = useState<ProjectMemberItem | null>(null);
   const [isTransferring, setIsTransferring] = useState(false);
@@ -122,6 +133,7 @@ export function ProjectSettingsModal({
         setProjectName(data.project.projectName || '');
         setDescription(data.project.description || '');
         setVisibility(data.project.visibility || 'PRIVATE');
+        setInviteCode(data.project.inviteCode || null);
       }
 
       const memRes = await fetch(`/api/projects/${activeProjectId}/members`);
@@ -176,6 +188,59 @@ export function ProjectSettingsModal({
 
   const isOwner = currentRole === 'OWNER';
   const isAdminOrOwner = isOwner || currentRole === 'ADMIN';
+
+  const handleGenerateInviteCode = async () => {
+    if (!isAdminOrOwner || isGeneratingCode) return;
+    setIsGeneratingCode(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/projects/${activeProjectId}/invite-code`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal memproses Invite Code.');
+
+      setInviteCode(data.inviteCode);
+      setSuccessMsg('Invite Code berhasil diperbarui.');
+    } catch (err: any) {
+      setError(err.message || 'Gagal memproses Invite Code.');
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  const handleRevokeInviteCode = async () => {
+    if (!isAdminOrOwner || isGeneratingCode) return;
+    if (!confirm('Apakah Anda yakin ingin menonaktifkan Invite Code ini? User baru tidak akan dapat bergabung sampai Anda membuat kode baru.')) return;
+
+    setIsGeneratingCode(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/projects/${activeProjectId}/invite-code`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal menonaktifkan Invite Code.');
+
+      setInviteCode(null);
+      setSuccessMsg('Invite Code berhasil dinonaktifkan.');
+    } catch (err: any) {
+      setError(err.message || 'Gagal menonaktifkan Invite Code.');
+    } finally {
+      setIsGeneratingCode(false);
+    }
+  };
+
+  const handleCopyInviteCode = () => {
+    if (!inviteCode) return;
+    navigator.clipboard.writeText(inviteCode);
+    setIsCopyingCode(true);
+    setTimeout(() => setIsCopyingCode(false), 2000);
+  };
 
   const handleUpdateGeneral = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -594,6 +659,104 @@ export function ProjectSettingsModal({
               {/* MEMBERS TAB */}
               {activeTab === 'members' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  {/* Invite Code Management Card (for Owner / Admin) */}
+                  {isAdminOrOwner && (
+                    <div
+                      style={{
+                        background: 'var(--glass)',
+                        border: '1px solid var(--glass-border)',
+                        borderRadius: '10px',
+                        padding: '1rem',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.75rem',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>
+                          <Key size={16} style={{ color: 'var(--secondary)' }} />
+                          Invite Code Proyek
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: 'hsla(0, 0%, 100%, 0.5)' }}>
+                          Mekanisme bergabung ke proyek
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        {inviteCode ? (
+                          <>
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                background: 'rgba(15, 23, 42, 0.7)',
+                                border: '1px solid var(--secondary-glow)',
+                                borderRadius: '8px',
+                                padding: '0.45rem 0.85rem',
+                                fontFamily: 'monospace',
+                                fontSize: '0.95rem',
+                                fontWeight: 700,
+                                letterSpacing: '0.08em',
+                                color: 'hsl(210, 90%, 82%)',
+                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                              }}
+                            >
+                              <span>{inviteCode}</span>
+                              <button
+                                type="button"
+                                onClick={handleCopyInviteCode}
+                                className={styles.iconBtn}
+                                title="Salin Invite Code"
+                                style={{ color: isCopyingCode ? '#10b981' : 'hsla(0, 0%, 100%, 0.7)' }}
+                              >
+                                {isCopyingCode ? <CheckCircle2 size={16} /> : <Copy size={16} />}
+                              </button>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={handleGenerateInviteCode}
+                              disabled={isGeneratingCode}
+                              className={styles.submitBtn}
+                              style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
+                              title="Buat kode baru & batalkan kode lama"
+                            >
+                              <RefreshCw size={14} />
+                              Regenerate Code
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={handleRevokeInviteCode}
+                              disabled={isGeneratingCode}
+                              className={styles.iconBtn}
+                              style={{ padding: '0.45rem 0.75rem', fontSize: '0.78rem', border: '1px solid hsla(350, 80%, 60%, 0.3)', color: 'hsl(350, 95%, 85%)' }}
+                              title="Nonaktifkan Invite Code"
+                            >
+                              <Ban size={14} /> Nonaktifkan
+                            </button>
+                          </>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', justifyContent: 'space-between' }}>
+                            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                              Belum ada Invite Code aktif untuk proyek ini.
+                            </span>
+                            <button
+                              type="button"
+                              onClick={handleGenerateInviteCode}
+                              disabled={isGeneratingCode}
+                              className={styles.submitBtn}
+                              style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}
+                            >
+                              <Key size={14} /> Generate Invite Code
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div
                     style={{
                       display: 'flex',
@@ -604,15 +767,6 @@ export function ProjectSettingsModal({
                     <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
                       Daftar Anggota Proyek ({members.length})
                     </div>
-                    {isAdminOrOwner && (
-                      <button
-                        onClick={() => setIsInviteDialogOpen(true)}
-                        className={styles.submitBtn}
-                        style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}
-                      >
-                        <UserPlus size={15} /> Invite Member
-                      </button>
-                    )}
                   </div>
 
                   <div className={styles.tableContainer}>

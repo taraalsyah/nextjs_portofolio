@@ -9,19 +9,21 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   let currentUserRole = '';
   let isAuthenticated = false;
+  let currentUserId = 0;
 
   // 1. Primary Authentication: Personal API Token via Authorization: Bearer <token>
   const tokenAuth = await verifyApiTokenHeader(request);
   if (tokenAuth.authenticated && tokenAuth.user) {
     isAuthenticated = true;
     currentUserRole = tokenAuth.user.role || '';
+    currentUserId = tokenAuth.user.id;
   } else {
     // Fallback Authentication: NextAuth Session (for Web Dashboard UI)
     const sessionAuth = await verifyApiPermission(request, 'User Management', 'View');
     if (sessionAuth.authorized && sessionAuth.userId) {
       isAuthenticated = true;
-      // Get role from session check or default to Admin if authorized
       currentUserRole = 'Admin';
+      currentUserId = sessionAuth.userId;
     }
   }
 
@@ -57,6 +59,9 @@ export async function GET(request: Request) {
       order: searchParams.get('order') || undefined,
     };
 
+    const projectIdParam = searchParams.get('projectId');
+    const projectId = projectIdParam ? parseInt(projectIdParam, 10) : undefined;
+
     const parseResult = userQuerySchema.safeParse(queryParams);
     if (!parseResult.success) {
       return NextResponse.json(
@@ -69,8 +74,11 @@ export async function GET(request: Request) {
       );
     }
 
-    // 4. Delegate Business Logic to User Service
-    const result = await getUsersList(parseResult.data);
+    // 4. Delegate Business Logic to User Service with Project Member Isolation
+    const isSuperAdmin = normalizedRole.includes('super admin') || normalizedRole.includes('superadmin');
+    const isolationUserId = isSuperAdmin ? undefined : currentUserId;
+
+    const result = await getUsersList(parseResult.data, isolationUserId, projectId);
 
     return NextResponse.json(result, { status: 200 });
   } catch (error) {

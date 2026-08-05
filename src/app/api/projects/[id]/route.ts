@@ -32,6 +32,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
         description: true,
         ownerUserId: true,
         visibility: true,
+        inviteCode: true,
         createdAt: true,
         updatedAt: true,
         owner: { select: { id: true, name: true, email: true, image: true } },

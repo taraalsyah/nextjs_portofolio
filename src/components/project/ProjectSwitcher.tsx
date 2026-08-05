@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Folder, ChevronDown, Plus, Settings, Check, Lock, Users } from 'lucide-react';
+import { Folder, ChevronDown, Plus, Settings, Check, Lock, Users, UserPlus } from 'lucide-react';
 import styles from './project.module.css';
 import { CreateProjectModal } from './CreateProjectModal';
 import { ProjectSettingsModal } from './ProjectSettingsModal';
+import { JoinProjectModal } from './JoinProjectModal';
 import { useProjectContext } from '@/context/ProjectContext';
 
 export function ProjectSwitcher() {
@@ -20,6 +21,7 @@ export function ProjectSwitcher() {
 
   const [isOpen, setIsOpen] = useState(false);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isJoinOpen, setIsJoinOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -130,6 +132,17 @@ export function ProjectSwitcher() {
           <button
             onClick={() => {
               setIsOpen(false);
+              setIsJoinOpen(true);
+            }}
+            className={styles.actionBtn}
+            style={{ color: '#38bdf8' }}
+          >
+            <UserPlus size={16} /> Join Proyek via Code
+          </button>
+
+          <button
+            onClick={() => {
+              setIsOpen(false);
               setIsCreateOpen(true);
             }}
             className={styles.actionBtn}
@@ -151,6 +164,16 @@ export function ProjectSwitcher() {
           )}
         </div>
       )}
+
+      {/* Join Project Modal */}
+      <JoinProjectModal
+        isOpen={isJoinOpen}
+        onClose={() => setIsJoinOpen(false)}
+        onProjectJoined={() => {
+          fetchProjects();
+          fetchActiveProject();
+        }}
+      />
 
       {/* Create Project Modal */}
       <CreateProjectModal

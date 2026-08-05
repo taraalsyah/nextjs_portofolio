@@ -26,19 +26,46 @@ export interface UserListResponse {
  * Clean Service to fetch sanitized user list matching PRD requirements.
  * Filters sensitive attributes (password, apiToken, etc.) and formats response.
  */
-export async function getUsersList(query: UserQueryInput): Promise<UserListResponse> {
+export async function getUsersList(
+  query: UserQueryInput,
+  currentUserId?: number,
+  projectId?: number
+): Promise<UserListResponse> {
   const { page, pageSize, search, sort, order } = query;
   const skip = (page - 1) * pageSize;
 
-  const whereClause: Record<string, unknown> = {};
+  const whereClause: any = {};
+
+  // Project Member Isolation Filter
+  if (projectId) {
+    whereClause.projectMemberships = {
+      some: { projectId },
+    };
+  } else if (currentUserId) {
+    whereClause.projectMemberships = {
+      some: {
+        project: {
+          members: {
+            some: { userId: currentUserId },
+          },
+        },
+      },
+    };
+  }
 
   if (search && search.trim() !== '') {
     const searchFilter = search.trim();
-    whereClause.OR = [
+    const searchConditions = [
       { username: { contains: searchFilter } },
       { name: { contains: searchFilter } },
       { email: { contains: searchFilter } },
     ];
+
+    if (whereClause.projectMemberships) {
+      whereClause.AND = [{ OR: searchConditions }];
+    } else {
+      whereClause.OR = searchConditions;
+    }
   }
 
   // Map sort field 'fullName' to DB field 'name'

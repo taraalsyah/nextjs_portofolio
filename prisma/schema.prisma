@@ -146,6 +146,7 @@ model Project {
   description String?         @db.Text
   ownerUserId Int             @map("owner_user_id")
   visibility  String          @default("PRIVATE") // PRIVATE, TEAM
+  inviteCode  String?         @unique @map("invite_code")
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
 
@@ -157,6 +158,7 @@ model Project {
   workflowPermissions ProjectWorkflowPermission[]
 
   @@index([ownerUserId])
+  @@index([inviteCode])
   @@map("projects")
 }
 

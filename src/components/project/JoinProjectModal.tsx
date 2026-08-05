@@ -1,0 +1,187 @@
+'use client';
+
+import React, { useState } from 'react';
+import { X, Key, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
+import styles from './project.module.css';
+
+interface JoinProjectModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onProjectJoined?: () => void;
+}
+
+export function JoinProjectModal({
+  isOpen,
+  onClose,
+  onProjectJoined,
+}: JoinProjectModalProps) {
+  const [inviteCode, setInviteCode] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanCode = inviteCode.trim().toUpperCase();
+
+    if (!cleanCode) {
+      setError('Invite Code wajib diisi.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await fetch('/api/projects/join', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ inviteCode: cleanCode }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Gagal bergabung ke proyek.');
+      }
+
+      setSuccessMsg(data.message || 'Berhasil bergabung ke proyek!');
+      setInviteCode('');
+      
+      setTimeout(() => {
+        onProjectJoined?.();
+        onClose();
+        setSuccessMsg(null);
+      }, 1200);
+    } catch (err: any) {
+      setError(err.message || 'Gagal bergabung ke proyek.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div className={styles.modalOverlay} onClick={onClose}>
+      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+        <div className={styles.modalHeader}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                background: 'var(--primary-glow)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'hsl(265, 90%, 80%)',
+              }}
+            >
+              <UserPlus size={18} />
+            </div>
+            <div>
+              <h3 className={styles.modalTitle} style={{ margin: 0 }}>Join Project</h3>
+              <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: 'hsla(0,0%,100%,0.5)' }}>
+                Bergabung ke proyek menggunakan Invite Code
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose} className={styles.closeBtn}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {error && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              background: 'hsla(350, 90%, 55%, 0.15)',
+              border: '1px solid hsla(350, 90%, 55%, 0.3)',
+              color: 'hsl(350, 95%, 85%)',
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+            }}
+          >
+            <AlertCircle size={15} style={{ flexShrink: 0 }} />
+            <span>{error}</span>
+          </div>
+        )}
+
+        {successMsg && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              background: 'hsla(145, 80%, 45%, 0.15)',
+              border: '1px solid hsla(145, 80%, 45%, 0.3)',
+              color: 'hsl(145, 80%, 85%)',
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+            }}
+          >
+            <CheckCircle size={15} style={{ flexShrink: 0 }} />
+            <span>{successMsg}</span>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
+          <div>
+            <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <Key size={13} style={{ color: 'var(--secondary)' }} />
+              Invite Code
+            </label>
+            <input
+              type="text"
+              placeholder="Contoh: PM-7KQ9-XR8P"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              className={styles.input}
+              style={{
+                marginTop: '0.4rem',
+                fontFamily: 'monospace',
+                fontSize: '0.95rem',
+                letterSpacing: '0.08em',
+                textAlign: 'center',
+                textTransform: 'uppercase',
+                padding: '0.65rem',
+              }}
+              required
+              disabled={isSubmitting}
+            />
+            <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.45)', lineHeight: 1.4 }}>
+              Minta kode akses ini kepada Owner atau Admin proyek yang ingin Anda ikuti.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
+            <button
+              type="button"
+              onClick={onClose}
+              className={styles.clearFilterBtn}
+              disabled={isSubmitting}
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              className={styles.createBtn}
+              disabled={isSubmitting || !inviteCode.trim()}
+              style={{ opacity: isSubmitting || !inviteCode.trim() ? 0.6 : 1 }}
+            >
+              <UserPlus size={16} />
+              {isSubmitting ? 'Memproses...' : 'Join Project'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
