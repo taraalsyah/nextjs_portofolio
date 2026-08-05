@@ -39,10 +39,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat melihat dan mengelola Invite Code.' }, { status: 403 });
     }
 
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: { inviteCode: true, projectName: true },
-    });
+    let project: any = null;
+    try {
+      project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { inviteCode: true, projectName: true },
+      });
+    } catch {
+      const rawRes: any[] = await prisma.$queryRaw`SELECT invite_code, project_name FROM projects WHERE id = ${projectId} LIMIT 1`;
+      project = rawRes[0] ? { inviteCode: rawRes[0].invite_code, projectName: rawRes[0].project_name } : null;
+    }
 
     if (!project) {
       return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });

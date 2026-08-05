@@ -24,21 +24,48 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Anda tidak memiliki akses ke proyek ini.' }, { status: 403 });
     }
 
-    const project = await prisma.project.findUnique({
-      where: { id: projectId },
-      select: {
-        id: true,
-        projectName: true,
-        description: true,
-        ownerUserId: true,
-        visibility: true,
-        inviteCode: true,
-        createdAt: true,
-        updatedAt: true,
-        owner: { select: { id: true, name: true, email: true, image: true } },
-        _count: { select: { members: true, tasks: true } },
-      },
-    });
+    let project: any = null;
+    try {
+      project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: {
+          id: true,
+          projectName: true,
+          description: true,
+          ownerUserId: true,
+          visibility: true,
+          inviteCode: true,
+          createdAt: true,
+          updatedAt: true,
+          owner: { select: { id: true, name: true, email: true, image: true } },
+          _count: { select: { members: true, tasks: true } },
+        },
+      });
+    } catch (selectErr) {
+      project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: {
+          id: true,
+          projectName: true,
+          description: true,
+          ownerUserId: true,
+          visibility: true,
+          createdAt: true,
+          updatedAt: true,
+          owner: { select: { id: true, name: true, email: true, image: true } },
+          _count: { select: { members: true, tasks: true } },
+        },
+      });
+
+      if (project) {
+        try {
+          const rawRes: any[] = await prisma.$queryRaw`SELECT invite_code FROM projects WHERE id = ${projectId} LIMIT 1`;
+          project.inviteCode = rawRes[0]?.invite_code || null;
+        } catch {
+          project.inviteCode = null;
+        }
+      }
+    }
 
     if (!project) {
       return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
