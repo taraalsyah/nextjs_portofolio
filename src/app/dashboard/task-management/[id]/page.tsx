@@ -3,7 +3,7 @@
 import React, { useState, useEffect, use } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit3, Trash2 } from 'lucide-react';
+import { ArrowLeft, Edit3, Trash2, ShieldAlert } from 'lucide-react';
 import styles from '../task.module.css';
 import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { TaskChecklistSection } from '@/components/task-management/TaskChecklistSection';
@@ -12,6 +12,7 @@ import { TaskAttachmentSection } from '@/components/task-management/TaskAttachme
 import { TaskHistorySection } from '@/components/task-management/TaskHistorySection';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
+import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 import type { ProjectPermissions } from '@/lib/project';
 import type { TaskStatus, TaskPriority } from '@/lib/task';
 
@@ -66,6 +67,8 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [statusMsg, setStatusMsg] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
 
   const currentUserId = parseInt(session?.user?.id || '0', 10);
 
@@ -74,6 +77,45 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const isAssignee = task?.assigneeId === currentUserId;
   const canEditMetadata = isOwnerOrAdmin;
   const canUpdateProgress = isOwnerOrAdmin || isAssignee;
+
+  const handleStatusChange = async (newStatus: string) => {
+    if (!task || isUpdatingStatus) return;
+    setIsUpdatingStatus(true);
+    setStatusMsg(null);
+
+    try {
+      const res = await fetch(`/api/tasks/${task.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setStatusMsg({
+          type: 'error',
+          message: data.error || 'Anda tidak memiliki izin untuk mengubah status ini.',
+        });
+        return;
+      }
+
+      setTask((prev) => (prev ? { ...prev, status: data.task.status as TaskStatus } : prev));
+      setStatusMsg({
+        type: 'success',
+        message: `Status workflow berhasil diubah ke ${data.task.status}.`,
+      });
+      fetchTaskDetails();
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal mengubah status workflow.';
+      setStatusMsg({
+        type: 'error',
+        message: errMsg,
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
 
   useEffect(() => {
     if (status !== 'authenticated') return;
@@ -233,16 +275,62 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           </button>
         </div>
 
+        {/* Status Alert Banner */}
+        {statusMsg && (
+          <div
+            style={{
+              padding: '0.65rem 0.85rem',
+              borderRadius: '8px',
+              margin: '0.5rem 0 1rem',
+              background: statusMsg.type === 'error' ? 'hsla(350, 90%, 55%, 0.15)' : 'hsla(145, 80%, 45%, 0.15)',
+              border: statusMsg.type === 'error' ? '1px solid hsla(350, 90%, 55%, 0.3)' : '1px solid hsla(145, 80%, 45%, 0.3)',
+              color: statusMsg.type === 'error' ? 'hsl(350, 95%, 85%)' : 'hsl(145, 80%, 85%)',
+              fontSize: '0.8rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+            }}
+          >
+            {statusMsg.type === 'error' && <ShieldAlert size={16} />}
+            {statusMsg.message}
+          </div>
+        )}
+
         {/* Active Tab Body */}
         {activeTab === 'info' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className={styles.formGrid}>
               <div>
                 <label className={styles.label}>Status Workflow</label>
-                <div style={{ marginTop: '0.35rem' }}>
-                  <span className={`${styles.badge} ${styles[`status${task.status}`]}`}>
-                    {task.status}
-                  </span>
+                <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {canUpdateProgress ? (
+                    <>
+                      <select
+                        value={task.status}
+                        onChange={(e) => handleStatusChange(e.target.value)}
+                        className={styles.select}
+                        disabled={isUpdatingStatus || task.status === 'CLOSED'}
+                        style={{ padding: '0.35rem 0.65rem', fontSize: '0.85rem', opacity: isUpdatingStatus ? 0.7 : 1 }}
+                      >
+                        <option value="BACKLOG">Backlog</option>
+                        <option value="OPEN">Open</option>
+                        <option value="IN_PROGRESS">In Progress</option>
+                        <option value="DONE" disabled={!isOwnerOrAdmin}>
+                          Done {!isOwnerOrAdmin ? '(Membutuhkan Approval)' : ''}
+                        </option>
+                        {task.status === 'CLOSED' && <option value="CLOSED">Closed</option>}
+                      </select>
+                      {isUpdatingStatus && (
+                        <span style={{ fontSize: '0.8rem', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <InlineSpinner size={14} /> Updating...
+                        </span>
+                      )}
+                    </>
+                  ) : (
+                    <span className={`${styles.badge} ${styles[`status${task.status}`]}`}>
+                      {task.status}
+                    </span>
+                  )}
                 </div>
               </div>
               <div>

@@ -9,6 +9,7 @@ import { TaskAttachmentSection } from './TaskAttachmentSection';
 import { TaskHistorySection } from './TaskHistorySection';
 import { ProjectPermissions } from '@/lib/project';
 import { notifyTaskMutated } from '@/lib/task-event';
+import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 
 interface TaskDetailData {
   id: number;
@@ -1295,24 +1296,31 @@ export function TaskDetailModal({
                 <div className={styles.formGrid}>
                   <div>
                     <label className={styles.label}>Status Workflow</label>
-                    <div style={{ marginTop: '0.3rem' }}>
+                    <div style={{ marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {/* If Assigned to Self or Owner/Admin, render Workflow Selector with Transition Control */}
                       {isAssignee || isOwnerOrAdmin ? (
-                        <select
-                          value={task.status}
-                          onChange={(e) => handleStatusChange(e.target.value)}
-                          className={styles.select}
-                          disabled={isUpdatingStatus || task.status === 'CLOSED'}
-                          style={{ padding: '0.35rem 0.65rem', fontSize: '0.85rem' }}
-                        >
-                          <option value="BACKLOG">Backlog</option>
-                          <option value="OPEN">Open</option>
-                          <option value="IN_PROGRESS">In Progress</option>
-                          <option value="DONE" disabled={!isOwnerOrAdmin}>
-                            Done {!isOwnerOrAdmin ? '(Membutuhkan Approval)' : ''}
-                          </option>
-                          {task.status === 'CLOSED' && <option value="CLOSED">Closed</option>}
-                        </select>
+                        <>
+                          <select
+                            value={task.status}
+                            onChange={(e) => handleStatusChange(e.target.value)}
+                            className={styles.select}
+                            disabled={isUpdatingStatus || task.status === 'CLOSED'}
+                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.85rem', opacity: isUpdatingStatus ? 0.7 : 1 }}
+                          >
+                            <option value="BACKLOG">Backlog</option>
+                            <option value="OPEN">Open</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="DONE" disabled={!isOwnerOrAdmin}>
+                              Done {!isOwnerOrAdmin ? '(Membutuhkan Approval)' : ''}
+                            </option>
+                            {task.status === 'CLOSED' && <option value="CLOSED">Closed</option>}
+                          </select>
+                          {isUpdatingStatus && (
+                            <span style={{ fontSize: '0.8rem', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                              <InlineSpinner size={14} /> Updating...
+                            </span>
+                          )}
+                        </>
                       ) : (
                         <span className={`${styles.badge} ${styles[`status${task.status}`]}`}>
                           {task.status} (Read Only)
