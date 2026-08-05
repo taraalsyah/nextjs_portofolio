@@ -23,6 +23,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: 'Anda tidak memiliki akses ke proyek ini.' }, { status: 403 });
     }
 
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { ownerUserId: true },
+    });
+
     const members = await prisma.projectMember.findMany({
       where: { projectId },
       orderBy: { joinedAt: 'asc' },
@@ -45,7 +50,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
       },
     });
 
-    return NextResponse.json({ members });
+    const formattedMembers = members.map((m) => ({
+      ...m,
+      role: m.userId === project?.ownerUserId ? 'OWNER' : m.role,
+    }));
+
+    return NextResponse.json({ members: formattedMembers });
   } catch (err: any) {
     console.error('GET /api/projects/[id]/members error:', err);
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });

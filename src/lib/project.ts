@@ -503,7 +503,7 @@ export async function getUserProjects(userId: number) {
  * Gets a user's membership and role in a specific project.
  */
 export async function getProjectMember(projectId: number, userId: number) {
-  return await prisma.projectMember.findUnique({
+  const member = await prisma.projectMember.findUnique({
     where: {
       projectId_userId: {
         projectId,
@@ -519,6 +519,45 @@ export async function getProjectMember(projectId: number, userId: number) {
       user: {
         select: { id: true, name: true, email: true, image: true },
       },
+      project: {
+        select: { ownerUserId: true },
+      },
     },
   });
+
+  if (!member) {
+    // Check if user is owner of the project even if ProjectMember row is missing
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+      select: { ownerUserId: true },
+    });
+
+    if (project && project.ownerUserId === userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, image: true },
+      });
+      if (user) {
+        return {
+          id: 0,
+          projectId,
+          userId,
+          role: 'OWNER',
+          joinedAt: new Date().toISOString(),
+          user,
+        };
+      }
+    }
+    return null;
+  }
+
+  const isOwner = member.project?.ownerUserId === userId;
+  return {
+    id: member.id,
+    projectId: member.projectId,
+    userId: member.userId,
+    role: isOwner ? 'OWNER' : member.role,
+    joinedAt: member.joinedAt,
+    user: member.user,
+  };
 }

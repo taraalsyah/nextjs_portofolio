@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import {
   X,
   Settings,
@@ -186,9 +187,14 @@ export function ProjectSettingsModal({
     return () => clearTimeout(timer);
   }, [inviteSearchQuery, activeProjectId]);
 
+  const { data: session } = useSession();
+  const sessionUserId = parseInt((session?.user as any)?.id || '0', 10);
+
   if (!isOpen) return null;
 
-  const isOwner = currentRole === 'OWNER';
+  const isOwner =
+    currentRole === 'OWNER' ||
+    (projectData?.ownerUserId ? projectData.ownerUserId === sessionUserId : false);
   const isAdminOrOwner = isOwner || currentRole === 'ADMIN';
 
   const handleGenerateInviteCode = async () => {
@@ -882,13 +888,27 @@ export function ProjectSettingsModal({
                                         disabled={updatingMemberUserId === m.userId}
                                         className={styles.iconBtn}
                                         title="Hapus dari proyek"
-                                        style={{ opacity: updatingMemberUserId === m.userId ? 0.5 : 1 }}
+                                        style={{
+                                          opacity: updatingMemberUserId === m.userId ? 0.5 : 1,
+                                          display: 'inline-flex',
+                                          alignItems: 'center',
+                                          gap: '0.3rem',
+                                          padding: '0.35rem 0.65rem',
+                                          background: 'rgba(239, 68, 68, 0.12)',
+                                          border: '1px solid rgba(239, 68, 68, 0.3)',
+                                          color: '#ef4444',
+                                          borderRadius: '6px',
+                                          fontSize: '0.75rem',
+                                          fontWeight: 500,
+                                          cursor: updatingMemberUserId === m.userId ? 'not-allowed' : 'pointer',
+                                        }}
                                       >
                                         {updatingMemberUserId === m.userId ? (
                                           <InlineSpinner size={13} />
                                         ) : (
-                                          <Trash2 size={15} />
+                                          <Trash2 size={13} />
                                         )}
+                                        <span>Hapus</span>
                                       </button>
                                     </>
                                   ) : (
