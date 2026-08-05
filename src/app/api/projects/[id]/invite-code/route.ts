@@ -21,9 +21,14 @@ function generateProjectInviteCode(): string {
 
 async function ensureInviteCodeColumnExists() {
   try {
-    await prisma.$executeRawUnsafe(`ALTER TABLE projects ADD COLUMN invite_code VARCHAR(191) UNIQUE NULL;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE projects ADD COLUMN invite_code VARCHAR(191) NULL;`);
   } catch (err) {
-    // Column already exists or table structure is ready
+    // Column already exists
+  }
+  try {
+    await prisma.$executeRawUnsafe(`CREATE UNIQUE INDEX projects_invite_code_key ON projects(invite_code);`);
+  } catch (err) {
+    // Index already exists
   }
 }
 
