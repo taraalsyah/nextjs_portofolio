@@ -12,10 +12,10 @@ function createPrismaClient(): PrismaClient {
 if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
   try {
     const dmmf = (globalForPrisma.prisma as any)?._dMMF;
-    const taskModel = dmmf?.modelMap?.Task || dmmf?.datamodel?.models?.find((m: any) => m.name === 'Task');
-    const hasDoneReq = taskModel?.fields?.some((f: any) => f.name === 'doneRequestStatus');
-    if (!hasDoneReq) {
-      console.log('[prisma.ts] In-memory PrismaClient instance is stale. Re-instantiating PrismaClient...');
+    const projectModel = dmmf?.modelMap?.Project || dmmf?.datamodel?.models?.find((m: any) => m.name === 'Project');
+    const hasInviteCode = projectModel?.fields?.some((f: any) => f.name === 'inviteCode');
+    if (!hasInviteCode) {
+      console.log('[prisma.ts] In-memory PrismaClient instance is stale (missing inviteCode). Re-instantiating PrismaClient...');
       globalForPrisma.prisma = undefined;
     }
   } catch {
