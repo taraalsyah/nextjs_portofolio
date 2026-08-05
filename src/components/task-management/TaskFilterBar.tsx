@@ -79,9 +79,9 @@ export function TaskFilterBar({
           <select
             value={status}
             onChange={(e) => setStatus(e.target.value)}
-            className={styles.filterSelect}
+            className={`${styles.filterSelect} ${status ? styles.activeSelect : ''}`}
           >
-            <option value="">Klik untuk memuat Status</option>
+            <option value="">Semua Status</option>
             <option value="BACKLOG">Backlog</option>
             <option value="OPEN">Open</option>
             <option value="IN_PROGRESS">In Progress</option>
@@ -97,9 +97,9 @@ export function TaskFilterBar({
           <select
             value={priority}
             onChange={(e) => setPriority(e.target.value)}
-            className={styles.filterSelect}
+            className={`${styles.filterSelect} ${priority ? styles.activeSelect : ''}`}
           >
-            <option value="">Klik untuk memuat Priority</option>
+            <option value="">Semua Priority</option>
             <option value="LOW">Low</option>
             <option value="MEDIUM">Medium</option>
             <option value="HIGH">High</option>
@@ -115,9 +115,9 @@ export function TaskFilterBar({
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className={styles.filterSelect}
+            className={`${styles.filterSelect} ${categoryId ? styles.activeSelect : ''}`}
           >
-            <option value="">Klik untuk memuat Category</option>
+            <option value="">Semua Category</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
@@ -135,9 +135,9 @@ export function TaskFilterBar({
             <select
               value={assigneeId}
               onChange={(e) => setAssigneeId(e.target.value)}
-              className={styles.filterSelect}
+              className={`${styles.filterSelect} ${assigneeId ? styles.activeSelect : ''}`}
             >
-              <option value="">Klik untuk memuat Assignee</option>
+              <option value="">Semua Assignee</option>
               {users.map((u) => (
                 <option key={u.id} value={u.id}>
                   {u.name}
@@ -159,9 +159,9 @@ export function TaskFilterBar({
               setSortBy(by);
               setSortOrder(order);
             }}
-            className={styles.filterSelect}
+            className={`${styles.filterSelect} ${sortBy !== 'createdAt' || sortOrder !== 'desc' ? styles.activeSelect : ''}`}
           >
-            <option value="createdAt-desc">Klik untuk memuat Urutan (Terbaru)</option>
+            <option value="createdAt-desc">Terbaru (Default)</option>
             <option value="createdAt-asc">Terlama</option>
             <option value="dueDate-asc">Deadline Terdekat</option>
             <option value="dueDate-desc">Deadline Terjauh</option>

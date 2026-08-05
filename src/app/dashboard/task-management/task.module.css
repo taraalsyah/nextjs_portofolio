@@ -194,14 +194,15 @@
 
 .filterSelect {
   width: 100%;
-  padding: 0.5rem 2.2rem 0.5rem 0.75rem;
-  border-radius: 8px;
+  padding: 0.55rem 2.3rem 0.55rem 0.85rem;
+  border-radius: 10px;
   border: 1px solid var(--glass-border);
   background: var(--bg-color);
   color: var(--fg-color);
   font-size: 0.82rem;
+  font-weight: 500;
   outline: none;
-  height: 40px;
+  height: 42px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -209,20 +210,49 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  transition: var(--transition);
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.filterSelect option {
+  background-color: #0f172a;
+  color: #f8fafc;
+  padding: 0.65rem 0.85rem;
+  font-size: 0.82rem;
+}
+
+.filterSelect:hover {
+  border-color: hsla(265, 80%, 65%, 0.45);
+  background: hsla(0, 0%, 100%, 0.03);
+  box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.35);
 }
 
 .filterSelect:focus {
   border-color: var(--secondary);
+  box-shadow: 0 0 0 3px var(--secondary-glow), 0 6px 20px -2px rgba(0, 0, 0, 0.4);
+}
+
+.activeSelect {
+  border-color: hsla(265, 80%, 60%, 0.6) !important;
+  background: var(--primary-glow) !important;
+  color: hsl(265, 90%, 90%) !important;
+  font-weight: 600 !important;
+  box-shadow: 0 0 12px var(--primary-glow), 0 4px 14px -2px rgba(0, 0, 0, 0.3) !important;
 }
 
 .selectIcon {
   position: absolute;
-  right: 0.75rem;
+  right: 0.85rem;
   top: 50%;
   transform: translateY(-50%);
-  color: hsla(0, 0%, 100%, 0.4);
+  color: hsla(0, 0%, 100%, 0.5);
   pointer-events: none;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.selectWrapper:hover .selectIcon {
+  color: var(--secondary);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .filterActionItem {
