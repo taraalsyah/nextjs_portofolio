@@ -198,7 +198,12 @@ export function ProjectSettingsModal({
   const isAdminOrOwner = isOwner || currentRole === 'ADMIN';
 
   const handleGenerateInviteCode = async () => {
-    if (!isAdminOrOwner || isGeneratingCode) return;
+    if (!isOwner || isGeneratingCode) return;
+
+    if (inviteCode && !confirm('Apakah Anda yakin ingin melakukan Regenerate Invite Code? Kode lama akan langsung tidak berlaku.')) {
+      return;
+    }
+
     setIsGeneratingCode(true);
     setError(null);
     setSuccessMsg(null);
@@ -211,7 +216,7 @@ export function ProjectSettingsModal({
       if (!res.ok) throw new Error(data.error || 'Gagal memproses Invite Code.');
 
       setInviteCode(data.inviteCode);
-      setSuccessMsg('Invite Code berhasil diperbarui.');
+      setSuccessMsg(inviteCode ? 'Invite Code baru berhasil di-regenerate!' : 'Invite Code berhasil dibuat!');
     } catch (err: any) {
       setError(err.message || 'Gagal memproses Invite Code.');
     } finally {
@@ -220,7 +225,7 @@ export function ProjectSettingsModal({
   };
 
   const handleRevokeInviteCode = async () => {
-    if (!isAdminOrOwner || isGeneratingCode) return;
+    if (!isOwner || isGeneratingCode) return;
     if (!confirm('Apakah Anda yakin ingin menonaktifkan Invite Code ini? User baru tidak akan dapat bergabung sampai Anda membuat kode baru.')) return;
 
     setIsGeneratingCode(true);
@@ -691,27 +696,43 @@ export function ProjectSettingsModal({
               {/* MEMBERS TAB */}
               {activeTab === 'members' && (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                  {/* Invite Code Management Card (for Owner / Admin) */}
-                  {isAdminOrOwner && (
+                  {/* Invite Code Section (Owner Only) */}
+                  {isOwner && (
                     <div
                       style={{
-                        background: 'var(--glass)',
-                        border: '1px solid var(--glass-border)',
+                        background: 'rgba(255, 255, 255, 0.03)',
+                        border: '1px solid rgba(255, 255, 255, 0.1)',
                         borderRadius: '10px',
-                        padding: '1rem',
+                        padding: '1rem 1.2rem',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '0.75rem',
+                        gap: '0.85rem',
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', fontSize: '0.85rem', fontWeight: 700, color: '#f8fafc' }}>
-                          <Key size={16} style={{ color: 'var(--secondary)' }} />
-                          Invite Code Proyek
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <Key size={16} style={{ color: '#38bdf8' }} />
+                          <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
+                            Invite Code Project
+                          </span>
                         </div>
-                        <div style={{ fontSize: '0.75rem', color: 'hsla(0, 0%, 100%, 0.5)' }}>
-                          Mekanisme bergabung ke proyek
-                        </div>
+                        <span
+                          style={{
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            padding: '0.2rem 0.6rem',
+                            borderRadius: '20px',
+                            background: inviteCode ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
+                            color: inviteCode ? '#4ade80' : '#fbbf24',
+                            border: inviteCode ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '0.3rem',
+                          }}
+                        >
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'currentColor' }} />
+                          {inviteCode ? 'Active' : 'Inactive'}
+                        </span>
                       </div>
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
@@ -721,30 +742,36 @@ export function ProjectSettingsModal({
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.5rem',
-                                background: 'rgba(15, 23, 42, 0.7)',
-                                border: '1px solid var(--secondary-glow)',
+                                gap: '0.6rem',
+                                background: 'rgba(15, 23, 42, 0.8)',
+                                border: '1px solid rgba(56, 189, 248, 0.3)',
                                 borderRadius: '8px',
                                 padding: '0.45rem 0.85rem',
                                 fontFamily: 'monospace',
-                                fontSize: '0.95rem',
+                                fontSize: '1rem',
                                 fontWeight: 700,
                                 letterSpacing: '0.08em',
-                                color: 'hsl(210, 90%, 82%)',
-                                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.25)',
+                                color: '#38bdf8',
                               }}
                             >
                               <span>{inviteCode}</span>
-                              <button
-                                type="button"
-                                onClick={handleCopyInviteCode}
-                                className={styles.iconBtn}
-                                title="Salin Invite Code"
-                                style={{ color: isCopyingCode ? '#10b981' : 'hsla(0, 0%, 100%, 0.7)' }}
-                              >
-                                {isCopyingCode ? <CheckCircle2 size={16} /> : <Copy size={16} />}
-                              </button>
                             </div>
+
+                            <button
+                              type="button"
+                              onClick={handleCopyInviteCode}
+                              className={styles.submitBtn}
+                              style={{
+                                padding: '0.45rem 0.85rem',
+                                fontSize: '0.78rem',
+                                background: isCopyingCode ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.15)',
+                                border: isCopyingCode ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(56, 189, 248, 0.3)',
+                                color: isCopyingCode ? '#34d399' : '#38bdf8',
+                              }}
+                            >
+                              {isCopyingCode ? <CheckCircle2 size={14} /> : <Copy size={14} />}
+                              {isCopyingCode ? 'Tersalin!' : 'Copy Invite Code'}
+                            </button>
 
                             <button
                               type="button"
@@ -754,8 +781,8 @@ export function ProjectSettingsModal({
                               style={{ padding: '0.45rem 0.85rem', fontSize: '0.78rem' }}
                               title="Buat kode baru & batalkan kode lama"
                             >
-                              <RefreshCw size={14} />
-                              Regenerate Code
+                              {isGeneratingCode ? <InlineSpinner size={13} /> : <RefreshCw size={14} />}
+                              Regenerate Invite Code
                             </button>
 
                             <button
@@ -763,7 +790,13 @@ export function ProjectSettingsModal({
                               onClick={handleRevokeInviteCode}
                               disabled={isGeneratingCode}
                               className={styles.iconBtn}
-                              style={{ padding: '0.45rem 0.75rem', fontSize: '0.78rem', border: '1px solid hsla(350, 80%, 60%, 0.3)', color: 'hsl(350, 95%, 85%)' }}
+                              style={{
+                                padding: '0.45rem 0.75rem',
+                                fontSize: '0.78rem',
+                                border: '1px solid hsla(350, 80%, 60%, 0.3)',
+                                color: 'hsl(350, 95%, 85%)',
+                                borderRadius: '8px',
+                              }}
                               title="Nonaktifkan Invite Code"
                             >
                               <Ban size={14} /> Nonaktifkan
@@ -781,7 +814,8 @@ export function ProjectSettingsModal({
                               className={styles.submitBtn}
                               style={{ padding: '0.45rem 0.85rem', fontSize: '0.8rem' }}
                             >
-                              <Key size={14} /> Generate Invite Code
+                              {isGeneratingCode ? <InlineSpinner size={13} /> : <Key size={14} />}
+                              Generate Invite Code
                             </button>
                           </div>
                         )}

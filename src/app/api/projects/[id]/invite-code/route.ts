@@ -34,10 +34,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const member = await getProjectMember(projectId, currentUserId);
-    const permissions = await getProjectPermissions(member?.role, projectId);
 
-    if (!member || (!permissions.canManageMembers && member.role !== 'OWNER' && member.role !== 'ADMIN')) {
-      return NextResponse.json({ error: 'Anda tidak memiliki izin untuk melihat Invite Code proyek ini.' }, { status: 403 });
+    if (!member || member.role !== 'OWNER') {
+      return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat melihat dan mengelola Invite Code.' }, { status: 403 });
     }
 
     const project = await prisma.project.findUnique({
@@ -71,10 +70,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const member = await getProjectMember(projectId, currentUserId);
-    const permissions = await getProjectPermissions(member?.role, projectId);
 
-    if (!member || (!permissions.canManageMembers && member.role !== 'OWNER' && member.role !== 'ADMIN')) {
-      return NextResponse.json({ error: 'Anda tidak memiliki izin untuk membuat Invite Code.' }, { status: 403 });
+    if (!member || member.role !== 'OWNER') {
+      return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat membuat atau memperbarui Invite Code.' }, { status: 403 });
     }
 
     // Generate unique code
@@ -140,10 +138,9 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const member = await getProjectMember(projectId, currentUserId);
-    const permissions = await getProjectPermissions(member?.role, projectId);
 
-    if (!member || (!permissions.canManageMembers && member.role !== 'OWNER' && member.role !== 'ADMIN')) {
-      return NextResponse.json({ error: 'Anda tidak memiliki izin untuk menonaktifkan Invite Code.' }, { status: 403 });
+    if (!member || member.role !== 'OWNER') {
+      return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat menonaktifkan Invite Code.' }, { status: 403 });
     }
 
     await prisma.$transaction(async (tx) => {
