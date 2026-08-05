@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { X, Edit3, ShieldAlert, CheckCircle, XCircle, Clock, Send, Ban, CheckSquare } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { X, Edit3, ShieldAlert, CheckCircle, XCircle, Clock, Send, Ban, CheckSquare, ChevronDown, Check } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { TaskChecklistSection, ChecklistItem } from './TaskChecklistSection';
 import { TaskCommentSection } from './TaskCommentSection';
@@ -87,6 +87,234 @@ interface TaskDetailModalProps {
   currentUserId: number;
   onEditRequest: (task: TaskDetailData) => void;
   onTaskUpdated?: () => void;
+}
+
+const STATUS_OPTIONS: { key: string; label: string; color: string; bgColor: string; borderColor: string; dotColor: string }[] = [
+  {
+    key: 'BACKLOG',
+    label: 'Backlog',
+    color: 'hsl(215, 20%, 85%)',
+    bgColor: 'hsla(215, 20%, 65%, 0.15)',
+    borderColor: 'hsla(215, 20%, 65%, 0.3)',
+    dotColor: '#94a3b8',
+  },
+  {
+    key: 'OPEN',
+    label: 'Open',
+    color: 'hsl(210, 90%, 82%)',
+    bgColor: 'hsla(210, 90%, 65%, 0.15)',
+    borderColor: 'hsla(210, 90%, 65%, 0.3)',
+    dotColor: '#38bdf8',
+  },
+  {
+    key: 'IN_PROGRESS',
+    label: 'In Progress',
+    color: 'hsl(38, 95%, 80%)',
+    bgColor: 'hsla(38, 95%, 55%, 0.18)',
+    borderColor: 'hsla(38, 95%, 55%, 0.35)',
+    dotColor: '#f59e0b',
+  },
+  {
+    key: 'DONE',
+    label: 'Done',
+    color: 'hsl(145, 80%, 78%)',
+    bgColor: 'hsla(145, 80%, 45%, 0.15)',
+    borderColor: 'hsla(145, 80%, 45%, 0.3)',
+    dotColor: '#10b981',
+  },
+  {
+    key: 'CLOSED',
+    label: 'Closed',
+    color: 'hsl(270, 60%, 85%)',
+    bgColor: 'hsla(270, 60%, 55%, 0.18)',
+    borderColor: 'hsla(270, 60%, 55%, 0.35)',
+    dotColor: '#818cf8',
+  },
+];
+
+interface StatusDropdownProps {
+  currentStatus: string;
+  onStatusChange: (newStatus: string) => void;
+  disabled?: boolean;
+  isOwnerOrAdmin: boolean;
+  isUpdatingStatus: boolean;
+}
+
+function StatusDropdown({
+  currentStatus,
+  onStatusChange,
+  disabled = false,
+  isOwnerOrAdmin,
+  isUpdatingStatus,
+}: StatusDropdownProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const activeOption = STATUS_OPTIONS.find((opt) => opt.key === currentStatus) || {
+    key: currentStatus,
+    label: currentStatus,
+    color: '#fff',
+    bgColor: 'hsla(0,0%,100%,0.1)',
+    borderColor: 'hsla(0,0%,100%,0.2)',
+    dotColor: '#38bdf8',
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const availableOptions = STATUS_OPTIONS.filter(
+    (opt) => opt.key !== 'CLOSED' || currentStatus === 'CLOSED'
+  );
+
+  return (
+    <div ref={dropdownRef} style={{ position: 'relative', display: 'inline-block', minWidth: '180px' }}>
+      <button
+        type="button"
+        onClick={() => !disabled && !isUpdatingStatus && setIsOpen((prev) => !prev)}
+        disabled={disabled || isUpdatingStatus}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '0.6rem',
+          width: '100%',
+          padding: '0.45rem 0.75rem',
+          borderRadius: '8px',
+          background: activeOption.bgColor,
+          border: `1px solid ${activeOption.borderColor}`,
+          color: activeOption.color,
+          fontSize: '0.82rem',
+          fontWeight: 600,
+          cursor: disabled || isUpdatingStatus ? 'not-allowed' : 'pointer',
+          opacity: disabled || isUpdatingStatus ? 0.7 : 1,
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: isOpen
+            ? `0 0 0 2px ${activeOption.borderColor}, 0 4px 14px rgba(0, 0, 0, 0.35)`
+            : '0 2px 6px rgba(0, 0, 0, 0.15)',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+          <span
+            style={{
+              width: '8px',
+              height: '8px',
+              borderRadius: '50%',
+              backgroundColor: activeOption.dotColor,
+              boxShadow: `0 0 6px ${activeOption.dotColor}`,
+              flexShrink: 0,
+            }}
+          />
+          <span>{activeOption.label}</span>
+        </div>
+        {isUpdatingStatus ? (
+          <InlineSpinner size={14} color={activeOption.dotColor} />
+        ) : (
+          <ChevronDown
+            size={14}
+            style={{
+              transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              transition: 'transform 0.2s ease',
+              opacity: 0.8,
+            }}
+          />
+        )}
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 6px)',
+            left: 0,
+            width: '100%',
+            minWidth: '210px',
+            background: '#0f172a',
+            border: '1px solid var(--glass-border)',
+            borderRadius: '10px',
+            boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px hsla(0, 0%, 100%, 0.08)',
+            padding: '0.35rem',
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.2rem',
+          }}
+        >
+          {availableOptions.map((opt) => {
+            const isSelected = opt.key === currentStatus;
+            const isOptionDisabled = opt.key === 'DONE' && !isOwnerOrAdmin;
+
+            return (
+              <button
+                key={opt.key}
+                type="button"
+                disabled={isOptionDisabled}
+                onClick={() => {
+                  if (isOptionDisabled || isSelected) return;
+                  setIsOpen(false);
+                  onStatusChange(opt.key);
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0.45rem 0.65rem',
+                  borderRadius: '6px',
+                  border: isSelected ? `1px solid ${opt.borderColor}` : '1px solid transparent',
+                  background: isSelected ? opt.bgColor : 'transparent',
+                  color: isOptionDisabled ? 'hsla(0, 0%, 100%, 0.35)' : opt.color,
+                  fontSize: '0.8rem',
+                  fontWeight: isSelected ? 700 : 500,
+                  cursor: isOptionDisabled ? 'not-allowed' : 'pointer',
+                  textAlign: 'left',
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected && !isOptionDisabled) {
+                    e.currentTarget.style.background = 'hsla(0, 0%, 100%, 0.06)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected && !isOptionDisabled) {
+                    e.currentTarget.style.background = 'transparent';
+                  }
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <span
+                    style={{
+                      width: '7px',
+                      height: '7px',
+                      borderRadius: '50%',
+                      backgroundColor: isOptionDisabled ? '#64748b' : opt.dotColor,
+                      flexShrink: 0,
+                    }}
+                  />
+                  <span>{opt.label}</span>
+                  {isOptionDisabled && (
+                    <span style={{ fontSize: '0.7rem', color: 'hsla(0, 0%, 100%, 0.35)', marginLeft: '0.2rem' }}>
+                      (Needs Approval)
+                    </span>
+                  )}
+                </div>
+                {isSelected && <Check size={14} style={{ color: opt.dotColor }} />}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
 }
 
 export function TaskDetailModal({
@@ -1299,28 +1527,13 @@ export function TaskDetailModal({
                     <div style={{ marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       {/* If Assigned to Self or Owner/Admin, render Workflow Selector with Transition Control */}
                       {isAssignee || isOwnerOrAdmin ? (
-                        <>
-                          <select
-                            value={task.status}
-                            onChange={(e) => handleStatusChange(e.target.value)}
-                            className={styles.select}
-                            disabled={isUpdatingStatus || task.status === 'CLOSED'}
-                            style={{ padding: '0.35rem 0.65rem', fontSize: '0.85rem', opacity: isUpdatingStatus ? 0.7 : 1 }}
-                          >
-                            <option value="BACKLOG">Backlog</option>
-                            <option value="OPEN">Open</option>
-                            <option value="IN_PROGRESS">In Progress</option>
-                            <option value="DONE" disabled={!isOwnerOrAdmin}>
-                              Done {!isOwnerOrAdmin ? '(Membutuhkan Approval)' : ''}
-                            </option>
-                            {task.status === 'CLOSED' && <option value="CLOSED">Closed</option>}
-                          </select>
-                          {isUpdatingStatus && (
-                            <span style={{ fontSize: '0.8rem', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                              <InlineSpinner size={14} /> Updating...
-                            </span>
-                          )}
-                        </>
+                        <StatusDropdown
+                          currentStatus={task.status}
+                          onStatusChange={handleStatusChange}
+                          disabled={isUpdatingStatus || task.status === 'CLOSED'}
+                          isOwnerOrAdmin={isOwnerOrAdmin}
+                          isUpdatingStatus={isUpdatingStatus}
+                        />
                       ) : (
                         <span className={`${styles.badge} ${styles[`status${task.status}`]}`}>
                           {task.status} (Read Only)
