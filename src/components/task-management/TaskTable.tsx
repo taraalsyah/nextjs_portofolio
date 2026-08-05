@@ -196,18 +196,16 @@ export function TaskTable({
                       </button>
                       <button
                         onClick={() => onEdit(task)}
-                        className={styles.actionBtn}
+                        className={`${styles.actionBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
                         title="Edit Task"
-                        style={{ cursor: task.status === 'CLOSED' ? 'not-allowed' : 'default' }}
                       >
                         <Edit3 size={14} />
                       </button>
                       {isAdmin && (
                         <button
                           onClick={() => onDelete(task)}
-                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                          className={`${styles.actionBtn} ${styles.deleteBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
                           title="Hapus Task"
-                          style={{ cursor: task.status === 'CLOSED' ? 'not-allowed' : 'default' }}
                         >
                           <Trash2 size={14} />
                         </button>

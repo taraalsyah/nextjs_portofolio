@@ -397,6 +397,21 @@
   background: hsla(350, 80%, 60%, 0.1);
 }
 
+/* Assigned User & Task Action cursor overrides */
+.noPointerBtn,
+.noPointerBtn *,
+.noPointerBtn:hover,
+.noPointerBtn:hover * {
+  cursor: default !important;
+}
+
+.disabledBtn,
+.disabledBtn *,
+.disabledBtn:hover,
+.disabledBtn:hover * {
+  cursor: not-allowed !important;
+}
+
 /* Kanban Board Layout */
 .kanbanGrid {
   display: grid;

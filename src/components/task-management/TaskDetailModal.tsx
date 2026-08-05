@@ -582,7 +582,7 @@ export function TaskDetailModal({
                     onClose();
                     onEditRequest(task);
                   }}
-                  className={styles.actionBtn}
+                  className={`${styles.actionBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
                   title="Edit Task"
                 >
                   <Edit3 size={15} />
@@ -595,8 +595,8 @@ export function TaskDetailModal({
                       message: 'Anda tidak memiliki izin untuk mengubah atribut task ini.',
                     });
                   }}
-                  className={styles.actionBtn}
-                  style={{ opacity: 0.5, cursor: 'not-allowed' }}
+                  className={`${styles.actionBtn} ${styles.disabledBtn}`}
+                  style={{ opacity: 0.5 }}
                   title="Anda tidak memiliki izin untuk mengubah atribut task ini."
                 >
                   <Edit3 size={15} />

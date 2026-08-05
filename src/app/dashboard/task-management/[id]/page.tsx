@@ -215,13 +215,16 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
           <div style={{ display: 'flex', gap: '0.5rem' }}>
             {canEditMetadata && (
               <>
-                <button onClick={() => setIsEditing(true)} className={styles.createBtn}>
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className={`${styles.createBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
+                >
                   <Edit3 size={15} />
                   Edit Task
                 </button>
                 <button
                   onClick={handleDeleteTask}
-                  className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                  className={`${styles.actionBtn} ${styles.deleteBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
                   style={{ width: '38px', height: '38px' }}
                   title="Hapus Task"
                 >
