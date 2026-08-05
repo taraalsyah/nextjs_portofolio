@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
 
 interface TaskFormModalProps {
   isOpen: boolean;
@@ -12,6 +13,20 @@ interface TaskFormModalProps {
   categories: { id: number; name: string }[];
   users: { id: number; name: string }[];
 }
+
+const STATUS_FORM_OPTIONS: CustomDropdownOption[] = [
+  { value: 'BACKLOG', label: 'Backlog', dotColor: '#94a3b8', color: 'hsl(215, 20%, 85%)', bgColor: 'hsla(215, 20%, 65%, 0.15)', borderColor: 'hsla(215, 20%, 65%, 0.3)' },
+  { value: 'OPEN', label: 'Open', dotColor: '#38bdf8', color: 'hsl(210, 90%, 82%)', bgColor: 'hsla(210, 90%, 65%, 0.15)', borderColor: 'hsla(210, 90%, 65%, 0.3)' },
+  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 95%, 55%, 0.18)', borderColor: 'hsla(38, 95%, 55%, 0.35)' },
+  { value: 'DONE', label: 'Done', dotColor: '#10b981', color: 'hsl(145, 80%, 78%)', bgColor: 'hsla(145, 80%, 45%, 0.15)', borderColor: 'hsla(145, 80%, 45%, 0.3)' },
+];
+
+const PRIORITY_FORM_OPTIONS: CustomDropdownOption[] = [
+  { value: 'LOW', label: 'Low', dotColor: '#38bdf8', color: 'hsl(210, 90%, 80%)', bgColor: 'hsla(210, 80%, 55%, 0.12)', borderColor: 'hsla(210, 80%, 55%, 0.25)' },
+  { value: 'MEDIUM', label: 'Medium', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 90%, 55%, 0.15)', borderColor: 'hsla(38, 90%, 55%, 0.25)' },
+  { value: 'HIGH', label: 'High', dotColor: '#f97316', color: 'hsl(15, 95%, 80%)', bgColor: 'hsla(15, 90%, 60%, 0.18)', borderColor: 'hsla(15, 90%, 60%, 0.3)' },
+  { value: 'CRITICAL', label: 'Critical', dotColor: '#f43f5e', color: 'hsl(350, 95%, 82%)', bgColor: 'hsla(350, 90%, 60%, 0.2)', borderColor: 'hsla(350, 90%, 60%, 0.35)' },
+];
 
 export function TaskFormModal({
   isOpen,
@@ -100,6 +115,24 @@ export function TaskFormModal({
     }
   };
 
+  const categoryOptions: CustomDropdownOption[] = [
+    { value: '', label: 'Pilih Kategori', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+    ...categories.map((c) => ({
+      value: String(c.id),
+      label: c.name,
+      dotColor: '#a855f7',
+    })),
+  ];
+
+  const assigneeOptions: CustomDropdownOption[] = [
+    { value: '', label: 'Pilih Assignee', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+    ...users.map((u) => ({
+      value: String(u.id),
+      label: u.name,
+      dotColor: '#06b6d4',
+    })),
+  ];
+
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -154,46 +187,46 @@ export function TaskFormModal({
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Status Workflow</label>
-            <select value={status} onChange={(e) => setStatus(e.target.value)} className={styles.select}>
-              <option value="BACKLOG">Backlog</option>
-              <option value="OPEN">Open</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="DONE">Done</option>
-            </select>
+            <CustomDropdown
+              value={status}
+              options={STATUS_FORM_OPTIONS}
+              onChange={(val) => setStatus(val)}
+              disabled={isSubmitting}
+              minWidth="100%"
+            />
           </div>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Prioritas</label>
-            <select value={priority} onChange={(e) => setPriority(e.target.value)} className={styles.select}>
-              <option value="LOW">Low</option>
-              <option value="MEDIUM">Medium</option>
-              <option value="HIGH">High</option>
-              <option value="CRITICAL">Critical</option>
-            </select>
+            <CustomDropdown
+              value={priority}
+              options={PRIORITY_FORM_OPTIONS}
+              onChange={(val) => setPriority(val)}
+              disabled={isSubmitting}
+              minWidth="100%"
+            />
           </div>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Kategori</label>
-            <select value={categoryId} onChange={(e) => setCategoryId(e.target.value)} className={styles.select}>
-              <option value="">Pilih Kategori</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            <CustomDropdown
+              value={categoryId}
+              options={categoryOptions}
+              onChange={(val) => setCategoryId(val)}
+              disabled={isSubmitting}
+              minWidth="100%"
+            />
           </div>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Penugasan (Assignee)</label>
-            <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className={styles.select}>
-              <option value="">Pilih Assignee</option>
-              {users.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name}
-                </option>
-              ))}
-            </select>
+            <CustomDropdown
+              value={assigneeId}
+              options={assigneeOptions}
+              onChange={(val) => setAssigneeId(val)}
+              disabled={isSubmitting}
+              minWidth="100%"
+            />
           </div>
 
           <div className={styles.formGroup}>
