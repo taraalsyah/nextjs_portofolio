@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Calendar, User, CheckCircle2, ChevronRight, ChevronLeft } from 'lucide-react';
+import { User, ChevronRight, ChevronLeft } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 
 interface KanbanTask {
   id: number;
@@ -47,10 +48,12 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
 
   const handleMove = async (e: React.MouseEvent, taskId: number, targetStatus: string) => {
     e.stopPropagation();
-    if (movingTaskId) return;
+    if (movingTaskId !== null) return;
     setMovingTaskId(taskId);
     try {
       await onStatusChange(taskId, targetStatus);
+    } catch {
+      // Error handled upstream
     } finally {
       setMovingTaskId(null);
     }
@@ -92,6 +95,7 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                 </div>
               ) : (
                 colTasks.map((task) => {
+                  const isUpdating = movingTaskId === task.id;
                   const prev = getPrevStatus(task.status);
                   const next = getNextStatus(task.status);
 
@@ -99,8 +103,41 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                     <div
                       key={task.id}
                       className={styles.kanbanCard}
-                      onClick={() => onCardClick(task)}
+                      onClick={() => {
+                        if (isUpdating || movingTaskId !== null) return;
+                        onCardClick(task);
+                      }}
+                      style={{
+                        position: 'relative',
+                        opacity: isUpdating ? 0.75 : 1,
+                        pointerEvents: isUpdating ? 'none' : 'auto',
+                        transition: 'all 0.2s ease',
+                      }}
                     >
+                      {/* Individual Card Loading Overlay */}
+                      {isUpdating && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            inset: 0,
+                            background: 'rgba(15, 23, 42, 0.75)',
+                            backdropFilter: 'blur(2px)',
+                            borderRadius: '10px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '0.4rem',
+                            zIndex: 10,
+                            color: '#38bdf8',
+                            fontSize: '0.78rem',
+                            fontWeight: 600,
+                          }}
+                        >
+                          <InlineSpinner size={16} />
+                          <span>Updating...</span>
+                        </div>
+                      )}
+
                       <div className={styles.kanbanCardHeader}>
                         <span className={styles.taskNumber}>{task.taskNumber}</span>
                         <span className={`${styles.badge} ${getPriorityBadgeClass(task.priority)}`}>
@@ -127,8 +164,9 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                             <button
                               title={`Kembalikan ke ${prev}`}
                               onClick={(e) => handleMove(e, task.id, prev)}
+                              disabled={movingTaskId !== null}
                               className={styles.actionBtn}
-                              style={{ width: '24px', height: '24px' }}
+                              style={{ width: '24px', height: '24px', opacity: movingTaskId !== null ? 0.4 : 1 }}
                             >
                               <ChevronLeft size={13} />
                             </button>
@@ -137,8 +175,9 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                             <button
                               title={`Pindahkan ke ${next}`}
                               onClick={(e) => handleMove(e, task.id, next)}
+                              disabled={movingTaskId !== null}
                               className={styles.actionBtn}
-                              style={{ width: '24px', height: '24px' }}
+                              style={{ width: '24px', height: '24px', opacity: movingTaskId !== null ? 0.4 : 1 }}
                             >
                               <ChevronRight size={13} />
                             </button>

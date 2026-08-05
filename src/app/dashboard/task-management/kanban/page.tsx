@@ -121,18 +121,31 @@ export default function KanbanPage() {
   }, [fetchCategories, fetchKanbanTasks]);
 
   const handleStatusChange = async (taskId: number, newStatus: string) => {
-    const res = await fetch(`/api/tasks/${taskId}/status`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: newStatus }),
-    });
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      });
 
-    if (res.ok) {
-      notifyTaskMutated(taskId, 'status_change');
-      fetchKanbanTasks();
-    } else {
       const json = await res.json();
-      alert(json.error || 'Gagal merubah status workflow.');
+
+      if (res.ok) {
+        setTasks((prevTasks) =>
+          prevTasks.map((t) => (t.id === taskId ? { ...t, status: json.task.status } : t))
+        );
+        notifyTaskMutated(taskId, 'status_change');
+      } else {
+        alert(json.error || 'Gagal merubah status workflow.');
+        throw new Error(json.error || 'Gagal merubah status workflow.');
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error && err.message) {
+        // Handled by alert above
+      } else {
+        alert('Gagal merubah status workflow.');
+      }
+      throw err;
     }
   };
 
