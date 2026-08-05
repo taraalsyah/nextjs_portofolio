@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import styles from './project.module.css';
+import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 import { notifyProjectMembersUpdated } from '@/hooks/useProjectMembers';
 import {
   ALL_PERMISSIONS_LIST,
@@ -109,6 +110,7 @@ export function ProjectSettingsModal({
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [isGeneratingCode, setIsGeneratingCode] = useState(false);
   const [isCopyingCode, setIsCopyingCode] = useState(false);
+  const [updatingMemberUserId, setUpdatingMemberUserId] = useState<number | null>(null);
 
   // Transfer Ownership Dialog states
   const [transferTargetUser, setTransferTargetUser] = useState<ProjectMemberItem | null>(null);
@@ -324,10 +326,23 @@ export function ProjectSettingsModal({
 
   const handleChangeRole = async (targetUserId: number, newRole: string) => {
     if (!isOwner) return;
+    if (updatingMemberUserId) return;
+
     if (newRole === 'OWNER') {
       alert('Peran Owner hanya dapat dialihkan melalui fitur Transfer Ownership.');
       return;
     }
+
+    const targetMember = members.find((m) => m.userId === targetUserId);
+    const memberName = targetMember?.user?.name || 'anggota ini';
+
+    if (!confirm(`Apakah Anda yakin ingin mengubah role anggota ini (${memberName}) menjadi ${newRole}?`)) {
+      return;
+    }
+
+    setUpdatingMemberUserId(targetUserId);
+    setError(null);
+    setSuccessMsg(null);
 
     try {
       const res = await fetch(`/api/projects/${activeProjectId}/members`, {
@@ -336,30 +351,38 @@ export function ProjectSettingsModal({
         body: JSON.stringify({ userId: targetUserId, role: newRole }),
       });
 
+      const json = await res.json();
       if (!res.ok) {
-        const json = await res.json();
-        alert(json.error || 'Gagal mengubah peran anggota.');
-        return;
+        throw new Error(json.error || 'Gagal mengubah peran anggota.');
       }
 
       setMembers((prev) =>
         prev.map((m) => (m.userId === targetUserId ? { ...m, role: newRole } : m))
       );
+      setSuccessMsg(`Role "${memberName}" berhasil diubah menjadi ${newRole}.`);
       notifyProjectMembersUpdated(activeProjectId);
       fetchProjectDetails();
     } catch (err: any) {
-      alert(err.message || 'Gagal mengubah peran anggota.');
+      setError(err.message || 'Gagal mengubah peran anggota.');
+    } finally {
+      setUpdatingMemberUserId(null);
     }
   };
 
   const handleRemoveMember = async (member: ProjectMemberItem) => {
     if (!isOwner) return;
+    if (updatingMemberUserId) return;
+
     if (member.userId === projectData?.ownerUserId) {
       alert('Pemilik utama proyek tidak dapat dihapus.');
       return;
     }
 
-    if (!confirm(`Apakah Anda yakin ingin menghapus "${member.user.name}" dari proyek ini?`)) return;
+    if (!confirm(`Apakah Anda yakin ingin menghapus anggota ini (${member.user.name}) dari project?`)) return;
+
+    setUpdatingMemberUserId(member.userId);
+    setError(null);
+    setSuccessMsg(null);
 
     try {
       const res = await fetch(
@@ -367,16 +390,19 @@ export function ProjectSettingsModal({
         { method: 'DELETE' }
       );
 
-      if (res.ok) {
-        setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
-        notifyProjectMembersUpdated(activeProjectId);
-        fetchProjectDetails();
-      } else {
-        const json = await res.json();
-        alert(json.error || 'Gagal menghapus anggota.');
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || 'Gagal menghapus anggota.');
       }
+
+      setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
+      setSuccessMsg(`Anggota "${member.user.name}" berhasil dihapus dari project.`);
+      notifyProjectMembersUpdated(activeProjectId);
+      fetchProjectDetails();
     } catch (err: any) {
-      alert(err.message || 'Gagal menghapus anggota.');
+      setError(err.message || 'Gagal menghapus anggota.');
+    } finally {
+      setUpdatingMemberUserId(null);
     }
   };
 
@@ -826,8 +852,15 @@ export function ProjectSettingsModal({
                                         onChange={(e) =>
                                           handleChangeRole(m.userId, e.target.value)
                                         }
+                                        disabled={updatingMemberUserId === m.userId}
                                         className={styles.select}
-                                        style={{ padding: '0.3rem 0.5rem', fontSize: '0.75rem', width: 'auto' }}
+                                        style={{
+                                          padding: '0.3rem 0.5rem',
+                                          fontSize: '0.75rem',
+                                          width: 'auto',
+                                          opacity: updatingMemberUserId === m.userId ? 0.6 : 1,
+                                          cursor: updatingMemberUserId === m.userId ? 'not-allowed' : 'pointer',
+                                        }}
                                       >
                                         <option value="ADMIN">Admin</option>
                                         <option value="MEMBER">Member</option>
@@ -836,18 +869,26 @@ export function ProjectSettingsModal({
 
                                       <button
                                         onClick={() => setTransferTargetUser(m)}
+                                        disabled={updatingMemberUserId === m.userId}
                                         className={styles.transferBtn}
                                         title="Transfer Kepemilikan Proyek"
+                                        style={{ opacity: updatingMemberUserId === m.userId ? 0.5 : 1 }}
                                       >
                                         <Crown size={12} /> Transfer
                                       </button>
 
                                       <button
                                         onClick={() => handleRemoveMember(m)}
+                                        disabled={updatingMemberUserId === m.userId}
                                         className={styles.iconBtn}
                                         title="Hapus dari proyek"
+                                        style={{ opacity: updatingMemberUserId === m.userId ? 0.5 : 1 }}
                                       >
-                                        <Trash2 size={15} />
+                                        {updatingMemberUserId === m.userId ? (
+                                          <InlineSpinner size={13} />
+                                        ) : (
+                                          <Trash2 size={15} />
+                                        )}
                                       </button>
                                     </>
                                   ) : (

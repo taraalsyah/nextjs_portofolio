@@ -191,9 +191,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const currentMember = await getProjectMember(projectId, currentUserId);
-    const permissions = await getProjectPermissions(currentMember?.role, projectId);
 
-    if (!permissions.canManageMemberRoles) {
+    if (currentMember?.role !== 'OWNER') {
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat mengubah peran anggota.' }, { status: 403 });
     }
 
@@ -276,9 +275,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
 
     const currentUserId = parseInt((session.user as any).id || '0', 10);
     const currentMember = await getProjectMember(projectId, currentUserId);
-    const permissions = await getProjectPermissions(currentMember?.role, projectId);
 
-    if (!permissions.canRemoveMembers) {
+    if (currentMember?.role !== 'OWNER') {
       return NextResponse.json({ error: 'Hanya OWNER proyek yang dapat menghapus anggota.' }, { status: 403 });
     }
 
