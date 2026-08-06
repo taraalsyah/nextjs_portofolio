@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useId } from 'react';
+import React, { useState, useEffect, useRef, useId, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import styles from './DatePicker.module.css';
 
@@ -77,47 +78,120 @@ export function DatePicker({
   const inputId = customId || generatedId;
 
   const [isOpen, setIsOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
   const selectedDate = parseISODate(value);
 
   const initialViewDate = selectedDate || new Date();
   const [viewYear, setViewYear] = useState(initialViewDate.getFullYear());
   const [viewMonth, setViewMonth] = useState(initialViewDate.getMonth());
 
+  const [placement, setPlacement] = useState<'top' | 'bottom'>('top');
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
 
   const minDateObj = parseISODate(minDate);
   const maxDateObj = parseISODate(maxDate);
 
-  // Synchronize view month/year with value when opened
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Smart Positioning Calculation
+  const updatePosition = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const popoverHeight = 335; // Height of popover panel
+    const gap = 8; // Comfortable offset
+
+    const spaceAbove = rect.top;
+    const spaceBelow = window.innerHeight - rect.bottom;
+
+    // Prioritize ALWAYS opening to TOP unless space above is insufficient
+    let placeTop = true;
+    if (spaceAbove < popoverHeight + gap && spaceBelow >= popoverHeight + gap) {
+      placeTop = false;
+    }
+
+    let top = 0;
+    if (placeTop) {
+      top = rect.top - popoverHeight - gap;
+      // Protect against bleeding above the viewport top boundary
+      if (top < 8) top = 8;
+    } else {
+      top = rect.bottom + gap;
+      // Protect against bleeding below viewport bottom boundary
+      if (top + popoverHeight > window.innerHeight - 8) {
+        top = window.innerHeight - popoverHeight - 8;
+      }
+    }
+
+    // Horizontal Alignment
+    let left = rect.left;
+    const popoverWidth = 290;
+    if (left + popoverWidth > window.innerWidth - 8) {
+      left = window.innerWidth - popoverWidth - 8;
+    }
+    if (left < 8) left = 8;
+
+    setPlacement(placeTop ? 'top' : 'bottom');
+    setPopoverStyle({
+      position: 'fixed',
+      top: `${top}px`,
+      left: `${left}px`,
+      width: `${popoverWidth}px`,
+      zIndex: 99999,
+    });
+  }, []);
+
+  // Synchronize view month/year & recompute position on open
   useEffect(() => {
     if (isOpen) {
       const current = parseISODate(value) || new Date();
       setViewYear(current.getFullYear());
       setViewMonth(current.getMonth());
+      updatePosition();
     }
-  }, [isOpen, value]);
+  }, [isOpen, value, updatePosition]);
 
-  // Click outside to close
+  // Click outside, ESC key, scroll, and resize event handlers
   useEffect(() => {
+    if (!isOpen) return;
+
     function handleClickOutside(e: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node;
+      if (
+        containerRef.current && !containerRef.current.contains(target) &&
+        popoverRef.current && !popoverRef.current.contains(target)
+      ) {
         setIsOpen(false);
       }
     }
+
     function handleKeyDown(e: KeyboardEvent) {
       if (e.key === 'Escape') {
         setIsOpen(false);
       }
     }
-    if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('keydown', handleKeyDown);
+
+    function handleScrollOrResize() {
+      updatePosition();
     }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
     };
-  }, [isOpen]);
+  }, [isOpen, updatePosition]);
 
   const handlePrevMonth = () => {
     if (viewMonth === 0) {
@@ -222,10 +296,123 @@ export function DatePicker({
     });
   }
 
+  const popoverContent = isOpen && (
+    <div
+      ref={popoverRef}
+      style={popoverStyle}
+      className={`${styles.popover} ${placement === 'top' ? styles.popoverTop : styles.popoverBottom}`}
+      role="dialog"
+      aria-modal="true"
+    >
+      {/* Header Controls */}
+      <div className={styles.header}>
+        <button
+          type="button"
+          onClick={handlePrevMonth}
+          className={styles.navBtn}
+          title="Bulan Sebelumnya"
+        >
+          <ChevronLeft size={16} />
+        </button>
+
+        <div className={styles.selectorsGroup}>
+          <select
+            value={viewMonth}
+            onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
+            className={styles.selectInput}
+          >
+            {MONTH_NAMES.map((name, index) => (
+              <option key={name} value={index}>
+                {name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            value={viewYear}
+            onChange={(e) => setViewYear(parseInt(e.target.value, 10))}
+            className={styles.selectInput}
+          >
+            {yearsOptions.map((y) => (
+              <option key={y} value={y}>
+                {y}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleNextMonth}
+          className={styles.navBtn}
+          title="Bulan Berikutnya"
+        >
+          <ChevronRight size={16} />
+        </button>
+      </div>
+
+      {/* Week Days Header */}
+      <div className={styles.weekDaysGrid}>
+        {WEEK_DAYS.map((d) => (
+          <div key={d} className={styles.weekDayCell}>
+            {d}
+          </div>
+        ))}
+      </div>
+
+      {/* Days Grid */}
+      <div className={styles.daysGrid}>
+        {daysGrid.map((item, idx) => {
+          if (!item.isCurrentMonth) {
+            return (
+              <div key={idx} className={`${styles.dayCell} ${styles.outsideMonth}`}>
+                {item.day}
+              </div>
+            );
+          }
+
+          return (
+            <button
+              key={idx}
+              type="button"
+              disabled={item.isDisabled}
+              onClick={() => !item.isDisabled && handleSelectDay(item.day)}
+              className={`
+                ${styles.dayCell}
+                ${item.isToday ? styles.today : ''}
+                ${item.isSelected ? styles.selected : ''}
+                ${item.isDisabled ? styles.disabledDay : ''}
+              `}
+            >
+              {item.day}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Footer Actions */}
+      <div className={styles.footer}>
+        <button type="button" onClick={handleSelectToday} className={styles.footerBtn}>
+          Hari Ini
+        </button>
+        {value && (
+          <button
+            type="button"
+            onClick={(e) => handleClear(e as any)}
+            className={`${styles.footerBtn} ${styles.footerBtnDanger}`}
+          >
+            Reset
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
   return (
     <div className={`${styles.datePickerWrapper} ${className || ''}`} ref={containerRef}>
       <button
         id={inputId}
+        ref={triggerRef}
         type="button"
         disabled={disabled}
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
@@ -254,111 +441,7 @@ export function DatePicker({
         )}
       </button>
 
-      {isOpen && (
-        <div className={styles.popover} role="dialog" aria-modal="true">
-          {/* Header Controls */}
-          <div className={styles.header}>
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              className={styles.navBtn}
-              title="Bulan Sebelumnya"
-            >
-              <ChevronLeft size={16} />
-            </button>
-
-            <div className={styles.selectorsGroup}>
-              <select
-                value={viewMonth}
-                onChange={(e) => setViewMonth(parseInt(e.target.value, 10))}
-                className={styles.selectInput}
-              >
-                {MONTH_NAMES.map((name, index) => (
-                  <option key={name} value={index}>
-                    {name}
-                  </option>
-                ))}
-              </select>
-
-              <select
-                value={viewYear}
-                onChange={(e) => setViewYear(parseInt(e.target.value, 10))}
-                className={styles.selectInput}
-              >
-                {yearsOptions.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              className={styles.navBtn}
-              title="Bulan Berikutnya"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-
-          {/* Week Days Header */}
-          <div className={styles.weekDaysGrid}>
-            {WEEK_DAYS.map((d) => (
-              <div key={d} className={styles.weekDayCell}>
-                {d}
-              </div>
-            ))}
-          </div>
-
-          {/* Days Grid */}
-          <div className={styles.daysGrid}>
-            {daysGrid.map((item, idx) => {
-              if (!item.isCurrentMonth) {
-                return (
-                  <div key={idx} className={`${styles.dayCell} ${styles.outsideMonth}`}>
-                    {item.day}
-                  </div>
-                );
-              }
-
-              return (
-                <button
-                  key={idx}
-                  type="button"
-                  disabled={item.isDisabled}
-                  onClick={() => !item.isDisabled && handleSelectDay(item.day)}
-                  className={`
-                    ${styles.dayCell}
-                    ${item.isToday ? styles.today : ''}
-                    ${item.isSelected ? styles.selected : ''}
-                    ${item.isDisabled ? styles.disabledDay : ''}
-                  `}
-                >
-                  {item.day}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Footer Actions */}
-          <div className={styles.footer}>
-            <button type="button" onClick={handleSelectToday} className={styles.footerBtn}>
-              Hari Ini
-            </button>
-            {value && (
-              <button
-                type="button"
-                onClick={(e) => handleClear(e as any)}
-                className={`${styles.footerBtn} ${styles.footerBtnDanger}`}
-              >
-                Reset
-              </button>
-            )}
-          </div>
-        </div>
-      )}
+      {isMounted && isOpen && createPortal(popoverContent, document.body)}
     </div>
   );
 }
