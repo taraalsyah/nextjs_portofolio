@@ -9,7 +9,8 @@ export interface TaskItem {
   taskNumber: string;
   title: string;
   description: string;
-  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
+  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED' | 'LOCKED';
+  isLocked?: boolean;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   assignee?: { id: number; name: string; username?: string; image?: string } | null;
   createdBy?: { id: number; name: string } | null;
@@ -48,7 +49,10 @@ export function TaskTable({
   totalItems,
   onPageChange,
 }: TaskTableProps) {
-  const getStatusBadge = (status: string) => {
+  const getStatusBadge = (status: string, isLocked?: boolean) => {
+    if (isLocked || status === 'LOCKED') {
+      return <span className={`${styles.badge} ${styles.statusLocked}`}>🔒 Locked</span>;
+    }
     switch (status) {
       case 'BACKLOG':
         return <span className={`${styles.badge} ${styles.statusBacklog}`}>Backlog</span>;
@@ -129,6 +133,27 @@ export function TaskTable({
               const completedCount = task.checklists?.filter((c) => c.isCompleted).length || 0;
               const totalChecklists = task.checklists?.length || 0;
 
+              const isLocked = task.isLocked || task.status === 'LOCKED';
+              const isDone = task.status === 'DONE';
+              const isClosed = task.status === 'CLOSED';
+              const isActionDisabled = isLocked || isDone || isClosed;
+
+              const editTooltip = isLocked
+                ? 'Task telah dikunci dan bersifat read-only.'
+                : isDone
+                ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
+                : isClosed
+                ? 'Task yang telah ditutup tidak dapat diedit.'
+                : 'Edit Task';
+
+              const deleteTooltip = isLocked
+                ? 'Task telah dikunci dan bersifat read-only.'
+                : isDone
+                ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
+                : isClosed
+                ? 'Task yang telah ditutup tidak dapat dihapus.'
+                : 'Hapus Task';
+
               return (
                 <tr key={task.id}>
                   <td>
@@ -153,7 +178,7 @@ export function TaskTable({
                       )}
                     </div>
                   </td>
-                  <td>{getStatusBadge(task.status)}</td>
+                  <td>{getStatusBadge(task.status, task.isLocked)}</td>
                   <td>{getPriorityBadge(task.priority)}</td>
                   <td>
                     <span style={{ color: 'hsla(0,0%,100%,0.7)', fontSize: '0.8rem' }}>
@@ -195,17 +220,37 @@ export function TaskTable({
                         <Eye size={14} />
                       </button>
                       <button
-                        onClick={() => onEdit(task)}
-                        className={`${styles.actionBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
-                        title="Edit Task"
+                        type="button"
+                        disabled={isActionDisabled}
+                        onClick={(e) => {
+                          if (isActionDisabled) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            return;
+                          }
+                          onEdit(task);
+                        }}
+                        className={`${styles.actionBtn} ${isActionDisabled ? styles.lockedOrDoneBtn : ''}`}
+                        style={{ cursor: isActionDisabled ? 'not-allowed' : 'pointer' }}
+                        title={editTooltip}
                       >
                         <Edit3 size={14} />
                       </button>
                       {isAdmin && (
                         <button
-                          onClick={() => onDelete(task)}
-                          className={`${styles.actionBtn} ${styles.deleteBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
-                          title="Hapus Task"
+                          type="button"
+                          disabled={isActionDisabled}
+                          onClick={(e) => {
+                            if (isActionDisabled) {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              return;
+                            }
+                            onDelete(task);
+                          }}
+                          className={`${styles.actionBtn} ${styles.deleteBtn} ${isActionDisabled ? styles.lockedOrDoneBtn : ''}`}
+                          style={{ cursor: isActionDisabled ? 'not-allowed' : 'pointer' }}
+                          title={deleteTooltip}
                         >
                           <Trash2 size={14} />
                         </button>

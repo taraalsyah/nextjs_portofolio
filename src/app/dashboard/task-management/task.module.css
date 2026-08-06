@@ -376,6 +376,26 @@
   border: 1px solid hsla(145, 80%, 45%, 0.25);
 }
 
+.statusLocked {
+  background: hsla(0, 75%, 55%, 0.18);
+  color: hsl(0, 85%, 85%);
+  border: 1px solid hsla(0, 75%, 55%, 0.35);
+}
+
+.lockedBanner {
+  padding: 0.65rem 0.85rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+  background: hsla(0, 75%, 55%, 0.15);
+  border: 1px solid hsla(0, 75%, 55%, 0.35);
+  color: hsl(0, 85%, 85%);
+  font-size: 0.82rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 /* Priority Badges */
 .priorityLow {
   background: hsla(210, 80%, 55%, 0.12);
@@ -440,6 +460,21 @@
 .disabledBtn:hover,
 .disabledBtn:hover * {
   cursor: not-allowed !important;
+}
+
+.lockedOrDoneBtn,
+.lockedOrDoneBtn *,
+.lockedOrDoneBtn:hover,
+.lockedOrDoneBtn:hover *,
+.lockedOrDoneBtn:active,
+.lockedOrDoneBtn:focus {
+  cursor: not-allowed !important;
+  opacity: 0.45 !important;
+  background: var(--glass) !important;
+  border-color: var(--glass-border) !important;
+  color: hsla(0, 0%, 100%, 0.3) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 /* Kanban Board Layout */

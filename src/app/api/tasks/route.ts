@@ -4,9 +4,11 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateNextTaskNumber, logTaskActivity } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
+import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 
 export async function GET(req: NextRequest) {
   try {
+    await ensureDoneRequestColumns().catch(() => {});
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
@@ -83,7 +85,7 @@ export async function GET(req: NextRequest) {
 
     const totalItems = await prisma.task.count({ where });
 
-    const tasks = await prisma.task.findMany({
+    const rawTasks = await prisma.task.findMany({
       where,
       orderBy,
       skip: mode === 'kanban' || mode === 'calendar' ? undefined : (page - 1) * limit,
@@ -110,6 +112,11 @@ export async function GET(req: NextRequest) {
         _count: { select: { comments: true, attachments: true, checklists: true } },
       },
     });
+
+    const tasks = rawTasks.map((t: any) => ({
+      ...t,
+      isLocked: t.isLocked !== undefined ? Boolean(t.isLocked) : t.status === 'LOCKED',
+    }));
 
     return NextResponse.json({
       tasks,
@@ -208,6 +215,7 @@ export async function POST(req: NextRequest) {
           title: title.trim(),
           description: description.trim(),
           status,
+          isLocked: status === 'LOCKED',
           priority,
           assigneeId: targetAssigneeId,
           createdById: sessionUserId,
@@ -223,6 +231,7 @@ export async function POST(req: NextRequest) {
           title: true,
           description: true,
           status: true,
+          isLocked: true,
           priority: true,
           assigneeId: true,
           createdById: true,

@@ -19,6 +19,7 @@ const STATUS_FORM_OPTIONS: CustomDropdownOption[] = [
   { value: 'OPEN', label: 'Open', dotColor: '#38bdf8', color: 'hsl(210, 90%, 82%)', bgColor: 'hsla(210, 90%, 65%, 0.15)', borderColor: 'hsla(210, 90%, 65%, 0.3)' },
   { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 95%, 55%, 0.18)', borderColor: 'hsla(38, 95%, 55%, 0.35)' },
   { value: 'DONE', label: 'Done', dotColor: '#10b981', color: 'hsl(145, 80%, 78%)', bgColor: 'hsla(145, 80%, 45%, 0.15)', borderColor: 'hsla(145, 80%, 45%, 0.3)' },
+  { value: 'LOCKED', label: '🔒 Locked', dotColor: '#ef4444', color: 'hsl(0, 85%, 85%)', bgColor: 'hsla(0, 75%, 55%, 0.18)', borderColor: 'hsla(0, 75%, 55%, 0.35)' },
 ];
 
 const PRIORITY_FORM_OPTIONS: CustomDropdownOption[] = [
@@ -75,9 +76,16 @@ export function TaskFormModal({
 
   if (!isOpen) return null;
 
+  const isTaskLocked = Boolean(initialData?.isLocked || initialData?.status === 'LOCKED');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    if (isTaskLocked) {
+      setError('Task telah dikunci dan tidak dapat dimodifikasi.');
+      return;
+    }
 
     if (!title.trim()) {
       setError('Judul task wajib diisi.');
@@ -144,6 +152,13 @@ export function TaskFormModal({
             <X size={18} />
           </button>
         </div>
+
+        {isTaskLocked && (
+          <div className={styles.lockedBanner}>
+            <span className={`${styles.badge} ${styles.statusLocked}`}>🔒 Locked</span>
+            <span>Task ini telah dikunci dan bersifat read-only.</span>
+          </div>
+        )}
 
         {error && (
           <div

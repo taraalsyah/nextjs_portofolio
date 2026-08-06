@@ -9,7 +9,8 @@ interface KanbanTask {
   id: number;
   taskNumber: string;
   title: string;
-  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE';
+  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED' | 'LOCKED';
+  isLocked?: boolean;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   assignee?: { id: number; name: string } | null;
   category?: { id: number; name: string } | null;
@@ -96,8 +97,9 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
               ) : (
                 colTasks.map((task) => {
                   const isUpdating = movingTaskId === task.id;
-                  const prev = getPrevStatus(task.status);
-                  const next = getNextStatus(task.status);
+                  const isLocked = task.isLocked || task.status === 'LOCKED';
+                  const prev = isLocked ? null : getPrevStatus(task.status);
+                  const next = isLocked ? null : getNextStatus(task.status);
 
                   return (
                     <div
@@ -140,9 +142,14 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
 
                       <div className={styles.kanbanCardHeader}>
                         <span className={styles.taskNumber}>{task.taskNumber}</span>
-                        <span className={`${styles.badge} ${getPriorityBadgeClass(task.priority)}`}>
-                          {task.priority}
-                        </span>
+                        <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
+                          {isLocked && (
+                            <span className={`${styles.badge} ${styles.statusLocked}`}>🔒 Locked</span>
+                          )}
+                          <span className={`${styles.badge} ${getPriorityBadgeClass(task.priority)}`}>
+                            {task.priority}
+                          </span>
+                        </div>
                       </div>
 
                       <h5 className={styles.kanbanTaskTitle}>{task.title}</h5>
@@ -164,9 +171,9 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                             <button
                               title={`Kembalikan ke ${prev}`}
                               onClick={(e) => handleMove(e, task.id, prev)}
-                              disabled={movingTaskId !== null}
+                              disabled={movingTaskId !== null || isLocked}
                               className={styles.actionBtn}
-                              style={{ width: '24px', height: '24px', opacity: movingTaskId !== null ? 0.4 : 1 }}
+                              style={{ width: '24px', height: '24px', opacity: movingTaskId !== null || isLocked ? 0.4 : 1 }}
                             >
                               <ChevronLeft size={13} />
                             </button>
@@ -175,9 +182,9 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                             <button
                               title={`Pindahkan ke ${next}`}
                               onClick={(e) => handleMove(e, task.id, next)}
-                              disabled={movingTaskId !== null}
+                              disabled={movingTaskId !== null || isLocked}
                               className={styles.actionBtn}
-                              style={{ width: '24px', height: '24px', opacity: movingTaskId !== null ? 0.4 : 1 }}
+                              style={{ width: '24px', height: '24px', opacity: movingTaskId !== null || isLocked ? 0.4 : 1 }}
                             >
                               <ChevronRight size={13} />
                             </button>

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { logTaskActivity } from '@/lib/task';
+import { logTaskActivity, isTaskLocked, getTaskLockedResponse } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { validateWorkflowTransition, getProjectMember, getProjectPermissions, ProjectRole } from '@/lib/project';
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
@@ -32,7 +32,7 @@ export async function GET(
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
-    const task = await prisma.task.findFirst({
+    const rawTask = await prisma.task.findFirst({
       where: { id: taskId, deletedAt: null },
       select: {
         id: true,
@@ -111,6 +111,11 @@ export async function GET(
       },
     });
 
+    const task = rawTask ? {
+      ...rawTask,
+      isLocked: (rawTask as any).isLocked !== undefined ? Boolean((rawTask as any).isLocked) : rawTask.status === 'LOCKED',
+    } : null;
+
     if (!task || !task.projectId) {
       return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
     }
@@ -161,6 +166,10 @@ export async function PUT(
 
     if (!oldTask) {
       return NextResponse.json({ error: 'Task tidak ditemukan atau tidak berada pada proyek ini.' }, { status: 404 });
+    }
+
+    if (isTaskLocked(oldTask)) {
+      return getTaskLockedResponse();
     }
 
     const permissions = activeProject.permissions;
@@ -362,6 +371,10 @@ export async function DELETE(
 
     if (!task) {
       return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
+    }
+
+    if (isTaskLocked(task)) {
+      return getTaskLockedResponse();
     }
 
     await prisma.$transaction(async (tx) => {

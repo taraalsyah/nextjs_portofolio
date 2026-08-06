@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { logTaskActivity } from '@/lib/task';
+import { logTaskActivity, isTaskLocked, getTaskLockedResponse } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
 
 /**
@@ -16,6 +16,7 @@ async function resolveCommentPermission(
   params: Promise<{ id: string }>
 ): Promise<{
   authorized: boolean;
+  isLockedResponse?: boolean;
   status: number;
   error?: string;
   sessionUserId: number;
@@ -43,11 +44,15 @@ async function resolveCommentPermission(
 
   const task = await prisma.task.findFirst({
     where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
-    select: { id: true, assigneeId: true },
+    select: { id: true, assigneeId: true, status: true, isLocked: true },
   });
 
   if (!task) {
     return { authorized: false, status: 404, error: 'Task tidak ditemukan atau tidak berada pada proyek ini.', sessionUserId, taskId, isOwnerOrAdmin: false };
+  }
+
+  if (isTaskLocked(task)) {
+    return { authorized: false, isLockedResponse: true, status: 403, error: 'TASK_LOCKED', sessionUserId, taskId, isOwnerOrAdmin: false };
   }
 
   const role = activeProject.permissions.role;
@@ -69,6 +74,7 @@ export async function POST(
   try {
     const perm = await resolveCommentPermission(req, params);
     if (!perm.authorized) {
+      if (perm.isLockedResponse) return getTaskLockedResponse();
       return NextResponse.json({ error: perm.error }, { status: perm.status });
     }
 
@@ -116,6 +122,7 @@ export async function PUT(
   try {
     const perm = await resolveCommentPermission(req, params);
     if (!perm.authorized) {
+      if (perm.isLockedResponse) return getTaskLockedResponse();
       return NextResponse.json({ error: perm.error }, { status: perm.status });
     }
 
@@ -174,6 +181,7 @@ export async function DELETE(
   try {
     const perm = await resolveCommentPermission(req, params);
     if (!perm.authorized) {
+      if (perm.isLockedResponse) return getTaskLockedResponse();
       return NextResponse.json({ error: perm.error }, { status: perm.status });
     }
 

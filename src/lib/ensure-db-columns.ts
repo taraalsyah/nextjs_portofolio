@@ -17,6 +17,7 @@ export async function ensureDoneRequestColumns() {
     "ALTER TABLE `tasks` ADD COLUMN `done_reviewed_by_id` INT NULL",
     "ALTER TABLE `tasks` ADD COLUMN `done_reviewed_at` DATETIME(3) NULL",
     "ALTER TABLE `tasks` ADD COLUMN `done_reject_reason` TEXT NULL",
+    "ALTER TABLE `tasks` ADD COLUMN `is_locked` TINYINT(1) NOT NULL DEFAULT 0",
   ];
 
   for (const sql of queries) {

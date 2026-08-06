@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { logTaskActivity } from '@/lib/task';
+import { logTaskActivity, isTaskLocked, getTaskLockedResponse } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { getProjectMember, ProjectRole } from '@/lib/project';
 
@@ -36,6 +36,7 @@ export async function POST(
         taskNumber: true,
         title: true,
         status: true,
+        isLocked: true,
         assigneeId: true,
         projectId: true,
         closeRequestStatus: true,
@@ -48,6 +49,10 @@ export async function POST(
         { error: 'Task tidak ditemukan.' },
         { status: 404 }
       );
+    }
+
+    if (isTaskLocked(task)) {
+      return getTaskLockedResponse();
     }
 
     let userRole: ProjectRole | null = null;

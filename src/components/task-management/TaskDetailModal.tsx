@@ -18,6 +18,7 @@ interface TaskDetailData {
   title: string;
   description: string;
   status: string;
+  isLocked?: boolean;
   priority: string;
   assigneeId: number | null;
   createdById: number;
@@ -129,6 +130,14 @@ const STATUS_OPTIONS: { key: string; label: string; color: string; bgColor: stri
     bgColor: 'hsla(270, 60%, 55%, 0.18)',
     borderColor: 'hsla(270, 60%, 55%, 0.35)',
     dotColor: '#818cf8',
+  },
+  {
+    key: 'LOCKED',
+    label: '🔒 Locked',
+    color: 'hsl(0, 85%, 85%)',
+    bgColor: 'hsla(0, 75%, 55%, 0.18)',
+    borderColor: 'hsla(0, 75%, 55%, 0.35)',
+    dotColor: '#ef4444',
   },
 ];
 
@@ -411,25 +420,26 @@ export function TaskDetailModal({
 
   if (!isOpen || !taskId) return null;
 
+  const isTaskLocked = Boolean(task?.isLocked || task?.status === 'LOCKED');
   const role = userPermissions?.role || 'MEMBER';
   const isOwnerOrAdmin = role === 'OWNER' || role === 'ADMIN';
   const isAssignee = task?.assigneeId === currentUserId;
-  const canEditMetadata = isOwnerOrAdmin;
-  const canUpdateProgress = isOwnerOrAdmin || isAssignee;
+  const canEditMetadata = !isTaskLocked && isOwnerOrAdmin;
+  const canUpdateProgress = !isTaskLocked && (isOwnerOrAdmin || isAssignee);
 
   // Done Request State
   const doneRequestStatus = task?.doneRequestStatus || 'NONE';
-  const showRequestDoneButton = isAssignee && !isOwnerOrAdmin && task?.status === 'IN_PROGRESS' && doneRequestStatus !== 'PENDING';
-  const showPendingDoneBadge = isAssignee && doneRequestStatus === 'PENDING';
-  const showDoneApprovalCard = isOwnerOrAdmin && doneRequestStatus === 'PENDING';
-  const showDoneRejectedInfo = doneRequestStatus === 'REJECTED' && !isOwnerOrAdmin;
+  const showRequestDoneButton = !isTaskLocked && isAssignee && !isOwnerOrAdmin && task?.status === 'IN_PROGRESS' && doneRequestStatus !== 'PENDING';
+  const showPendingDoneBadge = !isTaskLocked && isAssignee && doneRequestStatus === 'PENDING';
+  const showDoneApprovalCard = !isTaskLocked && isOwnerOrAdmin && doneRequestStatus === 'PENDING';
+  const showDoneRejectedInfo = !isTaskLocked && doneRequestStatus === 'REJECTED' && !isOwnerOrAdmin;
 
   // Close Request State
   const closeRequestStatus = task?.closeRequestStatus || 'NONE';
-  const showRequestCloseButton = isAssignee && !isOwnerOrAdmin && task?.status === 'DONE' && closeRequestStatus !== 'PENDING';
-  const showPendingBadge = isAssignee && closeRequestStatus === 'PENDING';
-  const showApprovalCard = isOwnerOrAdmin && closeRequestStatus === 'PENDING';
-  const showRejectedInfo = closeRequestStatus === 'REJECTED' && !isOwnerOrAdmin;
+  const showRequestCloseButton = !isTaskLocked && isAssignee && !isOwnerOrAdmin && task?.status === 'DONE' && closeRequestStatus !== 'PENDING';
+  const showPendingBadge = !isTaskLocked && isAssignee && closeRequestStatus === 'PENDING';
+  const showApprovalCard = !isTaskLocked && isOwnerOrAdmin && closeRequestStatus === 'PENDING';
+  const showRejectedInfo = !isTaskLocked && closeRequestStatus === 'REJECTED' && !isOwnerOrAdmin;
 
   const handleStatusChange = async (newStatus: string) => {
     if (!task || isUpdatingStatus) return;
@@ -803,39 +813,61 @@ export function TaskDetailModal({
             </h3>
           </div>
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
-            {task && (
-              canEditMetadata ? (
+            {task && (() => {
+              const isDone = task.status === 'DONE';
+              const isClosed = task.status === 'CLOSED';
+              const isEditBtnDisabled = isTaskLocked || isDone || isClosed || !isOwnerOrAdmin;
+
+              const editBtnTooltip = isTaskLocked
+                ? 'Task telah dikunci dan bersifat read-only.'
+                : isDone
+                ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
+                : isClosed
+                ? 'Task yang telah ditutup tidak dapat diedit.'
+                : !isOwnerOrAdmin
+                ? 'Anda tidak memiliki izin untuk mengubah atribut task ini.'
+                : 'Edit Task';
+
+              return (
                 <button
-                  onClick={() => {
+                  type="button"
+                  disabled={isEditBtnDisabled}
+                  onClick={(e) => {
+                    if (isEditBtnDisabled) {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      if (!isTaskLocked && !isDone && !isClosed && !isOwnerOrAdmin) {
+                        setStatusMsg({
+                          type: 'error',
+                          message: 'Anda tidak memiliki izin untuk mengubah atribut task ini.',
+                        });
+                      }
+                      return;
+                    }
                     onClose();
                     onEditRequest(task);
                   }}
-                  className={`${styles.actionBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
-                  title="Edit Task"
+                  className={`${styles.actionBtn} ${isEditBtnDisabled ? styles.lockedOrDoneBtn : ''}`}
+                  style={{ cursor: isEditBtnDisabled ? 'not-allowed' : 'pointer' }}
+                  title={editBtnTooltip}
                 >
                   <Edit3 size={15} />
                 </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setStatusMsg({
-                      type: 'error',
-                      message: 'Anda tidak memiliki izin untuk mengubah atribut task ini.',
-                    });
-                  }}
-                  className={`${styles.actionBtn} ${styles.disabledBtn}`}
-                  style={{ opacity: 0.5 }}
-                  title="Anda tidak memiliki izin untuk mengubah atribut task ini."
-                >
-                  <Edit3 size={15} />
-                </button>
-              )
-            )}
+              );
+            })()}
             <button onClick={handleCloseWithReset} className={styles.closeBtn}>
               <X size={18} />
             </button>
           </div>
         </div>
+
+        {/* Task Locked Info Banner (Rule 4) */}
+        {isTaskLocked && (
+          <div className={styles.lockedBanner}>
+            <span className={`${styles.badge} ${styles.statusLocked}`}>🔒 Locked</span>
+            <span>Task ini telah dikunci dan bersifat read-only.</span>
+          </div>
+        )}
 
         {/* Status Alert Banner */}
         {statusMsg && (
@@ -1530,7 +1562,7 @@ export function TaskDetailModal({
                         <StatusDropdown
                           currentStatus={task.status}
                           onStatusChange={handleStatusChange}
-                          disabled={isUpdatingStatus || task.status === 'CLOSED'}
+                          disabled={isUpdatingStatus || task.status === 'CLOSED' || isTaskLocked}
                           isOwnerOrAdmin={isOwnerOrAdmin}
                           isUpdatingStatus={isUpdatingStatus}
                         />

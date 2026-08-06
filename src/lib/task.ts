@@ -2,7 +2,9 @@ import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@/lib/activity';
 import { Prisma } from '@prisma/client';
 
-export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED';
+import { NextResponse } from 'next/server';
+
+export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED' | 'LOCKED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export const TASK_STATUSES: { key: TaskStatus; label: string; color: string }[] = [
@@ -11,6 +13,7 @@ export const TASK_STATUSES: { key: TaskStatus; label: string; color: string }[] 
   { key: 'IN_PROGRESS', label: 'In Progress', color: 'hsl(38, 95%, 65%)' },
   { key: 'DONE', label: 'Done', color: 'hsl(145, 80%, 65%)' },
   { key: 'CLOSED', label: 'Closed', color: 'hsl(270, 40%, 65%)' },
+  { key: 'LOCKED', label: '🔒 Locked', color: 'hsl(0, 75%, 60%)' },
 ];
 
 export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string }[] = [
@@ -19,6 +22,28 @@ export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string 
   { key: 'HIGH', label: 'High', color: 'hsl(15, 90%, 70%)' },
   { key: 'CRITICAL', label: 'Critical', color: 'hsl(350, 90%, 75%)' },
 ];
+
+/**
+ * Checks if a task is locked (isLocked === true OR status === 'LOCKED').
+ */
+export function isTaskLocked(task?: { isLocked?: boolean | null; status?: string | null } | null): boolean {
+  if (!task) return false;
+  return task.isLocked === true || task.status === 'LOCKED';
+}
+
+/**
+ * Standardized 403 response for locked task modification attempts.
+ */
+export function getTaskLockedResponse() {
+  return NextResponse.json(
+    {
+      error: 'TASK_LOCKED',
+      errorCode: 'TASK_LOCKED',
+      message: 'Task telah dikunci dan tidak dapat dimodifikasi.',
+    },
+    { status: 403 }
+  );
+}
 
 type PrismaTransaction = Omit<
   typeof prisma,
