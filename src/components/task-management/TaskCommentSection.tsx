@@ -182,7 +182,7 @@ export function TaskCommentSection({
                         <InlineSpinner size={12} color="var(--secondary)" />
                         <span>Menghapus...</span>
                       </div>
-                    ) : isOwner && !isEditing ? (
+                    ) : canUpdateProgress && isOwner && !isEditing ? (
                       <>
                         <button
                           onClick={() => {

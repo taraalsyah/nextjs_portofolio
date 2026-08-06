@@ -190,7 +190,7 @@ export default function CategoriesPage() {
             </div>
           </div>
 
-          <button onClick={handleOpenCreateModal} className={styles.createBtn}>
+          <button onClick={() => handleOpenModal()} className={styles.createBtn}>
             <Plus size={16} />
             Tambah Kategori
           </button>
@@ -227,7 +227,7 @@ export default function CategoriesPage() {
                       <div className={styles.actionGroup} style={{ justifyContent: 'flex-end' }}>
                         <button
                           title="Edit Kategori"
-                          onClick={() => handleOpenEditModal(c)}
+                          onClick={() => handleOpenModal(c)}
                           className={styles.actionBtn}
                         >
                           <Edit3 size={15} />
@@ -262,7 +262,7 @@ export default function CategoriesPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleSaveCategory}>
               {error && (
                 <div
                   style={{

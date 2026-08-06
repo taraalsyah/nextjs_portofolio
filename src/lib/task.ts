@@ -1,10 +1,9 @@
 import { prisma } from '@/lib/prisma';
 import { ActivityAction } from '@/lib/activity';
 import { Prisma } from '@prisma/client';
-
 import { NextResponse } from 'next/server';
 
-export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED' | 'LOCKED';
+export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export const TASK_STATUSES: { key: TaskStatus; label: string; color: string }[] = [
@@ -12,8 +11,6 @@ export const TASK_STATUSES: { key: TaskStatus; label: string; color: string }[] 
   { key: 'OPEN', label: 'Open', color: 'hsl(210, 90%, 70%)' },
   { key: 'IN_PROGRESS', label: 'In Progress', color: 'hsl(38, 95%, 65%)' },
   { key: 'DONE', label: 'Done', color: 'hsl(145, 80%, 65%)' },
-  { key: 'CLOSED', label: 'Closed', color: 'hsl(270, 40%, 65%)' },
-  { key: 'LOCKED', label: '🔒 Locked', color: 'hsl(0, 75%, 60%)' },
 ];
 
 export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string }[] = [
@@ -24,25 +21,34 @@ export const TASK_PRIORITIES: { key: TaskPriority; label: string; color: string 
 ];
 
 /**
- * Checks if a task is locked (isLocked === true OR status === 'LOCKED').
+ * Checks if a task is Done/Completed (status === 'DONE' or legacy 'LOCKED'/'CLOSED' or isLocked).
+ * Once a task is DONE, it is permanently read-only.
  */
-export function isTaskLocked(task?: { isLocked?: boolean | null; status?: string | null } | null): boolean {
+export function isTaskDone(task?: { isLocked?: boolean | null; status?: string | null } | null): boolean {
   if (!task) return false;
-  return task.isLocked === true || task.status === 'LOCKED';
+  return task.status === 'DONE' || task.status === 'CLOSED' || task.status === 'LOCKED' || task.isLocked === true;
+}
+
+export function isTaskLocked(task?: { isLocked?: boolean | null; status?: string | null } | null): boolean {
+  return isTaskDone(task);
 }
 
 /**
- * Standardized 403 response for locked task modification attempts.
+ * Standardized HTTP 403 Forbidden response when attempting to modify a completed (DONE) task.
  */
-export function getTaskLockedResponse() {
+export function getTaskCompletedResponse() {
   return NextResponse.json(
     {
-      error: 'TASK_LOCKED',
-      errorCode: 'TASK_LOCKED',
-      message: 'Task telah dikunci dan tidak dapat dimodifikasi.',
+      error: 'Task yang telah selesai tidak dapat diubah atau dihapus.',
+      errorCode: 'TASK_COMPLETED',
+      message: 'Task yang telah selesai tidak dapat diubah atau dihapus.',
     },
     { status: 403 }
   );
+}
+
+export function getTaskLockedResponse() {
+  return getTaskCompletedResponse();
 }
 
 type PrismaTransaction = Omit<
@@ -107,17 +113,17 @@ export async function generateNextTaskNumber(tx?: PrismaTransaction): Promise<st
 
 /**
  * Validates whether a workflow status transition is allowed.
+ * Status DONE is final: no transition away from DONE is permitted.
  */
 export function isValidStatusTransition(currentStatus: string, nextStatus: string): boolean {
   if (currentStatus === nextStatus) return true;
+  if (currentStatus === 'DONE' || currentStatus === 'CLOSED' || currentStatus === 'LOCKED') return false;
   const allowedMap: Record<string, string[]> = {
     BACKLOG: ['OPEN', 'IN_PROGRESS', 'DONE'],
     OPEN: ['BACKLOG', 'IN_PROGRESS', 'DONE'],
     IN_PROGRESS: ['OPEN', 'BACKLOG', 'DONE'],
-    DONE: ['IN_PROGRESS', 'OPEN', 'BACKLOG'],
-    CLOSED: ['DONE'],
   };
-  return allowedMap[currentStatus]?.includes(nextStatus) ?? true;
+  return allowedMap[currentStatus]?.includes(nextStatus) ?? false;
 }
 
 /**

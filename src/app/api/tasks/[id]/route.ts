@@ -113,7 +113,7 @@ export async function GET(
 
     const task = rawTask ? {
       ...rawTask,
-      isLocked: (rawTask as any).isLocked !== undefined ? Boolean((rawTask as any).isLocked) : rawTask.status === 'LOCKED',
+      isDone: rawTask.status === 'DONE',
     } : null;
 
     if (!task || !task.projectId) {

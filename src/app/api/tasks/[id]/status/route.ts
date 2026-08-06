@@ -33,7 +33,7 @@ export async function PATCH(
     const body = await req.json();
     const { status: newStatus } = body;
 
-    if (!newStatus || !['BACKLOG', 'OPEN', 'IN_PROGRESS', 'DONE', 'CLOSED', 'LOCKED'].includes(newStatus)) {
+    if (!newStatus || !['BACKLOG', 'OPEN', 'IN_PROGRESS', 'DONE'].includes(newStatus)) {
       return NextResponse.json({ error: 'Status tidak valid.' }, { status: 400 });
     }
 
@@ -126,7 +126,6 @@ export async function PATCH(
         where: { id: taskId },
         data: {
           status: newStatus,
-          ...(newStatus === 'LOCKED' ? { isLocked: true } : {}),
           ...requestUpdates,
         },
         select: {

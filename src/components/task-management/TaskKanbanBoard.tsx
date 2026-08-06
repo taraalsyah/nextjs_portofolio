@@ -9,7 +9,7 @@ interface KanbanTask {
   id: number;
   taskNumber: string;
   title: string;
-  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED' | 'LOCKED';
+  status: 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE';
   isLocked?: boolean;
   priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
   assignee?: { id: number; name: string } | null;
@@ -47,36 +47,42 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
     return null;
   };
 
-  const handleMove = async (e: React.MouseEvent, taskId: number, targetStatus: string) => {
+  const getPriorityBadgeClass = (priority: string) => {
+    switch (priority) {
+      case 'LOW':
+        return styles.priorityLow;
+      case 'MEDIUM':
+        return styles.priorityMedium;
+      case 'HIGH':
+        return styles.priorityHigh;
+      case 'CRITICAL':
+        return styles.priorityCritical;
+      default:
+        return '';
+    }
+  };
+
+  const handleMove = async (e: React.MouseEvent, taskId: number, newStatus: string) => {
     e.stopPropagation();
     if (movingTaskId !== null) return;
     setMovingTaskId(taskId);
     try {
-      await onStatusChange(taskId, targetStatus);
-    } catch {
-      // Error handled upstream
+      await onStatusChange(taskId, newStatus);
     } finally {
       setMovingTaskId(null);
     }
-  };
-
-  const getPriorityBadgeClass = (p: string) => {
-    if (p === 'LOW') return styles.priorityLow;
-    if (p === 'MEDIUM') return styles.priorityMedium;
-    if (p === 'HIGH') return styles.priorityHigh;
-    return styles.priorityCritical;
   };
 
   return (
     <div className={styles.kanbanGrid}>
       {COLUMNS.map((col) => {
         const colTasks = tasks.filter((t) => t.status === col.key);
+
         return (
           <div key={col.key} className={styles.kanbanColumn}>
             <div className={styles.kanbanHeader}>
               <h4 className={styles.kanbanTitle}>
-                <span>{col.title}</span>
-                <span className={styles.kanbanCount}>{colTasks.length}</span>
+                {col.title} <span className={styles.kanbanCount}>{colTasks.length}</span>
               </h4>
             </div>
 
@@ -97,9 +103,9 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
               ) : (
                 colTasks.map((task) => {
                   const isUpdating = movingTaskId === task.id;
-                  const isLocked = task.isLocked || task.status === 'LOCKED';
-                  const prev = isLocked ? null : getPrevStatus(task.status);
-                  const next = isLocked ? null : getNextStatus(task.status);
+                  const isDone = task.status === 'DONE' || task.status === ('CLOSED' as any) || task.isLocked === true;
+                  const prev = isDone ? null : getPrevStatus(task.status);
+                  const next = isDone ? null : getNextStatus(task.status);
 
                   return (
                     <div
@@ -143,9 +149,6 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                       <div className={styles.kanbanCardHeader}>
                         <span className={styles.taskNumber}>{task.taskNumber}</span>
                         <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-                          {isLocked && (
-                            <span className={`${styles.badge} ${styles.statusLocked}`}>🔒 Locked</span>
-                          )}
                           <span className={`${styles.badge} ${getPriorityBadgeClass(task.priority)}`}>
                             {task.priority}
                           </span>

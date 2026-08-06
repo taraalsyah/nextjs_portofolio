@@ -60,6 +60,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
 
   const { data: session, status } = useSession();
   const router = useRouter();
+  const toastCtx = useSafeToast();
 
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
@@ -67,6 +68,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const { users } = useProjectMembers();
   const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'error' | 'success'; message: string } | null>(null);

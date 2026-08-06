@@ -115,7 +115,7 @@ export async function GET(req: NextRequest) {
 
     const tasks = rawTasks.map((t: any) => ({
       ...t,
-      isLocked: t.isLocked !== undefined ? Boolean(t.isLocked) : t.status === 'LOCKED',
+      isDone: t.status === 'DONE',
     }));
 
     return NextResponse.json({
@@ -215,7 +215,6 @@ export async function POST(req: NextRequest) {
           title: title.trim(),
           description: description.trim(),
           status,
-          isLocked: status === 'LOCKED',
           priority,
           assigneeId: targetAssigneeId,
           createdById: sessionUserId,
@@ -231,7 +230,6 @@ export async function POST(req: NextRequest) {
           title: true,
           description: true,
           status: true,
-          isLocked: true,
           priority: true,
           assigneeId: true,
           createdById: true,

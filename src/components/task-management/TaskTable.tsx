@@ -49,10 +49,7 @@ export function TaskTable({
   totalItems,
   onPageChange,
 }: TaskTableProps) {
-  const getStatusBadge = (status: string, isLocked?: boolean) => {
-    if (isLocked || status === 'LOCKED') {
-      return <span className={`${styles.badge} ${styles.statusLocked}`}>🔒 Locked</span>;
-    }
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'BACKLOG':
         return <span className={`${styles.badge} ${styles.statusBacklog}`}>Backlog</span>;
@@ -133,25 +130,15 @@ export function TaskTable({
               const completedCount = task.checklists?.filter((c) => c.isCompleted).length || 0;
               const totalChecklists = task.checklists?.length || 0;
 
-              const isLocked = task.isLocked || task.status === 'LOCKED';
-              const isDone = task.status === 'DONE';
-              const isClosed = task.status === 'CLOSED';
-              const isActionDisabled = isLocked || isDone || isClosed;
+              const isDone = task.status === 'DONE' || task.status === 'CLOSED' || task.isLocked === true;
+              const isActionDisabled = isDone;
 
-              const editTooltip = isLocked
-                ? 'Task telah dikunci dan bersifat read-only.'
-                : isDone
+              const editTooltip = isDone
                 ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
-                : isClosed
-                ? 'Task yang telah ditutup tidak dapat diedit.'
                 : 'Edit Task';
 
-              const deleteTooltip = isLocked
-                ? 'Task telah dikunci dan bersifat read-only.'
-                : isDone
+              const deleteTooltip = isDone
                 ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
-                : isClosed
-                ? 'Task yang telah ditutup tidak dapat dihapus.'
                 : 'Hapus Task';
 
               return (
@@ -178,7 +165,7 @@ export function TaskTable({
                       )}
                     </div>
                   </td>
-                  <td>{getStatusBadge(task.status, task.isLocked)}</td>
+                  <td>{getStatusBadge(task.status)}</td>
                   <td>{getPriorityBadge(task.priority)}</td>
                   <td>
                     <span style={{ color: 'hsla(0,0%,100%,0.7)', fontSize: '0.8rem' }}>
