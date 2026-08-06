@@ -65,7 +65,7 @@ export function JoinProjectModal({
 
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+      <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <div
@@ -94,85 +94,87 @@ export function JoinProjectModal({
           </button>
         </div>
 
-        {error && (
-          <div
-            style={{
-              padding: '0.65rem 0.85rem',
-              borderRadius: '8px',
-              background: 'hsla(350, 90%, 55%, 0.15)',
-              border: '1px solid hsla(350, 90%, 55%, 0.3)',
-              color: 'hsl(350, 95%, 85%)',
-              fontSize: '0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-            }}
-          >
-            <AlertCircle size={15} style={{ flexShrink: 0 }} />
-            <span>{error}</span>
-          </div>
-        )}
+        <form onSubmit={handleSubmit}>
+          <div className={styles.modalBody}>
+            {error && (
+              <div
+                style={{
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '8px',
+                  background: 'hsla(350, 90%, 55%, 0.15)',
+                  border: '1px solid hsla(350, 90%, 55%, 0.3)',
+                  color: 'hsl(350, 95%, 85%)',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                }}
+              >
+                <AlertCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+            )}
 
-        {successMsg && (
-          <div
-            style={{
-              padding: '0.65rem 0.85rem',
-              borderRadius: '8px',
-              background: 'hsla(145, 80%, 45%, 0.15)',
-              border: '1px solid hsla(145, 80%, 45%, 0.3)',
-              color: 'hsl(145, 80%, 85%)',
-              fontSize: '0.8rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-            }}
-          >
-            <CheckCircle size={15} style={{ flexShrink: 0 }} />
-            <span>{successMsg}</span>
-          </div>
-        )}
+            {successMsg && (
+              <div
+                style={{
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '8px',
+                  background: 'hsla(145, 80%, 45%, 0.15)',
+                  border: '1px solid hsla(145, 80%, 45%, 0.3)',
+                  color: 'hsl(145, 80%, 85%)',
+                  fontSize: '0.8rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                }}
+              >
+                <CheckCircle size={15} style={{ flexShrink: 0 }} />
+                <span>{successMsg}</span>
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '0.5rem' }}>
-          <div>
-            <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <Key size={13} style={{ color: 'var(--secondary)' }} />
-              Invite Code
-            </label>
-            <input
-              type="text"
-              placeholder="Contoh: PM-7KQ9-XR8P"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              className={styles.input}
-              style={{
-                marginTop: '0.4rem',
-                fontFamily: 'monospace',
-                fontSize: '0.95rem',
-                letterSpacing: '0.08em',
-                textAlign: 'center',
-                textTransform: 'uppercase',
-                padding: '0.65rem',
-              }}
-              required
-              disabled={isSubmitting}
-            />
-            <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.45)', lineHeight: 1.4 }}>
-              Minta kode akses ini kepada Owner atau Admin proyek yang ingin Anda ikuti.
-            </p>
+            <div className={styles.formGroup}>
+              <label className={styles.label} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Key size={13} style={{ color: 'var(--secondary)' }} />
+                Invite Code
+              </label>
+              <input
+                type="text"
+                placeholder="Contoh: PM-7KQ9-XR8P"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                className={styles.input}
+                style={{
+                  marginTop: '0.2rem',
+                  fontFamily: 'monospace',
+                  fontSize: '0.95rem',
+                  letterSpacing: '0.08em',
+                  textAlign: 'center',
+                  textTransform: 'uppercase',
+                  padding: '0.65rem',
+                }}
+                required
+                disabled={isSubmitting}
+              />
+              <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.45)', lineHeight: 1.4 }}>
+                Minta kode akses ini kepada Owner atau Admin proyek yang ingin Anda ikuti.
+              </p>
+            </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.6rem', borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
+          <div className={styles.modalFooter}>
             <button
               type="button"
               onClick={onClose}
-              className={styles.clearFilterBtn}
+              className={styles.cancelBtn}
               disabled={isSubmitting}
             >
               Batal
             </button>
             <button
               type="submit"
-              className={styles.createBtn}
+              className={styles.submitBtn}
               disabled={isSubmitting || !inviteCode.trim()}
               style={{ opacity: isSubmitting || !inviteCode.trim() ? 0.6 : 1 }}
             >

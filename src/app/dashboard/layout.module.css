@@ -374,8 +374,12 @@
     transform: translateX(0);
   }
 
-  .mainWrapper {
+  .mainWrapper,
+  .marginExpanded,
+  .marginCollapsed {
     margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
   .topbar {

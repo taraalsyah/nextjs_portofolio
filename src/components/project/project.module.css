@@ -533,3 +533,73 @@
   opacity: 0.6;
 }
 
+/* Responsive Mobile Breakpoints */
+@media (max-width: 768px) {
+  .modalOverlay {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .modalCard {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    border-radius: 16px 16px 0 0 !important;
+    max-height: 92vh !important;
+  }
+
+  .modalHeader {
+    padding: 1rem 1rem;
+  }
+
+  .modalTitle {
+    font-size: 0.98rem;
+  }
+
+  .modalBody {
+    padding: 1rem 1rem;
+    gap: 1rem;
+  }
+
+  .tabsList {
+    padding: 0 0.5rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tabsList::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tabBtn {
+    padding: 0.6rem 0.75rem;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
+
+  .modalFooter {
+    flex-direction: column-reverse;
+    gap: 0.5rem;
+    padding: 0.85rem 1rem;
+    width: 100%;
+  }
+
+  .cancelBtn,
+  .submitBtn,
+  .dangerBtn {
+    width: 100% !important;
+    justify-content: center;
+    padding: 0.7rem 1rem;
+    font-size: 0.88rem;
+  }
+
+  .tableContainer {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
