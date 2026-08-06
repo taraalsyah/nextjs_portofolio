@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 interface TaskFormModalProps {
   isOpen: boolean;
@@ -245,21 +246,22 @@ export function TaskFormModal({
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Start Date</label>
-            <input
-              type="date"
+            <DatePicker
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className={styles.input}
+              onChange={(val) => setStartDate(val)}
+              placeholder="Pilih Tanggal Mulai"
+              disabled={isSubmitting || isTaskDone}
             />
           </div>
 
           <div className={styles.formGroup}>
             <label className={styles.label}>Due Date (Deadline)</label>
-            <input
-              type="date"
+            <DatePicker
               value={dueDate}
-              onChange={(e) => setDueDate(e.target.value)}
-              className={styles.input}
+              onChange={(val) => setDueDate(val)}
+              minDate={startDate || undefined}
+              placeholder="Pilih Tanggal Tenggat"
+              disabled={isSubmitting || isTaskDone}
             />
           </div>
 
