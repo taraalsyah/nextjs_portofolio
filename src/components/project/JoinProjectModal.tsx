@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Key, UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
 import styles from './project.module.css';
 
@@ -19,8 +20,13 @@ export function JoinProjectModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isOpen || !isMounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +69,7 @@ export function JoinProjectModal({
     }
   };
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -184,6 +190,7 @@ export function JoinProjectModal({
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

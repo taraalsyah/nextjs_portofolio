@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useSession } from 'next-auth/react';
 import {
   X,
@@ -121,6 +122,11 @@ export function ProjectSettingsModal({
   const [permMatrix, setPermMatrix] = useState<Record<string, Record<string, boolean>> | null>(null);
   const [wfMatrix, setWfMatrix] = useState<Record<string, Record<string, boolean>> | null>(null);
   const [isSavingMatrix, setIsSavingMatrix] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const fetchProjectDetails = async () => {
     if (!activeProjectId || !isOpen) return;
@@ -688,7 +694,9 @@ export function ProjectSettingsModal({
 
   const categories = Array.from(new Set(ALL_PERMISSIONS_LIST.map((p) => p.category)));
 
-  return (
+  if (!isOpen || !isMounted) return null;
+
+  return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -1421,6 +1429,7 @@ export function ProjectSettingsModal({
           </div>
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

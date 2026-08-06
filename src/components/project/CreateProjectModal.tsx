@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, FolderPlus, Check } from 'lucide-react';
 import styles from './project.module.css';
 
@@ -16,8 +17,13 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   const [visibility, setVisibility] = useState<'PRIVATE' | 'TEAM'>('PRIVATE');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isOpen || !isMounted) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +65,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
     }
   };
 
-  return (
+  return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
@@ -146,6 +152,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
