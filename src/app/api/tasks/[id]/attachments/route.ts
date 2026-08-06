@@ -44,7 +44,7 @@ async function resolveAttachmentPermission(
 
   const task = await prisma.task.findFirst({
     where: { id: taskId, projectId: activeProject.projectId, deletedAt: null },
-    select: { id: true, assigneeId: true, status: true, isLocked: true },
+    select: { id: true, assigneeId: true, status: true },
   });
 
   if (!task) {

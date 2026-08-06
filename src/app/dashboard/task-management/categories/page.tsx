@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { FolderKanban, Plus, Edit3, Trash2, X, Check } from 'lucide-react';
 import styles from '../task.module.css';
 import { TaskNavTab } from '@/components/task-management/TaskNavTab';
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
+import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 
 interface CategoryItem {
@@ -20,6 +22,7 @@ export default function CategoriesPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { activeProject } = useProjectContext();
+  const toastCtx = useSafeToast();
   const activeProjectId = activeProject?.projectId;
 
   const [categories, setCategories] = useState<CategoryItem[]>([]);
@@ -28,6 +31,7 @@ export default function CategoriesPage() {
   // Modal State
   const [isOpenModal, setIsOpenModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<CategoryItem | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -144,18 +148,29 @@ export default function CategoriesPage() {
     }
   };
 
-  const handleDeleteCategory = async (cat: CategoryItem) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus kategori "${cat.name}"?`)) return;
+  const handleDeleteCategory = (cat: CategoryItem) => {
+    setCategoryToDelete(cat);
+  };
 
-    const res = await fetch(`/api/task-categories/${cat.id}`, {
-      method: 'DELETE',
-    });
+  const handleConfirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
 
-    if (res.ok) {
-      fetchCategories();
-    } else {
-      const json = await res.json();
-      alert(json.error || 'Gagal menghapus kategori.');
+    try {
+      const res = await fetch(`/api/task-categories/${categoryToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        if (toastCtx?.showToast) toastCtx.showToast(`Kategori "${categoryToDelete.name}" berhasil dihapus.`, 'success');
+        setCategoryToDelete(null);
+        fetchCategories();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menghapus kategori.');
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal menghapus kategori. Silakan coba lagi.';
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     }
   };
 
@@ -170,123 +185,120 @@ export default function CategoriesPage() {
               <FolderKanban size={20} />
             </div>
             <div className={styles.headerTitle}>
-              Manajemen Kategori Task (Admin Only)
-              <p>Tambah, edit, dan kelola kategori untuk pengelompokan task.</p>
+              Task Categories (Kategori Task)
+              <p>Kelola kategori tugas untuk pengelompokan pekerjaan yang rapi.</p>
             </div>
           </div>
 
-          <button onClick={() => handleOpenModal()} className={styles.createBtn}>
+          <button onClick={handleOpenCreateModal} className={styles.createBtn}>
             <Plus size={16} />
             Tambah Kategori
           </button>
         </div>
 
-        <div className={styles.tableWrapper}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th>Nama Kategori</th>
-                <th>Deskripsi</th>
-                <th>Tanggal Dibuat</th>
-                <th style={{ textAlign: 'right' }}>Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {isLoading ? (
+        {isLoading ? (
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
+            Memuat kategori task...
+          </div>
+        ) : categories.length === 0 ? (
+          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
+            Belum ada kategori task yang dibuat.
+          </div>
+        ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <table className={styles.table}>
+              <thead>
                 <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
-                    Memuat kategori...
-                  </td>
+                  <th>ID</th>
+                  <th>Nama Kategori</th>
+                  <th>Deskripsi</th>
+                  <th>Dibuat Pada</th>
+                  <th style={{ textAlign: 'right' }}>Aksi</th>
                 </tr>
-              ) : categories.length === 0 ? (
-                <tr>
-                  <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
-                    Belum ada kategori yang ditambahkan.
-                  </td>
-                </tr>
-              ) : (
-                categories.map((c) => (
+              </thead>
+              <tbody>
+                {categories.map((c) => (
                   <tr key={c.id}>
+                    <td>#{c.id}</td>
+                    <td style={{ fontWeight: 600, color: 'white' }}>{c.name}</td>
+                    <td>{c.description || '-'}</td>
+                    <td>{new Date(c.createdAt).toLocaleDateString('id-ID')}</td>
                     <td>
-                      <span style={{ fontWeight: 700, color: 'var(--secondary)' }}>{c.name}</span>
-                    </td>
-                    <td>
-                      <span style={{ color: 'hsla(0,0%,100%,0.7)' }}>{c.description || '-'}</span>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.4)' }}>
-                        {new Date(c.createdAt).toLocaleDateString('id-ID')}
-                      </span>
-                    </td>
-                    <td style={{ textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.35rem' }}>
-                        <button onClick={() => handleOpenModal(c)} className={styles.actionBtn}>
-                          <Edit3 size={14} />
+                      <div className={styles.actionGroup} style={{ justifyContent: 'flex-end' }}>
+                        <button
+                          title="Edit Kategori"
+                          onClick={() => handleOpenEditModal(c)}
+                          className={styles.actionBtn}
+                        >
+                          <Edit3 size={15} />
                         </button>
                         <button
+                          title="Hapus Kategori"
                           onClick={() => handleDeleteCategory(c)}
                           className={`${styles.actionBtn} ${styles.deleteBtn}`}
                         >
-                          <Trash2 size={14} />
+                          <Trash2 size={15} />
                         </button>
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
-      {/* Form Modal */}
+      {/* Modal Form Create / Edit */}
       {isOpenModal && (
-        <div className={styles.modalOverlay} onClick={() => setIsOpenModal(false)}>
-          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+        <div className={styles.modalOverlay}>
+          <div className={styles.modalContent} style={{ maxWidth: '500px' }}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTitle}>
-                {editingCategory ? 'Edit Kategori Task' : 'Tambah Kategori Task Baru'}
+                {editingCategory ? 'Edit Kategori' : 'Tambah Kategori Baru'}
               </h3>
               <button onClick={() => setIsOpenModal(false)} className={styles.closeBtn}>
                 <X size={18} />
               </button>
             </div>
 
-            {error && (
-              <div
-                style={{
-                  padding: '0.65rem 0.85rem',
-                  borderRadius: '8px',
-                  background: 'hsla(350, 90%, 55%, 0.15)',
-                  border: '1px solid hsla(350, 90%, 55%, 0.3)',
-                  color: 'hsl(350, 95%, 85%)',
-                  fontSize: '0.8rem',
-                }}
-              >
-                {error}
-              </div>
-            )}
+            <form onSubmit={handleSubmit}>
+              {error && (
+                <div
+                  style={{
+                    padding: '0.6rem 0.8rem',
+                    background: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    borderRadius: '8px',
+                    color: '#f87171',
+                    fontSize: '0.8rem',
+                    marginBottom: '1rem',
+                  }}
+                >
+                  {error}
+                </div>
+              )}
 
-            <form onSubmit={handleSaveCategory} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className={styles.formGroup}>
+              <div className={styles.formGroup} style={{ marginBottom: '1rem' }}>
                 <label className={styles.label}>Nama Kategori *</label>
                 <input
                   type="text"
-                  placeholder="Contoh: Frontend, Backend, UI/UX"
+                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  placeholder="Contoh: Backend, Design, QA..."
                   className={styles.input}
-                  required
                 />
               </div>
 
-              <div className={styles.formGroup}>
-                <label className={styles.label}>Deskripsi</label>
+              <div className={styles.formGroup} style={{ marginBottom: '1rem' }}>
+                <label className={styles.label}>Deskripsi (Opsional)</label>
                 <textarea
-                  placeholder="Penjelasan singkat mengenai kategori ini..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Deskripsi singkat mengenai kategori..."
                   className={styles.textarea}
+                  rows={3}
                 />
               </div>
 
@@ -308,6 +320,15 @@ export default function CategoriesPage() {
           </div>
         </div>
       )}
+
+      {/* Custom Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!categoryToDelete}
+        title="Hapus Kategori?"
+        description={`Apakah Anda yakin ingin menghapus kategori "${categoryToDelete?.name || ''}"? Data yang dihapus tidak dapat dikembalikan.`}
+        onConfirm={handleConfirmDeleteCategory}
+        onClose={() => setCategoryToDelete(null)}
+      />
     </div>
   );
 }

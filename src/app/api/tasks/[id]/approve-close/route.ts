@@ -37,7 +37,6 @@ export async function POST(
         taskNumber: true,
         title: true,
         status: true,
-        isLocked: true,
         assigneeId: true,
         projectId: true,
         closeRequestStatus: true,

@@ -10,6 +10,8 @@ import { TaskFilterBar } from '@/components/task-management/TaskFilterBar';
 import { TaskTable, TaskItem } from '@/components/task-management/TaskTable';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
+import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 import { TASK_MUTATED_EVENT, notifyTaskMutated } from '@/lib/task-event';
@@ -18,6 +20,7 @@ export default function AllTasksPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { activeProject } = useProjectContext();
+  const toastCtx = useSafeToast();
   const activeProjectId = activeProject?.projectId;
 
   const [tasks, setTasks] = useState<TaskItem[]>([]);
@@ -35,6 +38,7 @@ export default function AllTasksPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<TaskItem | null>(null);
 
   const role = session?.user?.role || 'Staff';
   const isAdmin = role === 'Admin';
@@ -174,20 +178,30 @@ export default function AllTasksPage() {
     fetchTasks();
   };
 
-  const handleDeleteTask = async (task: TaskItem) => {
-    if (!confirm(`Apakah Anda yakin ingin menghapus task ${task.taskNumber} - "${task.title}"?`)) {
-      return;
-    }
+  const handleDeleteTask = (task: TaskItem) => {
+    setTaskToDelete(task);
+  };
 
-    const res = await fetch(`/api/tasks/${task.id}`, {
-      method: 'DELETE',
-    });
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete) return;
 
-    if (res.ok) {
-      fetchTasks();
-    } else {
-      const json = await res.json();
-      alert(json.error || 'Gagal menghapus task.');
+    try {
+      const res = await fetch(`/api/tasks/${taskToDelete.id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        if (toastCtx?.showToast) toastCtx.showToast(`Task ${taskToDelete.taskNumber} berhasil dihapus.`, 'success');
+        setTaskToDelete(null);
+        fetchTasks();
+        notifyTaskMutated();
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menghapus task.');
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal menghapus task. Silakan coba lagi.';
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     }
   };
 
@@ -211,21 +225,19 @@ export default function AllTasksPage() {
             </div>
           </div>
 
-          {isAdmin && (
-            <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
-              <Plus size={16} />
-              Buat Task Baru
-            </button>
-          )}
+          <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
+            <Plus size={16} />
+            Buat Task Baru
+          </button>
         </div>
 
         <TaskFilterBar
-          onFilterChange={(filters) => {
-            setFilterParams(filters);
-            setCurrentPage(1);
-          }}
           categories={categories}
           users={users}
+          onFilterChange={(params) => {
+            setFilterParams(params);
+            setCurrentPage(1);
+          }}
         />
 
         <TaskTable
@@ -263,6 +275,15 @@ export default function AllTasksPage() {
         currentUserId={currentUserId}
         onEditRequest={(t) => setEditingTask(t as unknown as TaskItem)}
         onTaskUpdated={fetchTasks}
+      />
+
+      {/* Custom Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!taskToDelete}
+        title={`Hapus Task ${taskToDelete?.taskNumber || ''}?`}
+        description={`Apakah Anda yakin ingin menghapus task ${taskToDelete?.taskNumber || ''}${taskToDelete?.title ? ` - "${taskToDelete.title}"` : ''}? Data yang dihapus tidak dapat dikembalikan.`}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setTaskToDelete(null)}
       />
     </div>
   );

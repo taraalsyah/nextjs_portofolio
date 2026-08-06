@@ -5,6 +5,7 @@ import { Send, Edit2, Trash2, Check, X, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
 import { useSafeToast } from '@/components/ui/Toast';
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 
 interface CommentItem {
   id: number;
@@ -33,6 +34,7 @@ export function TaskCommentSection({
   const [editContent, setEditContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
+  const [commentToDelete, setCommentToDelete] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const toastCtx = useSafeToast();
@@ -77,7 +79,9 @@ export function TaskCommentSection({
     onRefresh();
   };
 
-  const handleDeleteComment = async (commentId: number) => {
+  const handleConfirmDeleteComment = async () => {
+    if (commentToDelete === null) return;
+    const commentId = commentToDelete;
     if (deletingIds.includes(commentId)) return;
 
     setError(null);
@@ -89,6 +93,8 @@ export function TaskCommentSection({
       });
 
       if (res.ok) {
+        if (toastCtx?.showToast) toastCtx.showToast('Komentar berhasil dihapus.', 'success');
+        setCommentToDelete(null);
         onRefresh();
       } else {
         const json = await res.json().catch(() => ({}));
@@ -190,7 +196,7 @@ export function TaskCommentSection({
                           <Edit2 size={11} />
                         </button>
                         <button
-                          onClick={() => handleDeleteComment(c.id)}
+                          onClick={() => setCommentToDelete(c.id)}
                           disabled={isDeleting}
                           className={`${styles.actionBtn} ${styles.deleteBtn}`}
                           style={{ width: '22px', height: '22px' }}
@@ -261,6 +267,15 @@ export function TaskCommentSection({
           </button>
         </form>
       )}
+
+      {/* Custom Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={commentToDelete !== null}
+        title="Hapus Komentar?"
+        description="Apakah Anda yakin ingin menghapus komentar ini? Data yang dihapus tidak dapat dikembalikan."
+        onConfirm={handleConfirmDeleteComment}
+        onClose={() => setCommentToDelete(null)}
+      />
     </div>
   );
 }

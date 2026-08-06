@@ -5,6 +5,7 @@ import { Image as ImageIcon, Upload, Download, Trash2, Eye, AlertCircle } from '
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
 import { useToast } from '@/components/ui/Toast';
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 
 interface AttachmentItem {
   id: number;
@@ -33,6 +34,7 @@ export function TaskAttachmentSection({
 }: TaskAttachmentSectionProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<{ id: number; fileName: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -98,7 +100,9 @@ export function TaskAttachmentSection({
     }
   };
 
-  const handleDeleteAttachment = async (attachmentId: number) => {
+  const handleConfirmDeleteAttachment = async () => {
+    if (!attachmentToDelete) return;
+    const attachmentId = attachmentToDelete.id;
     if (deletingIds.includes(attachmentId)) return;
 
     setError(null);
@@ -110,6 +114,8 @@ export function TaskAttachmentSection({
       });
 
       if (res.ok) {
+        if (toastCtx?.showToast) toastCtx.showToast('Lampiran berhasil dihapus.', 'success');
+        setAttachmentToDelete(null);
         onRefresh();
       } else {
         const json = await res.json().catch(() => ({}));
@@ -293,7 +299,7 @@ export function TaskAttachmentSection({
                       </a>
                       {canDelete && (
                         <button
-                          onClick={() => handleDeleteAttachment(att.id)}
+                          onClick={() => setAttachmentToDelete({ id: att.id, fileName: att.fileName })}
                           className={`${styles.actionBtn} ${styles.deleteBtn}`}
                           title="Hapus Lampiran"
                         >
@@ -342,6 +348,15 @@ export function TaskAttachmentSection({
           </div>
         </div>
       )}
+
+      {/* Custom Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!attachmentToDelete}
+        title="Hapus Lampiran?"
+        description={`Apakah Anda yakin ingin menghapus lampiran "${attachmentToDelete?.fileName || ''}"? Data yang dihapus tidak dapat dikembalikan.`}
+        onConfirm={handleConfirmDeleteAttachment}
+        onClose={() => setAttachmentToDelete(null)}
+      />
     </div>
   );
 }

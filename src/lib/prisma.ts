@@ -8,7 +8,7 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-// In development, check if cached global instance is missing newly generated fields
+// In development, check if cached global instance is missing newly generated fields (like isLocked)
 if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
   try {
     const dmmf = (globalForPrisma.prisma as any)?._dMMF;
@@ -30,3 +30,4 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 export default prisma;
+

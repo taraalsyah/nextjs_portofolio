@@ -9,6 +9,7 @@ import { TaskKanbanBoard } from '@/components/task-management/TaskKanbanBoard';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
+import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 import { TASK_MUTATED_EVENT, notifyTaskMutated } from '@/lib/task-event';
 
@@ -120,6 +121,8 @@ export default function KanbanPage() {
     }
   }, [fetchCategories, fetchKanbanTasks]);
 
+  const toastCtx = useSafeToast();
+
   const handleStatusChange = async (taskId: number, newStatus: string) => {
     try {
       const res = await fetch(`/api/tasks/${taskId}/status`, {
@@ -136,15 +139,13 @@ export default function KanbanPage() {
         );
         notifyTaskMutated(taskId, 'status_change');
       } else {
-        alert(json.error || 'Gagal merubah status workflow.');
-        throw new Error(json.error || 'Gagal merubah status workflow.');
+        const errMsg = json.error || 'Gagal merubah status workflow.';
+        if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
+        throw new Error(errMsg);
       }
     } catch (err: unknown) {
-      if (err instanceof Error && err.message) {
-        // Handled by alert above
-      } else {
-        alert('Gagal merubah status workflow.');
-      }
+      const errMsg = err instanceof Error ? err.message : 'Gagal merubah status workflow.';
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
       throw err;
     }
   };

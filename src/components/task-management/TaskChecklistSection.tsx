@@ -5,6 +5,7 @@ import { Plus, CheckSquare, Square, Trash2, AlertCircle } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { InlineSpinner } from '@/components/ui/loading';
 import { useToast } from '@/components/ui/Toast';
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 
 export interface ChecklistItem {
   id: number;
@@ -23,6 +24,7 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
   const [newItemTitle, setNewItemTitle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
   const [deletingIds, setDeletingIds] = useState<number[]>([]);
+  const [itemToDelete, setItemToDelete] = useState<{ id: number; title: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const toastCtx = useToast();
@@ -69,7 +71,9 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
     onRefresh();
   };
 
-  const handleDeleteItem = async (itemId: number) => {
+  const handleConfirmDelete = async () => {
+    if (!itemToDelete) return;
+    const itemId = itemToDelete.id;
     if (deletingIds.includes(itemId)) return;
 
     setError(null);
@@ -81,6 +85,8 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
       });
 
       if (res.ok) {
+        if (toastCtx?.showToast) toastCtx.showToast('Item checklist berhasil dihapus.', 'success');
+        setItemToDelete(null);
         onRefresh();
       } else {
         const json = await res.json().catch(() => ({}));
@@ -111,44 +117,43 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
             background: 'hsla(350, 90%, 55%, 0.15)',
             border: '1px solid hsla(350, 90%, 55%, 0.3)',
             color: 'hsl(350, 95%, 85%)',
-            fontSize: '0.78rem',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
+            fontSize: '0.8rem',
           }}
         >
-          <AlertCircle size={14} />
           {error}
         </div>
       )}
 
       {/* Progress Bar */}
-      {totalCount > 0 && (
+      <div
+        style={{
+          width: '100%',
+          height: '6px',
+          borderRadius: '3px',
+          background: 'var(--glass-border)',
+          overflow: 'hidden',
+        }}
+      >
         <div
           style={{
-            height: '6px',
-            width: '100%',
-            background: 'hsla(0,0%,100%,0.08)',
-            borderRadius: '100px',
-            overflow: 'hidden',
+            width: `${percentage}%`,
+            height: '100%',
+            background: percentage === 100 ? 'hsl(140, 75%, 45%)' : 'var(--secondary)',
+            transition: 'width 0.3s ease',
           }}
-        >
-          <div
-            style={{
-              height: '100%',
-              width: `${percentage}%`,
-              background: 'linear-gradient(90deg, var(--secondary) 0%, var(--primary) 100%)',
-              transition: 'width 0.3s ease',
-            }}
-          />
-        </div>
-      )}
+        />
+      </div>
 
       {/* Item List */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        {checklists.length === 0 && (
+          <div style={{ fontSize: '0.82rem', color: 'hsla(0, 0%, 100%, 0.4)', fontStyle: 'italic' }}>
+            Belum ada item checklist.
+          </div>
+        )}
+
         {checklists.map((item) => {
           const isDeleting = deletingIds.includes(item.id);
-
           return (
             <div
               key={item.id}
@@ -156,33 +161,25 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                padding: '0.5rem 0.75rem',
+                padding: '0.45rem 0.65rem',
                 borderRadius: '8px',
                 background: 'var(--glass)',
                 border: '1px solid var(--glass-border)',
-                opacity: isDeleting ? 0.7 : 1,
               }}
             >
-              <div
-                onClick={() => canUpdateProgress && !isDeleting && handleToggleItem(item.id, item.isCompleted)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  cursor: canUpdateProgress && !isDeleting ? 'pointer' : 'default',
-                  flex: 1,
-                }}
-              >
-                {item.isCompleted ? (
-                  <CheckSquare size={16} style={{ color: 'var(--secondary)' }} />
-                ) : (
-                  <Square size={16} style={{ color: 'hsla(0,0%,100%,0.4)' }} />
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flex: 1 }}>
+                <input
+                  type="checkbox"
+                  checked={item.isCompleted}
+                  onChange={() => handleToggleItem(item.id, item.isCompleted)}
+                  disabled={!canUpdateProgress || isDeleting}
+                  style={{ cursor: canUpdateProgress && !isDeleting ? 'pointer' : 'not-allowed', width: '16px', height: '16px' }}
+                />
                 <span
                   style={{
-                    fontSize: '0.82rem',
+                    fontSize: '0.84rem',
                     textDecoration: item.isCompleted ? 'line-through' : 'none',
-                    color: item.isCompleted ? 'hsla(0,0%,100%,0.4)' : 'var(--fg-color)',
+                    color: item.isCompleted ? 'hsla(0, 0%, 100%, 0.45)' : 'var(--fg-color)',
                   }}
                 >
                   {item.title}
@@ -195,7 +192,7 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
                 </div>
               ) : canUpdateProgress ? (
                 <button
-                  onClick={() => handleDeleteItem(item.id)}
+                  onClick={() => setItemToDelete({ id: item.id, title: item.title })}
                   disabled={isDeleting}
                   className={`${styles.actionBtn} ${styles.deleteBtn}`}
                   style={{ width: '24px', height: '24px' }}
@@ -240,6 +237,15 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
           </button>
         </form>
       )}
+
+      {/* Custom Confirm Delete Modal */}
+      <ConfirmDeleteModal
+        isOpen={!!itemToDelete}
+        title="Hapus Item Checklist?"
+        description={`Apakah Anda yakin ingin menghapus checklist "${itemToDelete?.title || ''}"? Data yang dihapus tidak dapat dikembalikan.`}
+        onConfirm={handleConfirmDelete}
+        onClose={() => setItemToDelete(null)}
+      />
     </div>
   );
 }

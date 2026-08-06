@@ -11,6 +11,7 @@ import { TaskCommentSection } from '@/components/task-management/TaskCommentSect
 import { TaskAttachmentSection } from '@/components/task-management/TaskAttachmentSection';
 import { TaskHistorySection } from '@/components/task-management/TaskHistorySection';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 import type { ProjectPermissions } from '@/lib/project';
@@ -167,19 +168,29 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     fetchTaskDetails();
   };
 
-  const handleDeleteTask = async () => {
+  const handleDeleteTaskClick = () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDeleteTask = async () => {
     if (!task) return;
-    if (!confirm(`Apakah Anda yakin ingin menghapus task ${task.taskNumber}?`)) return;
 
-    const res = await fetch(`/api/tasks/${taskId}`, {
-      method: 'DELETE',
-    });
+    try {
+      const res = await fetch(`/api/tasks/${taskId}`, {
+        method: 'DELETE',
+      });
 
-    if (res.ok) {
-      router.push('/dashboard/task-management');
-    } else {
-      const json = await res.json();
-      alert(json.error || 'Gagal menghapus task.');
+      if (res.ok) {
+        if (toastCtx?.showToast) toastCtx.showToast(`Task ${task.taskNumber} berhasil dihapus.`, 'success');
+        setIsDeleteModalOpen(false);
+        router.push('/dashboard/task-management');
+      } else {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(json.error || 'Gagal menghapus task.');
+      }
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal menghapus task. Silakan coba lagi.';
+      if (toastCtx?.showToast) toastCtx.showToast(errMsg, 'error');
     }
   };
 
@@ -223,7 +234,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                   Edit Task
                 </button>
                 <button
-                  onClick={handleDeleteTask}
+                  onClick={handleDeleteTaskClick}
                   className={`${styles.actionBtn} ${styles.deleteBtn} ${task.status === 'CLOSED' ? styles.disabledBtn : styles.noPointerBtn}`}
                   style={{ width: '38px', height: '38px' }}
                   title="Hapus Task"
@@ -432,6 +443,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         initialData={task}
         categories={categories}
         users={users}
+      />
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteModalOpen}
+        title={`Hapus Task ${task?.taskNumber || ''}?`}
+        description={`Apakah Anda yakin ingin menghapus task ${task?.taskNumber || ''}${task?.title ? ` - "${task.title}"` : ''}? Data yang dihapus tidak dapat dikembalikan.`}
+        onConfirm={handleConfirmDeleteTask}
+        onClose={() => setIsDeleteModalOpen(false)}
       />
     </div>
   );
