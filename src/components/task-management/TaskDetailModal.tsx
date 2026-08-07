@@ -420,10 +420,10 @@ export function TaskDetailModal({
 
   // Close Request State
   const closeRequestStatus = task?.closeRequestStatus || 'NONE';
-  const showRequestCloseButton = false;
-  const showPendingBadge = false;
-  const showApprovalCard = false;
-  const showRejectedInfo = false;
+  const showRequestCloseButton = !isTaskDone && isAssignee && !isOwnerOrAdmin && (task?.status === 'IN_PROGRESS' || task?.status === 'DONE') && closeRequestStatus !== 'PENDING';
+  const showPendingBadge = !isTaskDone && isAssignee && closeRequestStatus === 'PENDING';
+  const showApprovalCard = !isTaskDone && isOwnerOrAdmin && closeRequestStatus === 'PENDING';
+  const showRejectedInfo = !isTaskDone && closeRequestStatus === 'REJECTED' && !isOwnerOrAdmin;
 
   const handleStatusChange = async (newStatus: string) => {
     if (!task || isUpdatingStatus) return;

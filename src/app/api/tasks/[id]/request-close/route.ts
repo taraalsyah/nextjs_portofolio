@@ -99,10 +99,10 @@ export async function POST(
       );
     }
 
-    // Task must be in DONE status
-    if (task.status !== 'DONE') {
+    // Task must be in IN_PROGRESS or DONE status
+    if (task.status !== 'IN_PROGRESS' && task.status !== 'DONE') {
       return NextResponse.json(
-        { error: `Tidak dapat mengajukan Close Request. Task harus dalam status DONE terlebih dahulu. Status saat ini: ${task.status}` },
+        { error: `Tidak dapat mengajukan Close Request. Task harus dalam status IN_PROGRESS atau DONE terlebih dahulu. Status saat ini: ${task.status}` },
         { status: 400 }
       );
     }

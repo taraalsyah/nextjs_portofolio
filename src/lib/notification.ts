@@ -33,45 +33,78 @@ export async function sendTaskCloseNotification({
     const timestamp = formatActivityWIB(new Date());
 
     if (requestStatus === 'PENDING') {
-      const ownerAndAdmins = await prisma.projectMember.findMany({
-        where: {
-          projectId,
-          role: { in: ['OWNER', 'ADMIN'] },
-          userId: { not: actorUserId },
-        },
-        include: {
-          user: { select: { id: true, email: true, name: true } },
+      // Retrieve Project Owner strictly via relation: Task -> Project -> Project Owner
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: {
+          id: true,
+          projectName: true,
+          ownerUserId: true,
+          owner: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
         },
       });
 
-      const subject = `[Close Request] ${taskNumber} - ${taskTitle}`;
+      if (!project) {
+        console.error(`[Request to Close Error] Project ID #${projectId} not found.`);
+        return;
+      }
+
+      const owner = project.owner;
+      if (!owner || !owner.email) {
+        console.error(
+          `[Request to Close Error] Task ${taskNumber} (Project ID: ${projectId}, Name: "${project.projectName}"): Project Owner (ID: ${project.ownerUserId}) has no valid email address. Email notification skipped. No fallback recipients used.`
+        );
+        return;
+      }
+
+      // Safe debug logging (Requirement #13)
+      console.log('Request to Close');
+      console.log(`Task: ${taskNumber}`);
+      console.log(`Project: ${project.projectName}`);
+      console.log(`Project Owner ID: ${project.ownerUserId}`);
+      console.log(`Recipient: ${owner.email}`);
+
+      const baseUrl = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+      const taskLink = `${baseUrl}/dashboard/task-management/${taskId}`;
+      const subject = `Task ${taskNumber} - Request to Close`;
+
       const bodyHtml = `
-        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-          <h2 style="color: #4f46e5;">Permintaan Penutupan Task (Request to Close)</h2>
-          <p>Halo,</p>
+        <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px;">
+          <h2 style="color: #4f46e5; margin-top: 0;">Permintaan Penutupan Task (Request to Close)</h2>
+          <p>Halo <strong>${owner.name}</strong>,</p>
           <p><strong>${userTitle}</strong> mengajukan permintaan untuk menutup task berikut:</p>
           <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd; width: 140px;"><strong>Task ID / No:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${taskNumber}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd; width: 150px;"><strong>Task ID / No:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold; color: #4f46e5;">${taskNumber}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Judul Task:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${taskTitle}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Proyek:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${projectName}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Status Request:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-weight: bold;">WAITING OWNER APPROVAL</span></td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Pemohon:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userTitle}</td></tr>
-            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Waktu:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${timestamp}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Proyek:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${project.projectName}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Status Saat Ini:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;"><span style="background: #fef3c7; color: #92400e; padding: 3px 8px; border-radius: 4px; font-weight: bold;">WAITING OWNER REVIEW</span></td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Waktu Permintaan:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${timestamp}</td></tr>
             ${reason ? `<tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Alasan:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${reason}</td></tr>` : ''}
           </table>
-          <p>Silakan tinjau dan berikan keputusan (Setujui / Tolak) melalui halaman Task Management.</p>
+          <p style="margin-top: 20px;">
+            <a href="${taskLink}" style="background-color: #4f46e5; color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+              Tinjau Task Ini
+            </a>
+          </p>
+          <p style="font-size: 0.85rem; color: #64748b; margin-top: 15px;">
+            Atau buka tautan berikut: <a href="${taskLink}" style="color: #4f46e5;">${taskLink}</a>
+          </p>
         </div>
       `;
 
-      for (const member of ownerAndAdmins) {
-        if (member.user?.email) {
-          sendEmail({
-            to: member.user.email,
-            subject,
-            html: bodyHtml,
-          }).catch((err) => console.error(`Failed sending close request email to ${member.user.email}:`, err));
-        }
-      }
+      // Send email STRICTLY ONLY to single project owner email address
+      sendEmail({
+        to: owner.email,
+        subject,
+        html: bodyHtml,
+      }).catch((err) => console.error(`Failed sending Request to Close email to Project Owner (${owner.email}):`, err));
     } else if (requestStatus === 'APPROVED' || requestStatus === 'REJECTED') {
       const task = await prisma.task.findUnique({
         where: { id: taskId },
