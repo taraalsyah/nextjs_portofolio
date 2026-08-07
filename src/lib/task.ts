@@ -3,7 +3,7 @@ import { ActivityAction } from '@/lib/activity';
 import { Prisma } from '@prisma/client';
 import { NextResponse } from 'next/server';
 
-export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE';
+export type TaskStatus = 'BACKLOG' | 'OPEN' | 'IN_PROGRESS' | 'DONE' | 'CLOSED' | 'LOCKED';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
 export const TASK_STATUSES: { key: TaskStatus; label: string; color: string }[] = [

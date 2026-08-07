@@ -104,6 +104,7 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                 colTasks.map((task) => {
                   const isUpdating = movingTaskId === task.id;
                   const isDone = task.status === 'DONE' || task.status === ('CLOSED' as any) || task.isLocked === true;
+                  const isLocked = isDone;
                   const prev = isDone ? null : getPrevStatus(task.status);
                   const next = isDone ? null : getNextStatus(task.status);
 

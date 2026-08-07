@@ -12,6 +12,7 @@ import { TaskAttachmentSection } from '@/components/task-management/TaskAttachme
 import { TaskHistorySection } from '@/components/task-management/TaskHistorySection';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
+import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 import type { ProjectPermissions } from '@/lib/project';
