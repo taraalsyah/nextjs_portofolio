@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Eye, Edit3, Trash2, Calendar, User, Tag } from 'lucide-react';
+import { Eye, Edit3, Trash2, Calendar, User, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 
 export interface TaskItem {
   id: number;
@@ -27,6 +28,7 @@ export interface TaskItem {
 interface TaskTableProps {
   tasks: TaskItem[];
   isLoading: boolean;
+  isFetching?: boolean;
   isAdmin: boolean;
   onView: (task: TaskItem) => void;
   onEdit: (task: TaskItem) => void;
@@ -40,6 +42,7 @@ interface TaskTableProps {
 export function TaskTable({
   tasks,
   isLoading,
+  isFetching = false,
   isAdmin,
   onView,
   onEdit,
@@ -89,8 +92,54 @@ export function TaskTable({
     });
   };
 
+  // Helper to generate page numbers array
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = [];
+    const maxVisible = 5;
+
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      let start = Math.max(1, currentPage - 1);
+      let end = Math.min(totalPages, currentPage + 1);
+
+      if (currentPage <= 2) {
+        end = Math.min(totalPages, maxVisible - 1);
+      } else if (currentPage >= totalPages - 1) {
+        start = Math.max(1, totalPages - (maxVisible - 2));
+      }
+
+      if (start > 1) {
+        pages.push(1);
+        if (start > 2) pages.push('...');
+      }
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (end < totalPages) {
+        if (end < totalPages - 1) pages.push('...');
+        pages.push(totalPages);
+      }
+    }
+    return pages;
+  };
+
+  const isInitialLoading = isLoading && tasks.length === 0;
+
   return (
     <div className={styles.tableWrapper}>
+      {/* Subtle overlay during pagination/filter background fetching while tasks stay visible */}
+      {isFetching && tasks.length > 0 && (
+        <div className={styles.tableLoadingOverlay}>
+          <div className={styles.tableLoadingBadge}>
+            <InlineSpinner size={16} />
+            <span>Memuat data task...</span>
+          </div>
+        </div>
+      )}
+
       <table className={styles.table}>
         <thead>
           <tr>
@@ -106,10 +155,13 @@ export function TaskTable({
           </tr>
         </thead>
         <tbody>
-          {isLoading ? (
+          {isInitialLoading ? (
             <tr>
-              <td colSpan={9} style={{ textAlign: 'center', padding: '2rem' }}>
-                <span style={{ color: 'hsla(0,0%,100%,0.5)' }}>Memuat data task...</span>
+              <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'hsla(0,0%,100%,0.6)' }}>
+                  <InlineSpinner size={18} />
+                  <span>Memuat data task...</span>
+                </div>
               </td>
             </tr>
           ) : tasks.length === 0 ? (
@@ -262,31 +314,47 @@ export function TaskTable({
             borderTop: '1px solid var(--glass-border)',
             fontSize: '0.78rem',
             color: 'hsla(0,0%,100%,0.5)',
+            flexWrap: 'wrap',
+            gap: '0.5rem',
           }}
         >
           <span>
             Menampilkan halaman {currentPage} dari {totalPages} ({totalItems} total task)
           </span>
-          <div style={{ display: 'flex', gap: '0.35rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
             <button
-              disabled={currentPage <= 1}
+              disabled={currentPage <= 1 || isFetching}
               onClick={() => onPageChange(currentPage - 1)}
-              className={styles.actionBtn}
-              style={{ width: 'auto', padding: '0 0.6rem', opacity: currentPage <= 1 ? 0.4 : 1 }}
+              className={styles.pageBtn}
+              title="Halaman Sebelumnya"
             >
-              Sebelumnya
+              <ChevronLeft size={14} />
             </button>
+
+            {getPageNumbers().map((page, idx) =>
+              typeof page === 'number' ? (
+                <button
+                  key={idx}
+                  disabled={isFetching}
+                  onClick={() => onPageChange(page)}
+                  className={`${styles.pageBtn} ${currentPage === page ? styles.pageBtnActive : ''}`}
+                >
+                  {page}
+                </button>
+              ) : (
+                <span key={idx} style={{ padding: '0 0.25rem', color: 'hsla(0,0%,100%,0.3)' }}>
+                  {page}
+                </span>
+              )
+            )}
+
             <button
-              disabled={currentPage >= totalPages}
+              disabled={currentPage >= totalPages || isFetching}
               onClick={() => onPageChange(currentPage + 1)}
-              className={styles.actionBtn}
-              style={{
-                width: 'auto',
-                padding: '0 0.6rem',
-                opacity: currentPage >= totalPages ? 0.4 : 1,
-              }}
+              className={styles.pageBtn}
+              title="Halaman Selanjutnya"
             >
-              Selanjutnya
+              <ChevronRight size={14} />
             </button>
           </div>
         </div>

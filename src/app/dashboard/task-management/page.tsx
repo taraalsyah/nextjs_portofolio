@@ -27,6 +27,12 @@ export default function AllTasksPage() {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const { users } = useProjectMembers();
   const [isLoading, setIsLoading] = useState(true);
+  const [isFetching, setIsFetching] = useState(false);
+
+  const tasksRef = useRef<TaskItem[]>(tasks);
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   // Pagination & Filter state
   const [currentPage, setCurrentPage] = useState(1);
@@ -89,7 +95,11 @@ export default function AllTasksPage() {
     if (status !== 'authenticated') return;
     const targetProjectId = activeProjectId;
 
-    setIsLoading(true);
+    if (tasksRef.current.length === 0) {
+      setIsLoading(true);
+    } else {
+      setIsFetching(true);
+    }
 
     try {
       const query = new URLSearchParams({
@@ -108,19 +118,24 @@ export default function AllTasksPage() {
         setTotalPages(data.totalPages || 1);
         setTotalItems(data.totalItems || 0);
       } else {
-        setTasks([]);
+        if (tasksRef.current.length === 0) {
+          setTasks([]);
+        }
         setTotalPages(1);
         setTotalItems(0);
       }
     } catch {
       if (activeProjectRef.current === targetProjectId) {
-        setTasks([]);
+        if (tasksRef.current.length === 0) {
+          setTasks([]);
+        }
         setTotalPages(1);
         setTotalItems(0);
       }
     } finally {
       if (activeProjectRef.current === targetProjectId) {
         setIsLoading(false);
+        setIsFetching(false);
       }
     }
   }, [status, activeProjectId, currentPage, filterParams]);
@@ -243,6 +258,7 @@ export default function AllTasksPage() {
         <TaskTable
           tasks={tasks}
           isLoading={isLoading}
+          isFetching={isFetching}
           isAdmin={isAdmin}
           onView={(t) => setSelectedTaskId(t.id)}
           onEdit={(t) => setEditingTask(t)}
