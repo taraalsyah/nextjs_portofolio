@@ -329,7 +329,7 @@ export async function PUT(
       }
 
       return taskRes;
-    });
+    }, { maxWait: 5000, timeout: 15000 });
 
     return NextResponse.json({ task: updatedTask });
   } catch (err: unknown) {
@@ -390,7 +390,7 @@ export async function DELETE(
         description: `Soft Delete Task ${task.taskNumber} - "${task.title}"`,
         tx,
       });
-    });
+    }, { maxWait: 5000, timeout: 15000 });
 
     return NextResponse.json({ message: 'Task berhasil dihapus (Soft Delete).' });
   } catch (err: unknown) {

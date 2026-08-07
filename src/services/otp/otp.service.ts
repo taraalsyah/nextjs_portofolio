@@ -220,7 +220,7 @@ export class OtpService {
           userAgent: meta?.userAgent,
         },
       });
-    });
+    }, { maxWait: 5000, timeout: 15000 });
 
     return { success: true, message: 'Verifikasi berhasil. Silakan login.' };
   }
@@ -310,7 +310,7 @@ export class OtpService {
           userAgent: meta?.userAgent,
         },
       });
-    });
+    }, { maxWait: 5000, timeout: 15000 });
 
     // Kirim email OTP baru
     try {
@@ -366,7 +366,7 @@ export class OtpService {
           userAgent: meta?.userAgent,
         },
       });
-    });
+    }, { maxWait: 5000, timeout: 15000 });
 
     return { success: true, message: 'Akun telah dibuka kembali oleh Administrator. Silakan lakukan pengiriman OTP kembali.' };
   }

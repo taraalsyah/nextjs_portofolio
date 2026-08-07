@@ -255,7 +255,7 @@ export async function POST(req: NextRequest) {
       });
 
       return createdTask;
-    });
+    }, { maxWait: 5000, timeout: 15000 });
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (err: any) {
