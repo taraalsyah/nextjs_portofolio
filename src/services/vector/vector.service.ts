@@ -1550,7 +1550,7 @@ export async function searchWithLatestPriority(
             source: null,
             isOutOfScope: true,
             low_confidence: true,
-            warning: latestRerank.warning || "Maaf, informasi tersebut tidak ditemukan dalam knowledge base yang tersedia.",
+            warning: latestRerank.fallbackWarning || "Maaf, informasi tersebut tidak ditemukan dalam knowledge base yang tersedia.",
             usedLatestFile: false,
         };
     }

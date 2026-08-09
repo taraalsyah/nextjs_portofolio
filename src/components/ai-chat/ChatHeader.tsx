@@ -18,7 +18,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
 }) => {
   const projectContext = useProjectContext();
   const activeProjectName =
-    projectContext?.activeProject?.name || projectContext?.optimisticProject?.name || 'Task Management';
+    projectContext?.activeProject?.projectName || projectContext?.optimisticProject?.projectName || 'Task Management';
 
   return (
     <div className={styles.header}>
