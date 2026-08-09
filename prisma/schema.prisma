@@ -1,49 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "mysql"
   url      = env("DATABASE_URL_MYSQL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 model User {
-  id                Int                 @id @default(autoincrement())
-  name              String
-  username          String?             @unique
-  email             String              @unique
-  password          String
-  role              String              @default("user") // Fallback
-  roleId            Int?                @map("role_id")
-  roleRel           Role?               @relation("UserRole", fields: [roleId], references: [id], onDelete: SetNull)
-  status            String              @default("PENDING") // PENDING, ACTIVE, BLOCKED
-  phone             String?
-  image             String?
-  apiToken          String?             @unique @map("api_token")
-  otpAttemptCount   Int                 @default(0) @map("otp_attempt_count")
-  otpSoftBlockUntil DateTime?           @map("otp_soft_block_until")
-  otpSoftBlockCount Int                 @default(0) @map("otp_soft_block_count")
-  emailVerifiedAt   DateTime?           @map("email_verified_at")
-  lastLoginAt       DateTime?           @map("last_login_at")
-  createdAt         DateTime            @default(now()) @map("created_at")
-  updatedAt         DateTime            @updatedAt @map("updated_at")
-  verifications     EmailVerification[]
-  passwordResets    PasswordResetToken[]
-  activityLogs      ActivityLog[]
+  id                  Int                  @id @default(autoincrement())
+  name                String
+  email               String               @unique
+  password            String
+  role                String               @default("user")
+  status              String               @default("PENDING")
+  emailVerifiedAt     DateTime?            @map("email_verified_at")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  image               String?
+  lastLoginAt         DateTime?            @map("last_login_at")
+  phone               String?
+  username            String?              @unique
+  roleId              Int?                 @map("role_id")
+  otpAttemptCount     Int                  @default(0) @map("otp_attempt_count")
+  otpSoftBlockCount   Int                  @default(0) @map("otp_soft_block_count")
+  otpSoftBlockUntil   DateTime?            @map("otp_soft_block_until")
+  apiToken            String?              @unique @map("api_token")
+  activityLogs        ActivityLog[]
+  verifications       EmailVerification[]
+  passwordResets      PasswordResetToken[]
+  projectMemberships  ProjectMember[]
+  ownedProjects       Project[]            @relation("ProjectOwner")
+  taskAttachments     TaskAttachment[]
+  taskComments        TaskComment[]
+  taskHistories       TaskHistory[]
+  assignedTasks       Task[]               @relation("TaskAssignee")
+  closeRequestedTasks Task[]               @relation("CloseRequester")
+  closeReviewedTasks  Task[]               @relation("CloseReviewer")
+  createdTasks        Task[]               @relation("TaskCreator")
+  doneRequestedTasks  Task[]               @relation("DoneRequester")
+  doneReviewedTasks   Task[]               @relation("DoneReviewer")
+  roleRel             Role?                @relation("UserRole", fields: [roleId], references: [id])
 
-  // Task Management & Project Relations
-  assignedTasks     Task[]              @relation("TaskAssignee")
-  createdTasks      Task[]              @relation("TaskCreator")
-  taskComments      TaskComment[]
-  taskAttachments   TaskAttachment[]
-  taskHistories     TaskHistory[]
-  ownedProjects     Project[]           @relation("ProjectOwner")
-  projectMemberships ProjectMember[]
-  closeRequestedTasks    Task[]              @relation("CloseRequester")
-  closeReviewedTasks     Task[]              @relation("CloseReviewer")
-  doneRequestedTasks     Task[]              @relation("DoneRequester")
-  doneReviewedTasks      Task[]              @relation("DoneReviewer")
-
+  @@index([roleId], map: "users_role_id_fkey")
   @@map("users")
 }
 
@@ -54,9 +53,9 @@ model EmailVerification {
   expiredAt  DateTime  @map("expired_at")
   verifiedAt DateTime? @map("verified_at")
   createdAt  DateTime  @default(now()) @map("created_at")
-
   user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "email_verifications_user_id_fkey")
   @@map("email_verifications")
 }
 
@@ -69,26 +68,26 @@ model PasswordResetToken {
   usedAt    DateTime? @map("used_at")
   ipAddress String?   @map("ip_address")
   userAgent String?   @map("user_agent")
-
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId], map: "password_reset_tokens_user_id_fkey")
   @@map("password_reset_tokens")
 }
 
 model ActivityLog {
   id          Int      @id @default(autoincrement())
   userId      Int      @map("user_id")
-  projectId   Int?     @map("project_id")
-  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, PROJECT_*
+  action      String
   description String   @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
   ipAddress   String?  @map("ip_address")
   userAgent   String?  @map("user_agent")
-  createdAt   DateTime @default(now()) @map("created_at")
-
+  projectId   Int?     @map("project_id")
+  project     Project? @relation(fields: [projectId], references: [id])
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
+  @@index([userId], map: "activity_logs_user_id_fkey")
   @@map("activity_logs")
 }
 
@@ -98,8 +97,8 @@ model Role {
   description     String?          @db.Text
   createdAt       DateTime         @default(now()) @map("created_at")
   updatedAt       DateTime         @updatedAt @map("updated_at")
-  users           User[]           @relation("UserRole")
   rolePermissions RolePermission[]
+  users           User[]           @relation("UserRole")
 
   @@map("roles")
 }
@@ -121,11 +120,11 @@ model RolePermission {
   roleId       Int        @map("role_id")
   permissionId Int        @map("permission_id")
   createdAt    DateTime   @default(now()) @map("created_at")
-
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
   permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
 
   @@unique([roleId, permissionId])
+  @@index([permissionId], map: "role_permissions_permission_id_fkey")
   @@map("role_permissions")
 }
 
@@ -141,24 +140,22 @@ model TaskCategory {
 }
 
 model Project {
-  id          Int             @id @default(autoincrement())
-  projectName String          @map("project_name")
-  description String?         @db.Text
-  ownerUserId Int             @map("owner_user_id")
-  visibility  String          @default("PRIVATE") // PRIVATE, TEAM
-  inviteCode  String?         @unique @map("invite_code")
-  createdAt   DateTime        @default(now()) @map("created_at")
-  updatedAt   DateTime        @updatedAt @map("updated_at")
-
-  owner       User            @relation("ProjectOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
-  members     ProjectMember[]
-  tasks       Task[]
-  activityLogs ActivityLog[]
-  rolePermissions ProjectRolePermission[]
+  id                  Int                         @id @default(autoincrement())
+  projectName         String                      @map("project_name")
+  description         String?                     @db.Text
+  ownerUserId         Int                         @map("owner_user_id")
+  visibility          String                      @default("PRIVATE")
+  createdAt           DateTime                    @default(now()) @map("created_at")
+  updatedAt           DateTime                    @updatedAt @map("updated_at")
+  inviteCode          String?                     @unique @map("invite_code")
+  activityLogs        ActivityLog[]
+  members             ProjectMember[]
+  rolePermissions     ProjectRolePermission[]
   workflowPermissions ProjectWorkflowPermission[]
+  owner               User                        @relation("ProjectOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
+  tasks               Task[]
 
   @@index([ownerUserId])
-  @@index([inviteCode])
   @@map("projects")
 }
 
@@ -166,9 +163,8 @@ model ProjectMember {
   id        Int      @id @default(autoincrement())
   projectId Int      @map("project_id")
   userId    Int      @map("user_id")
-  role      String   @default("MEMBER") // OWNER, ADMIN, MEMBER, VIEWER
+  role      String   @default("MEMBER")
   joinedAt  DateTime @default(now()) @map("joined_at")
-
   project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -179,56 +175,50 @@ model ProjectMember {
 }
 
 model Task {
-  id                  Int              @id @default(autoincrement())
-  taskNumber          String           @unique @map("task_number") // TSK-000001
-  projectId           Int?             @map("project_id")
-  title               String
-  description         String           @db.Text
-  status              String           @default("BACKLOG") // BACKLOG, OPEN, IN_PROGRESS, DONE, CLOSED
-  priority            String           @default("MEDIUM") // LOW, MEDIUM, HIGH, CRITICAL
-  assigneeId          Int?             @map("assignee_id")
-  createdById         Int              @map("created_by_id")
-  categoryId          Int?             @map("category_id")
-  tags                String?          @db.Text
-  startDate           DateTime?        @map("start_date")
-  dueDate             DateTime?        @map("due_date")
-  createdAt           DateTime         @default(now()) @map("created_at")
-  updatedAt           DateTime         @updatedAt @map("updated_at")
-  deletedAt           DateTime?        @map("deleted_at") // Soft Delete
-  isLocked            Boolean          @default(false) @map("is_locked")
+  id                 Int              @id @default(autoincrement())
+  taskNumber         String           @unique @map("task_number")
+  title              String
+  description        String           @db.Text
+  status             String           @default("BACKLOG")
+  priority           String           @default("MEDIUM")
+  assigneeId         Int?             @map("assignee_id")
+  createdById        Int              @map("created_by_id")
+  categoryId         Int?             @map("category_id")
+  tags               String?          @db.Text
+  startDate          DateTime?        @map("start_date")
+  dueDate            DateTime?        @map("due_date")
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+  deletedAt          DateTime?        @map("deleted_at")
+  projectId          Int?             @map("project_id")
+  closeRejectReason  String?          @map("close_reject_reason") @db.Text
+  closeRequestReason String?          @map("close_request_reason") @db.Text
+  closeRequestStatus String           @default("NONE") @map("close_request_status")
+  closeRequestedAt   DateTime?        @map("close_requested_at")
+  closeRequestedById Int?             @map("close_requested_by_id")
+  closeReviewedAt    DateTime?        @map("close_reviewed_at")
+  closeReviewedById  Int?             @map("close_reviewed_by_id")
+  doneRequestStatus  String           @default("NONE") @map("done_request_status")
+  doneRequestedById  Int?             @map("done_requested_by_id")
+  doneRequestedAt    DateTime?        @map("done_requested_at")
+  doneRequestNote    String?          @map("done_request_note") @db.Text
+  doneReviewedById   Int?             @map("done_reviewed_by_id")
+  doneReviewedAt     DateTime?        @map("done_reviewed_at")
+  doneRejectReason   String?          @map("done_reject_reason") @db.Text
+  isLocked           Boolean          @default(false) @map("is_locked")
+  attachments        TaskAttachment[]
+  checklists         TaskChecklist[]
+  comments           TaskComment[]
+  histories          TaskHistory[]
+  assignee           User?            @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  category           TaskCategory?    @relation(fields: [categoryId], references: [id])
+  closeRequestedBy   User?            @relation("CloseRequester", fields: [closeRequestedById], references: [id])
+  closeReviewedBy    User?            @relation("CloseReviewer", fields: [closeReviewedById], references: [id])
+  createdBy          User             @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  doneRequestedBy    User?            @relation("DoneRequester", fields: [doneRequestedById], references: [id])
+  doneReviewedBy     User?            @relation("DoneReviewer", fields: [doneReviewedById], references: [id])
+  project            Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  // Done Request Approval Workflow
-  doneRequestStatus   String           @default("NONE") @map("done_request_status") // NONE, PENDING, APPROVED, REJECTED
-  doneRequestedById   Int?             @map("done_requested_by_id")
-  doneRequestedAt     DateTime?        @map("done_requested_at")
-  doneRequestNote     String?          @db.Text @map("done_request_note")
-  doneReviewedById    Int?             @map("done_reviewed_by_id")
-  doneReviewedAt      DateTime?        @map("done_reviewed_at")
-  doneRejectReason    String?          @db.Text @map("done_reject_reason")
-
-  // Close Request Approval Workflow
-  closeRequestStatus  String           @default("NONE") @map("close_request_status") // NONE, PENDING, APPROVED, REJECTED
-  closeRequestedById  Int?             @map("close_requested_by_id")
-  closeRequestedAt    DateTime?        @map("close_requested_at")
-  closeRequestReason  String?          @db.Text @map("close_request_reason")
-  closeReviewedById   Int?             @map("close_reviewed_by_id")
-  closeReviewedAt     DateTime?        @map("close_reviewed_at")
-  closeRejectReason   String?          @db.Text @map("close_reject_reason")
-
-  project             Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  assignee            User?            @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
-  createdBy           User             @relation("TaskCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  category            TaskCategory?    @relation(fields: [categoryId], references: [id], onDelete: SetNull)
-  doneRequestedBy     User?            @relation("DoneRequester", fields: [doneRequestedById], references: [id], onDelete: SetNull)
-  doneReviewedBy      User?            @relation("DoneReviewer", fields: [doneReviewedById], references: [id], onDelete: SetNull)
-  closeRequestedBy    User?            @relation("CloseRequester", fields: [closeRequestedById], references: [id], onDelete: SetNull)
-  closeReviewedBy     User?            @relation("CloseReviewer", fields: [closeReviewedById], references: [id], onDelete: SetNull)
-  checklists          TaskChecklist[]
-  comments            TaskComment[]
-  attachments         TaskAttachment[]
-  histories           TaskHistory[]
-
-  // Indexes & Composite Indexes for Production Performance (100k+ tasks)
   @@index([projectId])
   @@index([status])
   @@index([priority])
@@ -239,7 +229,6 @@ model Task {
   @@index([createdAt])
   @@index([updatedAt])
   @@index([deletedAt])
-
   @@index([projectId, status])
   @@index([projectId, assigneeId])
   @@index([status, priority])
@@ -247,7 +236,8 @@ model Task {
   @@index([createdById, createdAt])
   @@index([categoryId, status])
   @@index([deletedAt, assigneeId, status])
-
+  @@index([closeRequestedById], map: "tasks_close_requested_by_id_fkey")
+  @@index([closeReviewedById], map: "tasks_close_reviewed_by_id_fkey")
   @@map("tasks")
 }
 
@@ -258,7 +248,6 @@ model TaskChecklist {
   isCompleted Boolean  @default(false) @map("is_completed")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-
   task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
@@ -272,7 +261,6 @@ model TaskComment {
   content   String   @db.Text
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
   task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -286,11 +274,10 @@ model TaskAttachment {
   taskId       Int      @map("task_id")
   uploadedById Int      @map("uploaded_by_id")
   fileName     String   @map("file_name")
-  fileUrl      String   @db.LongText @map("file_url")
+  fileUrl      String   @map("file_url") @db.LongText
   fileSize     Int      @map("file_size")
   fileType     String   @map("file_type")
   createdAt    DateTime @default(now()) @map("created_at")
-
   task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
 
@@ -305,10 +292,9 @@ model TaskHistory {
   userId        Int      @map("user_id")
   action        String
   fieldName     String?  @map("field_name")
-  previousValue String?  @db.Text @map("previous_value")
-  newValue      String?  @db.Text @map("new_value")
+  previousValue String?  @map("previous_value") @db.Text
+  newValue      String?  @map("new_value") @db.Text
   createdAt     DateTime @default(now()) @map("created_at")
-
   task          Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -320,12 +306,11 @@ model TaskHistory {
 model ProjectRolePermission {
   id            Int      @id @default(autoincrement())
   projectId     Int      @map("project_id")
-  role          String   // OWNER, ADMIN, MEMBER, VIEWER
+  role          String
   permissionKey String   @map("permission_key")
   isAllowed     Boolean  @default(true) @map("is_allowed")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
-
   project       Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, role, permissionKey])
@@ -336,17 +321,15 @@ model ProjectRolePermission {
 model ProjectWorkflowPermission {
   id         Int      @id @default(autoincrement())
   projectId  Int      @map("project_id")
-  role       String   // OWNER, ADMIN, MEMBER, VIEWER
+  role       String
   fromStatus String   @map("from_status")
   toStatus   String   @map("to_status")
   isAllowed  Boolean  @default(true) @map("is_allowed")
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
-
   project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, role, fromStatus, toStatus])
   @@index([projectId, role])
   @@map("project_workflow_permissions")
 }
-

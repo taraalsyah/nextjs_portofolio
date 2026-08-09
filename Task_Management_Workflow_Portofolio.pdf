@@ -1,0 +1,182 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R 4 0 R 5 0 R] /Count 3 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 6 0 R /F2 7 0 R /F3 8 0 R >> >> /Contents 9 0 R >>
+endobj
+4 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 6 0 R /F2 7 0 R /F3 8 0 R >> >> /Contents 10 0 R >>
+endobj
+5 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 6 0 R /F2 7 0 R /F3 8 0 R >> >> /Contents 11 0 R >>
+endobj
+6 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
+endobj
+7 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+8 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Oblique >>
+endobj
+9 0 obj
+<< /Length 4218 >>
+stream
+0.06 0.09 0.16 rg
+30 735 535 80 re f
+BT /F1 18 Tf 1.0 1.0 1.0 rg 45 782 Td (PENJELASAN FLOW KERJA TASK MANAGEMENT) Tj ET
+BT /F2 10 Tf 0.78 0.82 0.99 rg 45 756 Td (Panduan Naratif Alur Kerja, Status Lifecycle & Proteksi Keamanan System - Next.js) Tj ET
+BT /F1 13 Tf 0.06 0.09 0.16 rg 30 700 Td (1. Pendahuluan & Gambaran Umum Sistem) Tj ET
+0.39 0.40 0.95 RG 2.0 w 30 693 m 565 693 l S
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 675 Td (Sistem Task Management pada aplikasi portofolio Next.js ini dirancang menggunakan arsitektur) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 661 Td (modern berbasis App Router, TypeScript, dan Prisma ORM dengan basis data MySQL. Sistem ini) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 647 Td (bertujuan untuk mengelola seluruh tahapan pengerjaan tugas secara terstruktur, transparan,) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 633 Td (dan aman melalui mekanisme persetujuan berjenjang (dual-approval workflow).) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 611 Td (Dalam pengembangan aplikasi ini, setiap tugas atau task memiliki siklus hidup yang terdefinisi) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 597 Td (dengan ketat pada skema database. Pengaturan hak akses dan validasi dilakukan secara mutlak) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 583 Td (pada sisi server untuk memastikan integritas data dan mencegah manipulasi oleh pihak yang tidak) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 569 Td (memiliki otorisasi.) Tj ET
+BT /F1 13 Tf 0.06 0.09 0.16 rg 30 535 Td (2. Penjelasan 5 Status Lifecycle & Konsep Task Locking) Tj ET
+0.39 0.40 0.95 RG 2.0 w 30 528 m 565 528 l S
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 510 Td (Sistem mengenal 5 status resmi task yang disimpan di skema database Prisma, yaitu:) Tj ET
+BT /F1 9.5 Tf 0.06 0.09 0.16 rg 30 496 Td (BACKLOG, OPEN, IN_PROGRESS, DONE, dan CLOSED.) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 474 Td (Penting untuk dipahami bahwa LOCKED bukan merupakan status task tersendiri, melainkan sebuah) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 460 Td (kondisi proteksi keamanan (isLocked === true) yang aktif secara otomatis apabila sebuah task) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 446 Td (telah menyelesaikan tahapan persetujuan dan berada pada status DONE atau CLOSED.) Tj ET
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 422 Td (- Status BACKLOG:) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 130 422 Td (Tahap awal saat tugas baru saja dibuat dalam perencanaan. Task masih) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 408 Td (belum ditugaskan secara aktif dan dapat dipindahkan ke status OPEN atau IN_PROGRESS.) Tj ET
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 386 Td (- Status OPEN:) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 130 386 Td (Tugas telah disetujui untuk dikerjakan dan siap diambil atau dialokasikan) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 372 Td (kepada anggota tim (assignee). Task pada tahap ini masih bersifat editable.) Tj ET
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 350 Td (- Status IN_PROGRESS:) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 130 350 Td (Tugas sedang dikerjakan secara aktif oleh anggota tim yang ditunjuk.) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 336 Td (Pada status ini, assignee dapat mengajukan permohonan persetujuan penyelesaian task) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 322 Td ((Request to Done) maupun permohonan penutupan task (Request to Close).) Tj ET
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 300 Td (- Status DONE:) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 130 300 Td (Tugas telah selesai dikerjakan dan berhasil disetujui oleh Reviewer atau) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 286 Td (Project Owner via workflow Request to Done. Task dalam status DONE langsung terkunci) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 272 Td ((isLocked = true) dan menjadi Read-Only.) Tj ET
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 250 Td (- Status CLOSED:) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 130 250 Td (Tahap akhir di mana tugas ditutup secara permanen via workflow) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 236 Td (Request to Close dengan persetujuan Project Owner. Task ini terkunci penuh dan tidak dapat) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 222 Td (diubah kembali.) Tj ET
+BT /F2 8 Tf 0.58 0.64 0.72 rg 200 30 Td (Halaman 1 dari 3 - Portfolio Task Management Workflow) Tj ET
+endstream
+endobj
+10 0 obj
+<< /Length 4438 >>
+stream
+0.06 0.09 0.16 rg
+30 760 535 45 re f
+BT /F1 14 Tf 1.0 1.0 1.0 rg 45 780 Td (PENJELASAN DETIL DUAL-APPROVAL WORKFLOWS) Tj ET
+BT /F1 13 Tf 0.06 0.09 0.16 rg 30 725 Td (3. Alur Kerja Dual-Approval: Request to Done & Request to Close) Tj ET
+0.39 0.40 0.95 RG 2.0 w 30 718 m 565 718 l S
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 700 Td (Sistem ini menerapkan dua alur persetujuan terpisah untuk memastikan bahwa tidak ada task yang) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 686 Td (dapat diselesaikan atau ditutup tanpa melalui pengawasan dan verifikasi resmi:) Tj ET
+BT /F1 11 Tf 0.11 0.25 0.69 rg 30 660 Td (A. Alur Kerja Request to Done (Menyelesaikan Pekerjaan Task)) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 642 Td (Ketika seorang anggota tim yang bertugas (assignee) telah menyelesaikan seluruh kriteria pengerjaan) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 628 Td (task, dia tidak dapat secara sepihak mengubah status task menjadi DONE. Sebaliknya, anggota) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 614 Td (tim akan mengirimkan permintaan persetujuan melalui endpoint /api/tasks/[id]/request-done.) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 592 Td (Tindakan ini akan mengeset atribut doneRequestStatus menjadi PENDING. Selanjutnya, Project) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 578 Td (Owner atau Reviewer yang memiliki otoritas akan memeriksa hasil pekerjaan:) Tj ET
+BT /F1 9.5 Tf 0.04 0.47 0.34 rg 45 556 Td (1. Apabila Disetujui (Approve):) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 200 556 Td (Status task berubah menjadi DONE, atribut doneRequestStatus) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 45 542 Td (berubah menjadi APPROVED, dan isLocked otomatis di-set true sehingga task menjadi Read-Only.) Tj ET
+BT /F1 9.5 Tf 0.73 0.11 0.11 rg 45 520 Td (2. Apabila Ditolak (Reject):) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 200 520 Td (Status task dikembalikan ke IN_PROGRESS, doneRequestStatus) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 45 506 Td (menjadi REJECTED, dan anggota tim harus melakukan perbaikan sesuai catatan penolakan.) Tj ET
+BT /F1 11 Tf 0.49 0.13 0.80 rg 30 478 Td (B. Alur Kerja Request to Close (Menutup Task secara Permanen)) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 460 Td (Request to Close merupakan alur yang berbeda dari Request to Done. Pengajuan penutupan task) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 446 Td (dapat dilakukan baik dari status IN_PROGRESS maupun status DONE melalui endpoint API) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 432 Td (/api/tasks/[id]/request-close, yang mengubah closeRequestStatus menjadi PENDING.) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 410 Td (Berbeda dari Request to Done, persetujuan penutupan task HANYA boleh dilakukan oleh Project) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 396 Td (Owner secara langsung. Hasil dari alur persetujuan ini adalah:) Tj ET
+BT /F1 9.5 Tf 0.04 0.47 0.34 rg 45 374 Td (1. Apabila Owner Menyetujui (Approve):) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 230 374 Td (Status task berubah secara mutlak menjadi CLOSED,) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 45 360 Td (closeReviewedById diisi ID Owner, closeReviewedAt mencatat tanggal approval, dan isLocked) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 45 346 Td (bernilai true.) Tj ET
+BT /F1 9.5 Tf 0.73 0.11 0.11 rg 45 324 Td (2. Apabila Owner Menolak (Reject):) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 230 324 Td (Status task dikembalikan persis ke status valid sebelum) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 45 310 Td (pengajuan (yaitu IN_PROGRESS atau DONE) dan closeRequestStatus menjadi REJECTED.) Tj ET
+0.97 0.95 1.00 rg 30 185 535 105 re f
+0.60 0.20 0.90 RG 30 185 535 105 re S
+BT /F1 10 Tf 0.49 0.13 0.80 rg 45 270 Td (ATURAN KETAT NOTIFIKASI EMAIL REQUEST TO CLOSE:) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 45 252 Td (Saat seorang anggota mengajukan Request to Close, sistem akan memicu layanan pengiriman email) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 45 238 Td (notifikasi (sendTaskCloseNotification). Email notifikasi ini WAJIB HANYA dikirimkan kepada) Tj ET
+BT /F1 9 Tf 0.60 0.10 0.10 rg 45 224 Td (Project Owner (task.project.owner.email).) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 45 204 Td (Sistem melarang keras pengiriman email kepada requester, creator, assignee lain, atau admin) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 45 190 Td (lain guna menjaga kerahasiaan komunikasi dan pengawasan penuh di tangan Project Owner.) Tj ET
+BT /F2 8 Tf 0.58 0.64 0.72 rg 200 30 Td (Halaman 2 dari 3 - Portfolio Task Management Workflow) Tj ET
+endstream
+endobj
+11 0 obj
+<< /Length 4339 >>
+stream
+0.06 0.09 0.16 rg
+30 760 535 45 re f
+BT /F1 14 Tf 1.0 1.0 1.0 rg 45 780 Td (SECURITY BOUNDARY, AUDIT TRAIL & UI UX STANDARDS) Tj ET
+BT /F1 13 Tf 0.06 0.09 0.16 rg 30 725 Td (4. Penjelasan Otorisasi Berlapis & Security Boundary Server) Tj ET
+0.39 0.40 0.95 RG 2.0 w 30 718 m 565 718 l S
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 700 Td (Dalam arsitektur sistem ini, keamanan dan otorisasi sepenuhnya dipaksakan pada sisi Server) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 686 Td ((Backend). Sesuai dengan prinsip dasar keamanan aplikasi, pemeriksaan otorisasi pada) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 672 Td (Frontend UI (seperti menyembunyikan tombol Edit atau mentautkan status disabled) HANYA) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 658 Td (berfungsi untuk meningkatkan kenyamanan pengguna (UX) dan BUKAN sebagai benteng keamanan.) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 636 Td (Setiap permintaan mutasi data pada API Endpoint harus melewati 6 lapisan verifikasi berurutan:) Tj ET
+BT /F1 9 Tf 0.11 0.25 0.69 rg 45 614 Td (1. Authentication Session:) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 180 614 Td (Memastikan identitas pengguna terverifikasi via NextAuth session.) Tj ET
+BT /F1 9 Tf 0.11 0.25 0.69 rg 45 596 Td (2. Workspace & Project Access:) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 180 596 Td (Memastikan pengguna merupakan anggota aktif dari project terkait.) Tj ET
+BT /F1 9 Tf 0.11 0.25 0.69 rg 45 578 Td (3. Task Object Access:) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 180 578 Td (Memastikan task memang berada di bawah project milik pengguna.) Tj ET
+BT /F1 9 Tf 0.11 0.25 0.69 rg 45 560 Td (4. Role & Workflow Permission:) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 180 560 Td (Memvalidasi matriks izin peran (Owner, Admin, Member).) Tj ET
+BT /F1 9 Tf 0.11 0.25 0.69 rg 45 542 Td (5. Lock State Verification:) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 180 542 Td (Memeriksa apakah isLocked === true atau status DONE/CLOSED.) Tj ET
+1.00 0.95 0.95 rg 30 425 535 95 re f
+0.94 0.27 0.27 RG 30 425 535 95 re S
+BT /F1 10 Tf 0.73 0.11 0.11 rg 45 500 Td (MEKANISME PROTEKSI TASK LOCKING (READ-ONLY GUARD):) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 45 482 Td (Apabila sebuah task telah berada pada status DONE atau CLOSED, atau atribut isLocked bernilai) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 45 468 Td (true, maka seluruh permintaan pengubahan data (Edit title, description, priority, assignee,) Tj ET
+BT /F2 9 Tf 0.20 0.25 0.33 rg 45 454 Td (maupun Delete) akan ditolak secara mutlak oleh backend dengan mengembalikan respon error) Tj ET
+BT /F1 9 Tf 0.73 0.11 0.11 rg 45 440 Td (HTTP 403 Forbidden via helper getTaskLockedResponse().) Tj ET
+BT /F1 13 Tf 0.06 0.09 0.16 rg 30 390 Td (5. Penomoran Otomatis, Audit Trail & Zero Layout Shift) Tj ET
+0.39 0.40 0.95 RG 2.0 w 30 383 m 565 383 l S
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 365 Td (- Penomoran Task Otomatis (Auto-Numbering):) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 351 Td (Setiap tugas baru diberikan nomor unik berurutan secara otomatis melalui transaksi database) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 337 Td (atomic dengan helper generateNextTaskNumber(tx). Format penomoran menggunakan standar) Tj ET
+BT /F1 9.5 Tf 0.06 0.09 0.16 rg 30 323 Td (TSK-000001, TSK-000002, dan seterusnya.) Tj ET
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 301 Td (- Audit Activity Trail (Pencatatan Aktivitas):) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 287 Td (Setiap perubahan status, pengajuan approval, penolakan, maupun mutasi field diwajibkan) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 273 Td (mencatat riwayat aktivitas secara otomatis via logTaskActivity(). Log ini mencatat siapa yang) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 259 Td (melakukan perubahan, kapan dilakukan, serta nilai sebelum dan sesudah perubahan.) Tj ET
+BT /F1 10 Tf 0.06 0.09 0.16 rg 30 237 Td (- Standar UI UX Zero Layout Shift:) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 223 Td (Pada komponen tabel task frontend, pengambilan data saat pagination atau filtering memisahkan) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 209 Td (state isLoading (initial fetch) dan isFetching (background fetch). Tabel tidak boleh unmount) Tj ET
+BT /F2 9.5 Tf 0.20 0.25 0.33 rg 30 195 Td (atau menghilang (flicker), menjaga kenyamanan navigasi pengguna tanpa layout shift.) Tj ET
+BT /F2 8 Tf 0.58 0.64 0.72 rg 200 30 Td (Halaman 3 dari 3 - Portfolio Task Management Workflow) Tj ET
+endstream
+endobj
+xref
+0 12
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000127 00000 n 
+0000000273 00000 n 
+0000000420 00000 n 
+0000000567 00000 n 
+0000000642 00000 n 
+0000000712 00000 n 
+0000000790 00000 n 
+0000005060 00000 n 
+0000009551 00000 n 
+trailer
+<< /Size 12 /Root 1 0 R >>
+startxref
+13943
+%%EOF
