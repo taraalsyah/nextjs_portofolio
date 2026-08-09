@@ -27,32 +27,26 @@ async function runMigration() {
         process.exit(1);
     }
 
+    const isSslRequired =
+        process.env.NODE_ENV === "production" ||
+        connectionString.includes("sslmode=require") ||
+        connectionString.includes("neon.tech");
+
     const pool = new pg.Pool({
         connectionString,
+        ssl: isSslRequired ? { rejectUnauthorized: false } : undefined,
         max: 1,
     });
 
     try {
-        console.log("Running SQL Migration: Adding & Backfilling section column in document_chunks...");
+        console.log("🚀 Running SQL Migration: Initializing PostgreSQL Vector Schema...");
 
-        await pool.query(`
-            ALTER TABLE document_chunks
-            ADD COLUMN IF NOT EXISTS section TEXT;
-        `);
+        const schemaSqlPath = path.join(__dirname, "../prisma/migrations/vector_schema_setup.sql");
+        const sqlContent = fs.readFileSync(schemaSqlPath, "utf8");
 
-        await pool.query(`
-            CREATE INDEX IF NOT EXISTS idx_document_chunks_section
-            ON document_chunks(section);
-        `);
+        await pool.query(sqlContent);
 
-        const updateResult = await pool.query(`
-            UPDATE document_chunks
-            SET section = (regexp_match(content, '\\[SECTION:\\s*([^\\]]+)\\]', 'i'))[1]
-            WHERE (section IS NULL OR TRIM(section) = '')
-              AND content ~* '\\[SECTION:';
-        `);
-
-        console.log(`✅ SQL Migration completed successfully! Updated ${updateResult.rowCount} rows.`);
+        console.log("✅ PostgreSQL/pgvector Schema Migration completed successfully!");
     } catch (error) {
         console.error("❌ Migration failed:", error);
         process.exit(1);
