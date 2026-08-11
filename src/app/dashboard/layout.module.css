@@ -147,7 +147,6 @@
   flex-direction: column;
   min-height: 100vh;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow-y: auto;
 }
 
 .marginExpanded {
@@ -160,8 +159,12 @@
 
 /* ─── HEADER / TOPBAR ────────────────────────────────────────────────────────── */
 .topbar {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 52px;
   min-height: 52px;
-  background: hsla(230, 20%, 5%, 0.75);
+  background: hsla(230, 20%, 5%, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--glass-border);
@@ -169,10 +172,16 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 1.25rem;
-  position: sticky;
-  top: 0;
-  z-index: 90;
-  transition: var(--transition);
+  z-index: 1000;
+  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.marginExpanded .topbar {
+  left: 220px;
+}
+
+.marginCollapsed .topbar {
+  left: 56px;
 }
 
 .leftSection {
@@ -297,7 +306,7 @@
   flex-direction: column;
   gap: 2px;
   transform-origin: top right;
-  z-index: 120;
+  z-index: 1100;
 }
 
 .dropdownItem {
@@ -338,6 +347,7 @@
 .contentContainer {
   flex: 1;
   padding: 1.25rem;
+  margin-top: 52px;
   position: relative;
   z-index: 10;
 }
@@ -356,6 +366,9 @@
   }
   .marginExpanded {
     margin-left: 56px;
+  }
+  .marginExpanded .topbar {
+    left: 56px;
   }
 }
 
@@ -385,6 +398,12 @@
   .topbar {
     padding: calc(0.6rem + env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) 0.6rem max(1.25rem, env(safe-area-inset-left, 0px));
     min-height: calc(56px + env(safe-area-inset-top, 0px));
+    height: auto;
+  }
+
+  .marginExpanded .topbar,
+  .marginCollapsed .topbar {
+    left: 0 !important;
   }
 
   .pageTitle {
@@ -397,6 +416,7 @@
   }
 
   .contentContainer {
+    margin-top: calc(56px + env(safe-area-inset-top, 0px));
     padding: 1.25rem max(1rem, env(safe-area-inset-left, 0px)) calc(2rem + env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-right, 0px));
     width: 100%;
     box-sizing: border-box;

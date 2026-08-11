@@ -25,6 +25,7 @@ import { FullPageLoader } from '@/components/ui/loading';
 import { ProjectSwitcher } from '@/components/project/ProjectSwitcher';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
+import AuthenticatedNavbar from '@/components/layout/AuthenticatedNavbar';
 
 interface MenuItem {
   name: string;
@@ -54,10 +55,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
 
-  // Profile dropdown state
-  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   // Load sidebar collapsed state from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
@@ -74,17 +71,6 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       return next;
     });
   };
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
 
   // Close mobile drawer on route change
   useEffect(() => {
@@ -234,79 +220,16 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           isCollapsed ? styles.marginCollapsed : styles.marginExpanded
         }`}
       >
-        {/* Top Header */}
-        <header className={styles.topbar}>
-          <div className={styles.leftSection}>
-            {/* Hamburger toggle on mobile, or expand toggle when sidebar collapsed on desktop */}
-            <button
-              onClick={
-                window.innerWidth <= 768
-                  ? () => setIsMobileOpen(!isMobileOpen)
-                  : toggleCollapse
-              }
-              className={styles.menuToggle}
-              aria-label="Toggle menu"
-            >
-              <Menu size={16} />
-            </button>
-            <h1 className={styles.pageTitle}>{pageTitle}</h1>
-          </div>
-
-          <div className={styles.rightSection}>
-            {/* Profile Dropdown */}
-            <div className={styles.profileDropdownWrapper} ref={dropdownRef}>
-              <button
-                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                className={styles.profileTrigger}
-              >
-                <div className={styles.userAvatar}>
-                  {session?.user?.image ? (
-                    <img 
-                      src={session.user.image} 
-                      alt={session.user.name || 'User'} 
-                      className={styles.avatarImage} 
-                    />
-                  ) : (
-                    getInitials(session?.user?.name)
-                  )}
-                </div>
-                <div className={styles.userInfo}>
-                  <span className={styles.userName}>{session?.user?.name || 'User'}</span>
-                  <span className={styles.userRole}>
-                    {(session?.user as any)?.role || 'user'}
-                  </span>
-                </div>
-                <ChevronDown size={14} style={{ opacity: 0.6 }} />
-              </button>
-
-              {/* Absolute Dropdown container */}
-              {isDropdownOpen && (
-                <div className={styles.dropdownMenu}>
-                  <Link href="/dashboard/profile" className={styles.dropdownItem}>
-                    <User size={14} />
-                    <span>Profil Saya</span>
-                  </Link>
-                  <Link href="/dashboard/settings" className={styles.dropdownItem}>
-                    <Settings size={14} />
-                    <span>Pengaturan</span>
-                  </Link>
-                  <div className={styles.dropdownDivider} />
-                  
-                  {/* Standard form POST logout trigger */}
-                  <form action="/api/auth/logout" method="POST" style={{ width: '100%' }}>
-                    <button
-                      type="submit"
-                      className={`${styles.dropdownItem} ${styles.logoutItem}`}
-                    >
-                      <LogOut size={14} />
-                      <span>Keluar</span>
-                    </button>
-                  </form>
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
+        {/* Global Authenticated Navbar for all authenticated pages */}
+        <AuthenticatedNavbar
+          pageTitle={pageTitle}
+          session={session}
+          onToggleMenu={
+            typeof window !== 'undefined' && window.innerWidth <= 768
+              ? () => setIsMobileOpen(!isMobileOpen)
+              : toggleCollapse
+          }
+        />
 
         {/* Content body layout */}
         <main className={styles.contentContainer}>
