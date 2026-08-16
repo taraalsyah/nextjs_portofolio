@@ -9,7 +9,7 @@
  *   Stage 2 (this):    LLM cross-encoder → final ranked list (top-3)
  *
  * Model options (in order of cost/accuracy tradeoff):
- *   - Gemini Flash 2.0  (already in your stack, API via @google/generative-ai)
+ *   - Gemini Flash 2.5  (already in your stack, API via REST endpoint)
  *   - OpenAI gpt-4o-mini (cheaper than full gpt-4o, good for reranking)
  *   - Local: BAAI/bge-reranker-base via HuggingFace Inference API (free tier)
  *
@@ -92,8 +92,9 @@ Respond with ONLY valid JSON, no markdown:
 [{"index": 0, "score": 0.9, "reason": "..."}, ...]`;
 
     try {
+        const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
         const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
             {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

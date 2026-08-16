@@ -16,7 +16,8 @@
     "android:build": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleDebug",
     "android:build:debug": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleDebug",
     "android:build:release": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleRelease",
-    "generate-token": "npx tsx scripts/generate-token.ts"
+    "generate-token": "npx tsx scripts/generate-token.ts",
+    "test:categories": "npx tsx scripts/test-categories-cache.ts"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.1",
@@ -32,6 +33,7 @@
     "date-fns": "^4.4.0",
     "date-fns-tz": "^3.2.0",
     "framer-motion": "^12.42.2",
+    "ioredis": "^5.11.1",
     "lucide-react": "^1.23.0",
     "next": "16.2.10",
     "next-auth": "^4.24.14",

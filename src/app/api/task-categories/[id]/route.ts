@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createActivityLog } from '@/lib/activity';
+import { invalidateCategoriesCache } from '@/lib/category-cache';
 
 export async function PUT(
   req: NextRequest,
@@ -43,6 +44,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Nama kategori sudah digunakan.' }, { status: 400 });
     }
 
+    // 1. Update in MySQL (Source of Truth)
     const category = await prisma.taskCategory.update({
       where: { id: catId },
       data: {
@@ -50,6 +52,9 @@ export async function PUT(
         description: description?.trim() || null,
       },
     });
+
+    // 2. Invalidate Redis Cache after MySQL success
+    await invalidateCategoriesCache();
 
     const userId = parseInt((session.user as any).id, 10);
     await createActivityLog({
@@ -93,9 +98,13 @@ export async function DELETE(
       return NextResponse.json({ error: 'Kategori tidak ditemukan.' }, { status: 404 });
     }
 
+    // 1. Delete from MySQL (Source of Truth)
     await prisma.taskCategory.delete({
       where: { id: catId },
     });
+
+    // 2. Invalidate Redis Cache after MySQL success
+    await invalidateCategoriesCache();
 
     const userId = parseInt((session.user as any).id, 10);
     await createActivityLog({
@@ -109,3 +118,4 @@ export async function DELETE(
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 });
   }
 }
+

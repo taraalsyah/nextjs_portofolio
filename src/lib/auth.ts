@@ -92,43 +92,45 @@ export const authOptions: AuthOptions = {
         if (session.username) token.username = session.username;
       }
 
-      // Validasi apakah password di database masih sama (invalidation check pada semua device)
+      // Validasi & cache role/permissions dari token (menghindari 4x query DB pada setiap request)
       if (token?.id) {
-        const dbUser = await prisma.user.findUnique({
-          where: { id: parseInt(token.id as string) },
-          select: {
-            password: true,
-            roleRel: {
-              select: {
-                name: true,
-                rolePermissions: {
-                  select: {
-                    permission: {
-                      select: {
-                        module: true,
-                        action: true
+        if (!token.permissions || (token.permissions as any[]).length === 0) {
+          const dbUser = await prisma.user.findUnique({
+            where: { id: parseInt(token.id as string) },
+            select: {
+              password: true,
+              roleRel: {
+                select: {
+                  name: true,
+                  rolePermissions: {
+                    select: {
+                      permission: {
+                        select: {
+                          module: true,
+                          action: true
+                        }
                       }
                     }
                   }
                 }
               }
-            }
-          },
-        });
+            },
+          });
 
-        if (!dbUser || dbUser.password !== token.passwordHash) {
-          console.log('JWT CALLBACK - Session invalidated (password mismatch or user not found)');
-          token.id = '';
-          return token;
+          if (!dbUser || dbUser.password !== token.passwordHash) {
+            console.log('JWT CALLBACK - Session invalidated (password mismatch or user not found)');
+            token.id = '';
+            return token;
+          }
+
+          // Cache role and permissions in the JWT token
+          const permissions = dbUser.roleRel?.rolePermissions.map(
+            (rp) => `${rp.permission.module}.${rp.permission.action}`
+          ) || [];
+
+          token.role = dbUser.roleRel?.name || 'Staff';
+          token.permissions = permissions;
         }
-
-        // Cache role and permissions in the JWT token
-        const permissions = dbUser.roleRel?.rolePermissions.map(
-          (rp) => `${rp.permission.module}.${rp.permission.action}`
-        ) || [];
-
-        token.role = dbUser.roleRel?.name || 'Staff';
-        token.permissions = permissions;
       }
       return token;
     },
