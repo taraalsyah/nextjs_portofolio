@@ -32,9 +32,11 @@ async function runTests() {
 
   let redisAvailable = false;
   try {
-    const pingPromise = redis.ping().then((res) => res === 'PONG').catch(() => false);
-    const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000));
-    redisAvailable = await Promise.race([pingPromise, timeoutPromise]);
+    if (redis) {
+      const pingPromise = redis.ping().then((res) => res === 'PONG').catch(() => false);
+      const timeoutPromise = new Promise<boolean>((resolve) => setTimeout(() => resolve(false), 3000));
+      redisAvailable = await Promise.race([pingPromise, timeoutPromise]);
+    }
   } catch {
     redisAvailable = false;
   }
@@ -130,7 +132,9 @@ async function runTests() {
     process.exit(1);
   } finally {
     try {
-      redis.disconnect();
+      if (redis) {
+        redis.disconnect();
+      }
     } catch {}
     process.exit(0);
   }
