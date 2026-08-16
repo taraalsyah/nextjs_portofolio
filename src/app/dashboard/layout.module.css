@@ -91,14 +91,14 @@
 }
 
 .navItemActive {
-  background: var(--primary-glow);
-  color: hsl(265, 90%, 80%);
-  border: 1px solid hsla(265, 80%, 60%, 0.15);
+  background: rgba(99, 102, 241, 0.15);
+  color: #818cf8;
+  border: 1px solid rgba(99, 102, 241, 0.3);
   font-weight: 600;
 }
 
 .navItemActive .menuIcon {
-  color: var(--accent);
+  color: #38bdf8;
 }
 
 .menuIcon {

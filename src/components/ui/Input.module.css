@@ -21,22 +21,22 @@
 
 .input {
   width: 100%;
-  padding: 0.85rem 1.25rem;
-  border-radius: 12px;
-  background: hsla(0, 0%, 100%, 0.03);
-  border: 1px solid var(--glass-border);
+  padding: 0.6rem 0.85rem;
+  border-radius: 8px;
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
   color: var(--fg-color);
   font-family: var(--font-body);
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   outline: none;
   transition: var(--transition);
-  backdrop-filter: blur(10px);
+  height: 38px;
 }
 
 .input:focus {
-  border-color: var(--primary);
-  background: hsla(0, 0%, 100%, 0.06);
-  box-shadow: 0 0 15px hsla(265, 80%, 60%, 0.15);
+  border-color: var(--secondary);
+  background: #1e293b;
+  box-shadow: 0 0 0 2px var(--secondary-glow);
 }
 
 /* Make sure password input has room for the toggle button */

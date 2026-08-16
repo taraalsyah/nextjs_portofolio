@@ -23,11 +23,11 @@
 .modal {
   width: 100%;
   max-width: 440px;
-  background: #141419;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 16px;
-  padding: 1.75rem;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -49,8 +49,8 @@
 }
 
 .iconWrapper {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 50%;
   background: rgba(239, 68, 68, 0.12);
   border: 1px solid rgba(239, 68, 68, 0.25);
@@ -68,14 +68,14 @@
 }
 
 .title {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: #ffffff;
   margin: 0;
 }
 
 .description {
-  font-size: 0.875rem;
+  font-size: 0.82rem;
   color: rgba(255, 255, 255, 0.65);
   line-height: 1.5;
   margin: 0;
@@ -91,9 +91,9 @@
 .cancelBtn,
 .deleteBtn {
   flex: 1;
-  padding: 0.65rem 1rem;
-  border-radius: 10px;
-  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
   display: inline-flex;
@@ -101,7 +101,7 @@
   justify-content: center;
   gap: 0.5rem;
   transition: all 0.2s ease;
-  min-height: 42px;
+  min-height: 38px;
   border: 1px solid transparent;
 }
 
@@ -117,14 +117,13 @@
 }
 
 .deleteBtn {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  background: #dc2626;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(239, 68, 68, 0.35);
+  border: 1px solid #ef4444;
 }
 
 .deleteBtn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
-  box-shadow: 0 6px 18px rgba(239, 68, 68, 0.45);
+  background: #b91c1c;
 }
 
 .cancelBtn:disabled,
