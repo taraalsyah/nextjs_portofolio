@@ -1,20 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Inter:wght@100..900&display=swap');
 
 :root {
-  /* Colors */
-  --bg-color: hsl(230, 20%, 5%);
-  --fg-color: hsl(0, 0%, 100%);
-  --primary: hsl(265, 80%, 60%);
-  --primary-glow: hsla(265, 80%, 60%, 0.4);
-  --secondary: hsl(180, 70%, 50%);
-  --secondary-glow: hsla(180, 70%, 50%, 0.4);
-  --accent: hsl(330, 90%, 65%);
+  /* Colors - Enterprise Dark Palette */
+  --bg-color: #0f172a;
+  --fg-color: #f8fafc;
+  --primary: #6366f1;
+  --primary-glow: rgba(99, 102, 241, 0.25);
+  --secondary: #38bdf8;
+  --secondary-glow: rgba(56, 189, 248, 0.2);
+  --accent: #ec4899;
   
-  /* Surface */
-  --surface: hsla(230, 20%, 10%, 0.7);
-  --surface-border: hsla(0, 0%, 100%, 0.1);
-  --glass: hsla(0, 0%, 100%, 0.03);
-  --glass-border: hsla(0, 0%, 100%, 0.08);
+  /* Surface & Border System */
+  --surface: #1e293b;
+  --surface-border: #334155;
+  --glass: rgba(30, 41, 59, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.1);
   
   /* Safe Area Insets for Android Notches & Navigation */
   --sat: env(safe-area-inset-top, 0px);
@@ -27,7 +27,7 @@
   --font-body: 'Inter', sans-serif;
   
   /* Transitions */
-  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -78,21 +78,6 @@ button {
   outline: none;
   background: transparent;
   font-family: inherit;
-}
-
-/* Background gradient effects */
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: 
-    radial-gradient(circle at 20% 20%, var(--primary-glow) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, var(--secondary-glow) 0%, transparent 40%);
-  z-index: -1;
-  pointer-events: none;
 }
 
 /* Custom Scrollbar */

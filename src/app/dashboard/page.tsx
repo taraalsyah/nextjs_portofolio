@@ -48,12 +48,12 @@ export default async function DashboardPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Welcome Section */}
-      <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
-        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0 }}>
-          Selamat datang kembali, <span className="text-gradient">{dbUser.name}</span>! 👋
+      <div className="glass" style={{ padding: '1.25rem', borderRadius: '10px', border: '1px solid var(--surface-border)' }}>
+        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--fg-color)' }}>
+          Selamat datang kembali, {dbUser.name}! 👋
         </h2>
-        <p style={{ color: 'hsla(0, 0%, 100%, 0.55)', marginTop: '0.25rem', fontSize: '0.82rem', margin: '0.25rem 0 0' }}>
-          Semua sistem berjalan normal. Kelola akun Anda secara aman melalui dashboard ini.
+        <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginTop: '0.25rem', fontSize: '0.82rem', margin: '0.25rem 0 0' }}>
+          Semua sistem berjalan normal. Kelola workspace dan data akun Anda secara aman.
         </p>
       </div>
 
