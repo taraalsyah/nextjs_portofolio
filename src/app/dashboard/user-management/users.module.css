@@ -286,15 +286,13 @@
 }
 
 .saveBtn {
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  background: #6366f1;
+  border: 1px solid #818cf8;
   color: white;
-  border: none;
-  box-shadow: 0 4px 10px var(--secondary-glow);
 }
 
-.saveBtn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 15px var(--secondary-glow);
+.saveBtn:hover:not(:disabled) {
+  background: #4f46e5;
 }
 
 .saveBtn:disabled {

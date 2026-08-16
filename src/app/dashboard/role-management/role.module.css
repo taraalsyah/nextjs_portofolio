@@ -288,20 +288,18 @@
   gap: 0.4rem;
   padding: 0.45rem 1.25rem;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  background: #6366f1;
+  border: 1px solid #818cf8;
   color: white;
   font-weight: 600;
   font-size: 0.82rem;
   cursor: pointer;
   height: 36px;
-  border: none;
-  box-shadow: 0 4px 10px var(--secondary-glow);
   transition: var(--transition);
 }
 
 .saveBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 15px var(--secondary-glow);
+  background: #4f46e5;
 }
 
 .saveBtn:disabled {

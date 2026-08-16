@@ -281,27 +281,23 @@
   gap: 0.4rem;
   padding: 0.45rem 1.15rem;
   border-radius: 8px;
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  background: #6366f1;
+  border: 1px solid #818cf8;
   color: white;
   font-weight: 600;
   font-size: 0.82rem;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: 0 3px 10px var(--secondary-glow);
-  border: none;
   height: 36px;
 }
 
 .saveBtn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 5px 15px var(--secondary-glow);
-  filter: brightness(1.1);
+  background: #4f46e5;
 }
 
 .saveBtn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  transform: none;
 }
 
 .resetBtn {
