@@ -131,24 +131,22 @@
 .submitBtn {
   width: 100%;
   padding: 0.65rem 1.25rem;
-  border-radius: 8px;
-  background: #6366f1;
-  border: 1px solid #818cf8;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
   color: white;
   font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   transition: var(--transition);
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 0.5rem;
-  height: 40px;
+  height: 38px;
 }
 
 .submitBtn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--primary-glow);
-  filter: brightness(1.1);
+  background: var(--primary-hover);
 }
 
 .submitBtn:active:not(:disabled) {

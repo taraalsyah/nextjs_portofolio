@@ -286,13 +286,14 @@
 }
 
 .saveBtn {
-  background: #6366f1;
-  border: 1px solid #818cf8;
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
   color: white;
+  border-radius: var(--radius-md);
 }
 
 .saveBtn:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--primary-hover);
 }
 
 .saveBtn:disabled {

@@ -280,9 +280,9 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 1.15rem;
-  border-radius: 8px;
-  background: #6366f1;
-  border: 1px solid #818cf8;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
   color: white;
   font-weight: 600;
   font-size: 0.82rem;
@@ -292,7 +292,7 @@
 }
 
 .saveBtn:hover:not(:disabled) {
-  background: #4f46e5;
+  background: var(--primary-hover);
 }
 
 .saveBtn:disabled {

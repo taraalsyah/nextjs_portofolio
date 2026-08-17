@@ -1,10 +1,10 @@
-/* Reusable Dashboard Layout Styles — Compact Enterprise Design */
+/* Reusable Dashboard Layout Styles — Enterprise Design System */
 
 .layoutContainer {
   display: flex;
   min-height: 100vh;
-  background-color: var(--bg-color);
-  color: var(--fg-color);
+  background-color: var(--background);
+  color: var(--foreground);
   position: relative;
   overflow: hidden;
 }
@@ -15,14 +15,12 @@
   top: 0;
   left: 0;
   height: 100vh;
-  background: hsla(230, 20%, 8%, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-right: 1px solid var(--glass-border);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   z-index: 100;
-  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .sidebarExpanded {
@@ -39,7 +37,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 0.75rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
 }
 
 .logoArea {
@@ -51,8 +49,7 @@
 }
 
 .logoIcon {
-  color: var(--secondary);
-  filter: drop-shadow(0 0 6px var(--secondary-glow));
+  color: var(--primary);
   flex-shrink: 0;
 }
 
@@ -61,6 +58,7 @@
   font-weight: 700;
   font-size: 0.9rem;
   letter-spacing: -0.02em;
+  color: var(--foreground);
 }
 
 /* Sidebar Navigation */
@@ -77,8 +75,8 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.45rem 0.65rem;
-  border-radius: 8px;
-  color: hsla(0, 0%, 100%, 0.55);
+  border-radius: var(--radius-md);
+  color: var(--muted-foreground);
   font-weight: 500;
   font-size: 0.82rem;
   transition: var(--transition);
@@ -86,19 +84,19 @@
 }
 
 .navItem:hover {
-  background: hsla(0, 0%, 100%, 0.04);
-  color: var(--fg-color);
+  background: var(--surface-hover);
+  color: var(--foreground);
 }
 
 .navItemActive {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: rgba(37, 99, 235, 0.12);
+  color: #3b82f6;
+  border: 1px solid rgba(37, 99, 235, 0.25);
   font-weight: 600;
 }
 
 .navItemActive .menuIcon {
-  color: #38bdf8;
+  color: #3b82f6;
 }
 
 .menuIcon {
@@ -113,7 +111,7 @@
 /* Sidebar Footer (Collapse Toggle) */
 .sidebarFooter {
   padding: 0.5rem;
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--border);
   display: flex;
   justify-content: center;
 }
@@ -125,19 +123,19 @@
   justify-content: center;
   gap: 0.5rem;
   padding: 0.4rem;
-  border-radius: 6px;
-  color: hsla(0, 0%, 100%, 0.45);
+  border-radius: var(--radius-sm);
+  color: var(--muted-foreground);
   font-size: 0.75rem;
   font-weight: 500;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
   transition: var(--transition);
 }
 
 .collapseBtn:hover {
-  background: hsla(0, 0%, 100%, 0.05);
-  color: var(--fg-color);
-  border-color: var(--secondary);
+  background: var(--surface-hover);
+  color: var(--foreground);
+  border-color: var(--primary);
 }
 
 /* ─── MAIN CONTENT AREA ──────────────────────────────────────────────────────── */
@@ -146,7 +144,7 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .marginExpanded {
@@ -164,16 +162,14 @@
   right: 0;
   height: 52px;
   min-height: 52px;
-  background: hsla(230, 20%, 5%, 0.92);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--glass-border);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 1.25rem;
   z-index: 1000;
-  transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .marginExpanded .topbar {
@@ -191,29 +187,29 @@
 }
 
 .menuToggle {
-  color: var(--fg-color);
+  color: var(--foreground);
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 38px;
-  min-height: 38px;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
+  min-width: 36px;
+  min-height: 36px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
   transition: var(--transition);
   margin-left: 0.1rem;
 }
 
 .menuToggle:hover {
-  background: hsla(0, 0%, 100%, 0.08);
-  border-color: var(--secondary);
+  background: var(--surface-hover);
+  border-color: var(--primary);
 }
 
 .pageTitle {
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: -0.01em;
-  color: var(--fg-color);
+  color: var(--foreground);
 }
 
 .rightSection {
@@ -232,30 +228,30 @@
   align-items: center;
   gap: 0.5rem;
   padding: 0.25rem 0.6rem;
-  border-radius: 50px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
   transition: var(--transition);
   text-align: left;
 }
 
 .profileTrigger:hover {
-  background: hsla(0, 0%, 100%, 0.05);
-  border-color: var(--secondary);
+  background: var(--surface-hover);
+  border-color: var(--primary);
 }
 
 .userAvatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.65rem;
   color: white;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
 }
 
 .avatarImage {
@@ -273,7 +269,7 @@
 .userName {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--fg-color);
+  color: var(--foreground);
   max-width: 110px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -284,7 +280,7 @@
 .userRole {
   font-size: 0.62rem;
   font-weight: 500;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   text-transform: uppercase;
   line-height: 1.2;
 }
@@ -295,11 +291,9 @@
   top: calc(100% + 6px);
   right: 0;
   width: 180px;
-  background: hsla(230, 20%, 10%, 0.95);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
   padding: 0.35rem;
   display: flex;
@@ -314,9 +308,9 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.45rem 0.65rem;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 0.82rem;
-  color: hsla(0, 0%, 100%, 0.7);
+  color: var(--foreground);
   font-weight: 500;
   transition: var(--transition);
   width: 100%;
@@ -324,23 +318,23 @@
 }
 
 .dropdownItem:hover {
-  background: hsla(0, 0%, 100%, 0.05);
-  color: var(--fg-color);
+  background: var(--surface-hover);
+  color: var(--foreground);
 }
 
 .dropdownDivider {
   height: 1px;
-  background: var(--glass-border);
+  background: var(--border);
   margin: 2px 0;
 }
 
 .logoutItem {
-  color: hsl(330, 90%, 65%);
+  color: var(--error);
 }
 
 .logoutItem:hover {
-  background: hsla(330, 90%, 65%, 0.1);
-  color: hsl(330, 90%, 65%);
+  background: var(--error-subtle);
+  color: var(--error);
 }
 
 /* ─── CONTENT AREA ───────────────────────────────────────────────────────────── */
@@ -359,7 +353,6 @@
 
 /* ─── RESPONSIVE BREAKPOINTS ────────────────────────────────────────────────── */
 
-/* Tablet View (max-width: 1024px) */
 @media (max-width: 1024px) {
   .sidebarExpanded {
     width: 56px;
@@ -372,7 +365,6 @@
   }
 }
 
-/* Mobile View (max-width: 768px) */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
@@ -380,7 +372,7 @@
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
     padding-left: env(safe-area-inset-left, 0px);
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .sidebarActive {
@@ -430,11 +422,10 @@
     width: 100vw;
     height: 100vh;
     background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
     z-index: 95;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.2s ease;
   }
 
   .overlayActive {
@@ -456,29 +447,15 @@
   right: 0;
   bottom: 0;
   z-index: 85;
-  background: rgba(15, 23, 42, 0.75);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(11, 15, 25, 0.8);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 1rem;
   padding: 2rem;
-  animation: overlayFadeIn 200ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   pointer-events: auto;
   user-select: none;
-}
-
-@keyframes overlayFadeIn {
-  from {
-    opacity: 0;
-    backdrop-filter: blur(0px);
-  }
-  to {
-    opacity: 1;
-    backdrop-filter: blur(8px);
-  }
 }
 
 .switchingCard {
@@ -487,34 +464,19 @@
   align-items: center;
   gap: 1rem;
   padding: 1.75rem 2.5rem;
-  background: rgba(30, 41, 59, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.6);
-  transform: translateY(0);
-  animation: cardPop 250ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes cardPop {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
 }
 
 .switchingSpinner {
-  width: 42px;
-  height: 42px;
-  border: 3px solid rgba(96, 165, 250, 0.15);
-  border-top-color: #60a5fa;
-  border-right-color: #a855f7;
+  width: 36px;
+  height: 36px;
+  border: 3px solid rgba(59, 130, 246, 0.2);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
-  box-shadow: 0 0 15px rgba(96, 165, 250, 0.3);
 }
 
 @keyframes spin {
@@ -525,24 +487,23 @@
 .switchingTitle {
   font-weight: 600;
   font-size: 0.95rem;
-  color: #f8fafc;
+  color: var(--foreground);
   letter-spacing: -0.01em;
 }
 
 .switchingSubtext {
   font-size: 0.78rem;
-  color: #94a3b8;
+  color: var(--muted-foreground);
   display: flex;
   align-items: center;
   gap: 0.35rem;
 }
 
 .switchingProjectBadge {
-  color: #60a5fa;
+  color: var(--primary);
   font-weight: 600;
-  background: rgba(96, 165, 250, 0.1);
+  background: var(--info-subtle);
   padding: 0.15rem 0.5rem;
-  border-radius: 0.375rem;
-  border: 1px solid rgba(96, 165, 250, 0.2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
-
