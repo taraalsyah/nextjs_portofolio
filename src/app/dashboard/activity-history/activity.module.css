@@ -1,4 +1,4 @@
-/* Activity History Styles — Matching User Management Design System */
+/* Activity History Styles — Enterprise Design System */
 
 .container {
   max-width: 900px;
@@ -9,9 +9,10 @@
 }
 
 .tableCard {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.25rem;
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  background: var(--surface);
+  border: 1px solid var(--border);
 }
 
 .tableHeaderSection {
@@ -19,16 +20,16 @@
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1.25rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 1rem;
 }
 
 .tableWrapper {
   width: 100%;
   overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: hsla(0, 0%, 100%, 0.01);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
 }
 
 .table {
@@ -40,23 +41,23 @@
 }
 
 .table th {
-  background: hsla(0, 0%, 100%, 0.03);
-  color: hsla(0, 0%, 100%, 0.5);
+  background: var(--surface-muted);
+  color: var(--muted-foreground);
   font-weight: 600;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 .table td {
   padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   vertical-align: top;
   line-height: 1.4;
-  color: hsla(0, 0%, 100%, 0.8);
+  color: var(--foreground);
 }
 
 .table tr:last-child td {
@@ -64,14 +65,14 @@
 }
 
 .table tr:hover td {
-  background: hsla(0, 0%, 100%, 0.02);
+  background: var(--surface-hover);
 }
 
 /* Column Widths & Specifications */
 .timeCol {
   width: 160px;
   white-space: nowrap;
-  color: hsla(0, 0%, 100%, 0.5) !important;
+  color: var(--muted-foreground) !important;
 }
 
 .actionCol {
@@ -83,7 +84,7 @@
   word-break: break-word;
 }
 
-/* Badge Styles - Matching User Management Badge System */
+/* Badge Styles */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -91,40 +92,40 @@
   font-size: 0.68rem;
   font-weight: 700;
   padding: 0.15rem 0.5rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
 
 .badgeCreate {
-  background: hsla(180, 70%, 50%, 0.15);
-  color: hsl(180, 90%, 80%);
-  border: 1px solid hsla(180, 70%, 50%, 0.2);
+  background: var(--success-subtle);
+  color: var(--success);
+  border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
 .badgeUpdate {
-  background: hsla(265, 80%, 60%, 0.15);
-  color: hsl(265, 90%, 85%);
-  border: 1px solid hsla(265, 80%, 60%, 0.2);
+  background: var(--info-subtle);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 .badgeDelete {
-  background: hsla(330, 90%, 65%, 0.15);
-  color: hsl(330, 90%, 80%);
-  border: 1px solid hsla(330, 90%, 65%, 0.2);
+  background: var(--error-subtle);
+  color: var(--error);
+  border: 1px solid rgba(239, 68, 68, 0.25);
 }
 
 .badgeLogin {
-  background: hsla(265, 80%, 60%, 0.15);
-  color: hsl(265, 90%, 85%);
-  border: 1px solid hsla(265, 80%, 60%, 0.2);
+  background: var(--info-subtle);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 .badgeLogout {
-  background: hsla(0, 0%, 50%, 0.15);
-  color: hsl(0, 0%, 80%);
-  border: 1px solid hsla(0, 0%, 50%, 0.2);
+  background: var(--secondary);
+  color: var(--muted-foreground);
+  border: 1px solid var(--border);
 }
 
 .descriptionList {
@@ -137,7 +138,7 @@
 }
 
 .descriptionItem {
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
 }
 
 /* Empty State */
@@ -148,7 +149,7 @@
   justify-content: center;
   padding: 3rem 1.5rem;
   text-align: center;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   gap: 0.5rem;
 }
 
@@ -157,20 +158,20 @@
   font-weight: 500;
 }
 
-/* Pagination Section — Matching User Management Mobile Rules */
+/* Pagination Section */
 .paginationSection {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-top: 1.25rem;
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--border);
   padding-top: 1rem;
   gap: 1rem;
 }
 
 .paginationInfo {
   font-size: 0.78rem;
-  color: hsla(0, 0%, 100%, 0.55);
+  color: var(--muted-foreground);
   font-weight: 500;
 }
 
@@ -187,10 +188,10 @@
   height: 28px;
   min-width: 28px;
   padding: 0 0.5rem;
-  border-radius: 6px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: hsla(0, 0%, 100%, 0.7);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-muted);
+  color: var(--foreground);
   font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
@@ -198,15 +199,15 @@
 }
 
 .pageBtn:hover:not(.disabledPageBtn):not(.activePageBtn) {
-  background: hsla(0, 0%, 100%, 0.05);
-  border-color: var(--fg-color);
-  color: var(--fg-color);
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--foreground);
 }
 
 .activePageBtn {
-  background: var(--primary-glow);
-  color: hsl(265, 90%, 80%);
-  border-color: hsla(265, 80%, 60%, 0.25);
+  background: var(--info-subtle);
+  color: var(--primary);
+  border-color: rgba(59, 130, 246, 0.25);
   cursor: default;
 }
 
@@ -222,7 +223,7 @@
   height: 28px;
   min-width: 28px;
   font-size: 0.78rem;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   font-weight: 500;
 }
 

@@ -46,11 +46,11 @@
   --info: #3b82f6;
   --info-subtle: rgba(59, 130, 246, 0.12);
 
-  /* Focus & Geometry */
+  /* Focus & Restrained Geometry (4-8px) */
   --focus-ring: rgba(59, 130, 246, 0.4);
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 10px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 
   /* Safe Area Insets for Android Notches & Navigation */
   --sat: env(safe-area-inset-top, 0px);
