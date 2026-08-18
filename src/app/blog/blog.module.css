@@ -120,9 +120,9 @@
 }
 
 .activeChip {
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
-  border-color: rgba(99, 102, 241, 0.3);
+  background: var(--info-subtle);
+  color: var(--primary);
+  border-color: rgba(59, 130, 246, 0.25);
   font-weight: 600;
 }
 
@@ -143,17 +143,16 @@
 .featuredCard {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--surface);
-  border: 1px solid var(--surface-border);
+  border: 1px solid var(--border);
   transition: var(--transition);
   min-height: 360px;
 }
 
 .featuredCard:hover {
-  border-color: var(--secondary);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border-color: var(--primary);
 }
 
 .featuredImageWrapper {
@@ -162,7 +161,7 @@
   height: 100%;
   min-height: 250px;
   overflow: hidden;
-  background: #0f172a;
+  background: var(--background);
 }
 
 .featuredImage {
@@ -185,14 +184,14 @@
 .cardTag {
   align-self: flex-start;
   padding: 0.2rem 0.55rem;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.03em;
   text-transform: uppercase;
-  background: rgba(99, 102, 241, 0.15);
-  color: #818cf8;
-  border: 1px solid rgba(99, 102, 241, 0.3);
+  background: var(--info-subtle);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
 }
 
 .postMeta {
@@ -364,9 +363,9 @@
 
 .submitBtn {
   padding: 0.55rem 1.25rem;
-  border-radius: 8px;
-  background: #6366f1;
-  border: 1px solid #818cf8;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
   color: white;
   font-weight: 600;
   font-size: 0.85rem;
@@ -376,7 +375,7 @@
 }
 
 .submitBtn:hover {
-  background: #4f46e5;
+  background: var(--primary-hover);
 }
 
 .successMsg {

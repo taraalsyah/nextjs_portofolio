@@ -37,10 +37,10 @@
   width: 100%;
   text-align: left;
   padding: 0.65rem 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: hsla(0, 0%, 100%, 0.6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--secondary-text);
   cursor: pointer;
   transition: var(--transition);
   display: flex;
@@ -49,25 +49,24 @@
 }
 
 .roleItem:hover {
-  background: hsla(0, 0%, 100%, 0.04);
-  color: var(--fg-color);
+  background: var(--surface-hover);
+  color: var(--foreground);
 }
 
 .roleItemActive {
-  background: var(--primary-glow);
-  color: hsl(265, 90%, 80%) !important;
-  border-color: hsla(265, 80%, 60%, 0.25);
-  box-shadow: 0 4px 12px var(--primary-glow);
+  background: var(--primary-soft);
+  color: var(--primary) !important;
+  border-color: var(--primary-border);
 }
 
 .roleItemName {
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .roleItemDesc {
   font-size: 0.7rem;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -79,28 +78,29 @@
   justify-content: center;
   gap: 0.4rem;
   padding: 0.5rem 1rem;
-  border-radius: 8px;
-  background: var(--glass);
-  border: 1px dashed var(--glass-border);
-  color: var(--fg-color);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  color: var(--foreground);
   font-size: 0.8rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
   height: 38px;
 }
 
 .addRoleBtn:hover {
-  border-color: var(--secondary);
-  color: var(--secondary);
-  background: hsla(0, 0%, 100%, 0.02);
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--surface-hover);
 }
 
 /* ─── RIGHT PANEL (Role Detail & Matrix) ─────────────────────────────────────── */
 .rightPanel {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.25rem;
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  background: var(--surface);
+  border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -110,7 +110,7 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.75rem;
 }
 
@@ -122,13 +122,14 @@
 
 .detailTitle {
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
+  color: var(--foreground);
 }
 
 .detailDesc {
   font-size: 0.78rem;
-  color: hsla(0, 0%, 100%, 0.45);
+  color: var(--muted-foreground);
 }
 
 .roleCrudActions {
@@ -143,26 +144,26 @@
   gap: 0.35rem;
   height: 28px;
   padding: 0 0.75rem;
-  border-radius: 6px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: hsla(0, 0%, 100%, 0.7);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--secondary-text);
   font-size: 0.75rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   transition: var(--transition);
 }
 
 .crudBtn:hover {
-  background: hsla(0, 0%, 100%, 0.05);
-  border-color: var(--secondary);
-  color: var(--secondary);
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .deleteCrudBtn:hover {
-  border-color: hsl(330, 90%, 65%);
-  color: hsl(330, 90%, 65%);
-  background: hsla(330, 90%, 65%, 0.08);
+  border-color: var(--error);
+  color: var(--error);
+  background: var(--error-subtle);
 }
 
 /* Form Fields */
@@ -175,7 +176,7 @@
 .label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: hsla(0, 0%, 100%, 0.45);
+  color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -183,17 +184,17 @@
 .input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: var(--fg-color);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
   font-size: 0.82rem;
   outline: none;
   height: 38px;
 }
 
 .input:focus {
-  border-color: var(--secondary);
+  border-color: var(--primary);
 }
 
 /* ─── PERMISSION MATRIX ──────────────────────────────────────────────────────── */
@@ -204,10 +205,10 @@
 }
 
 .matrixCard {
-  border: 1px solid var(--glass-border);
-  border-radius: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  background: hsla(0, 0%, 100%, 0.01);
+  background: var(--surface);
 }
 
 .matrixTable {
@@ -218,20 +219,21 @@
 }
 
 .matrixTable th {
-  background: hsla(0, 0%, 100%, 0.03);
-  color: hsla(0, 0%, 100%, 0.5);
+  background: var(--background);
+  color: var(--muted-foreground);
   font-weight: 600;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
 }
 
 .matrixTable td {
   padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
+  color: var(--foreground);
 }
 
 .matrixTable tr:last-child td {
@@ -240,7 +242,7 @@
 
 .moduleCol {
   font-weight: 600;
-  color: var(--fg-color);
+  color: var(--foreground);
   width: 220px;
 }
 
@@ -262,12 +264,12 @@
   cursor: pointer;
   width: 15px;
   height: 15px;
-  accent-color: var(--secondary);
+  accent-color: var(--primary);
 }
 
 /* Empty Dash symbol when permission action doesn't exist for module */
 .emptyAction {
-  color: hsla(0, 0%, 100%, 0.2);
+  color: #CBD5E1;
   font-weight: 600;
 }
 
@@ -276,7 +278,7 @@
   display: flex;
   justify-content: flex-end;
   gap: 0.5rem;
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--border);
   padding-top: 1rem;
   margin-top: 0.5rem;
 }
@@ -314,46 +316,45 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  animation: fadeIn 0.2s ease-out;
 }
 
 .modalContent {
   width: 100%;
   max-width: 420px;
-  border-radius: 12px;
+  border-radius: var(--radius-modal);
   padding: 1.5rem;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
-  border: 1px solid var(--glass-border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border);
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
-  animation: scaleIn 0.2s ease-out;
 }
 
 .modalHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.75rem;
 }
 
 .modalTitle {
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
+  color: var(--foreground);
 }
 
 .closeModalBtn {
   background: transparent;
   border: none;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: var(--transition);
   display: flex;
@@ -361,31 +362,30 @@
 }
 
 .closeModalBtn:hover {
-  color: var(--fg-color);
+  color: var(--foreground);
 }
 
 /* Alert Notification */
 .alert {
   padding: 0.65rem 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.82rem;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  animation: slideUp 0.3s ease-out;
 }
 
 .alertSuccess {
-  background: hsla(180, 70%, 50%, 0.1);
-  border: 1px solid hsla(180, 70%, 50%, 0.2);
-  color: hsl(180, 90%, 80%);
+  background: var(--success-subtle);
+  border: 1px solid #BBF7D0;
+  color: var(--success);
 }
 
 .alertError {
-  background: hsla(330, 90%, 65%, 0.1);
-  border: 1px solid hsla(330, 90%, 65%, 0.2);
-  color: hsl(330, 90%, 80%);
+  background: var(--error-subtle);
+  border: 1px solid #FCA5A5;
+  color: var(--error);
 }
 
 @keyframes fadeIn {

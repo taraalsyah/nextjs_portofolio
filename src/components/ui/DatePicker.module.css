@@ -10,28 +10,27 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.65rem 0.85rem;
-  background: var(--glass, rgba(15, 23, 42, 0.65));
-  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.12));
-  border-radius: 8px;
-  color: var(--fg-color, #f8fafc);
-  font-size: 0.85rem;
+  padding: 0.55rem 0.85rem;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  font-size: 0.82rem;
   cursor: pointer;
   outline: none;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
+  height: 38px;
 }
 
 .triggerInput:hover:not(:disabled) {
-  border-color: rgba(56, 189, 248, 0.45);
-  background: rgba(30, 41, 59, 0.85);
-  box-shadow: 0 4px 14px rgba(56, 189, 248, 0.1);
+  border-color: var(--primary);
+  background: var(--surface-hover);
 }
 
 .triggerInput:focus-visible:not(:disabled),
 .triggerInputActive {
-  border-color: #38bdf8 !important;
-  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2) !important;
-  background: rgba(30, 41, 59, 0.9) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px var(--focus-ring) !important;
 }
 
 .triggerInput:disabled {
@@ -49,30 +48,30 @@
 }
 
 .triggerIcon {
-  color: #38bdf8;
+  color: var(--primary);
   flex-shrink: 0;
 }
 
 .placeholder {
-  color: hsla(0, 0%, 100%, 0.35);
+  color: var(--muted-foreground);
 }
 
 .clearBtn {
   background: transparent;
   border: none;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 2px;
   border-radius: 50%;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition);
 }
 
 .clearBtn:hover {
-  color: #f87171;
-  background: rgba(239, 68, 68, 0.15);
+  color: var(--error);
+  background: var(--error-subtle);
 }
 
 /* Popover Panel */
@@ -81,44 +80,10 @@
   z-index: 99999;
   width: 290px;
   padding: 0.85rem;
-  background: rgba(15, 23, 42, 0.96);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: 12px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(56, 189, 248, 0.2);
-}
-
-.popoverTop {
-  animation: fadeInScaleTop 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: bottom left;
-}
-
-.popoverBottom {
-  animation: fadeInScaleBottom 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  transform-origin: top left;
-}
-
-@keyframes fadeInScaleTop {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
-}
-
-@keyframes fadeInScaleBottom {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(-6px);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Header & Controls */
@@ -131,23 +96,23 @@
 }
 
 .navBtn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  color: #f8fafc;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
   display: flex;
   align-items: center;
   justify-content: center;
   width: 28px;
   height: 28px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition);
 }
 
 .navBtn:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.2);
-  border-color: rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .navBtn:disabled {
@@ -162,25 +127,24 @@
 }
 
 .selectInput {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 6px;
-  color: #f8fafc;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
   font-size: 0.8rem;
   font-weight: 600;
   padding: 0.25rem 0.35rem;
   outline: none;
   cursor: pointer;
-  transition: border-color 0.15s ease;
 }
 
 .selectInput:hover {
-  border-color: rgba(56, 189, 248, 0.4);
+  border-color: var(--primary);
 }
 
 .selectInput option {
-  background: #0f172a;
-  color: #f8fafc;
+  background: #ffffff;
+  color: #0f172a;
 }
 
 /* Calendar Grid */
@@ -194,7 +158,7 @@
 .weekDayCell {
   font-size: 0.72rem;
   font-weight: 600;
-  color: hsla(0, 0%, 100%, 0.45);
+  color: var(--muted-foreground);
   padding: 0.25rem 0;
   text-transform: uppercase;
 }
@@ -213,17 +177,17 @@
   width: 100%;
   background: transparent;
   border: none;
-  border-radius: 6px;
-  color: #f8fafc;
+  border-radius: var(--radius-sm);
+  color: var(--foreground);
   font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition);
   position: relative;
 }
 
 .dayCell:hover:not(:disabled) {
-  background: rgba(56, 189, 248, 0.25);
-  color: #38bdf8;
+  background: var(--primary-soft);
+  color: var(--primary);
 }
 
 .outsideMonth {
@@ -232,7 +196,7 @@
 
 .today {
   font-weight: 700;
-  color: #38bdf8;
+  color: var(--primary);
 }
 
 .today::after {
@@ -242,14 +206,13 @@
   width: 4px;
   height: 4px;
   border-radius: 50%;
-  background: #38bdf8;
+  background: var(--primary);
 }
 
 .selected {
-  background: #38bdf8 !important;
-  color: #0f172a !important;
-  font-weight: 700 !important;
-  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.4);
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  font-weight: 600 !important;
 }
 
 .disabledDay {
@@ -265,29 +228,29 @@
   justify-content: space-between;
   margin-top: 0.75rem;
   padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border);
 }
 
 .footerBtn {
   background: transparent;
   border: none;
-  color: #38bdf8;
+  color: var(--primary);
   font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
   padding: 0.25rem 0.4rem;
   border-radius: 4px;
-  transition: all 0.15s ease;
+  transition: var(--transition);
 }
 
 .footerBtn:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: var(--primary-soft);
 }
 
 .footerBtnDanger {
-  color: #f87171;
+  color: var(--error);
 }
 
 .footerBtnDanger:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--error-subtle);
 }

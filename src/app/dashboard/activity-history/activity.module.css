@@ -29,7 +29,7 @@
   overflow-x: auto;
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  background: var(--surface-muted);
+  background: var(--surface);
 }
 
 .table {
@@ -41,7 +41,7 @@
 }
 
 .table th {
-  background: var(--surface-muted);
+  background: var(--background);
   color: var(--muted-foreground);
   font-weight: 600;
   font-size: 0.72rem;
@@ -90,7 +90,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.15rem 0.5rem;
   border-radius: var(--radius-sm);
   text-transform: uppercase;
@@ -101,25 +101,25 @@
 .badgeCreate {
   background: var(--success-subtle);
   color: var(--success);
-  border: 1px solid rgba(16, 185, 129, 0.25);
+  border: 1px solid #BBF7D0;
 }
 
 .badgeUpdate {
-  background: var(--info-subtle);
+  background: var(--primary-soft);
   color: var(--primary);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  border: 1px solid var(--primary-border);
 }
 
 .badgeDelete {
   background: var(--error-subtle);
   color: var(--error);
-  border: 1px solid rgba(239, 68, 68, 0.25);
+  border: 1px solid #FCA5A5;
 }
 
 .badgeLogin {
-  background: var(--info-subtle);
+  background: var(--primary-soft);
   color: var(--primary);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  border: 1px solid var(--primary-border);
 }
 
 .badgeLogout {

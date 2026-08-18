@@ -1,58 +1,64 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Core Base Colors */
-  --background: #0b0f19;
-  --foreground: #f8fafc;
-  --muted-foreground: #94a3b8;
+  /* Restrained Light Enterprise Neutral Palette */
+  --background: #F8FAFC;
+  --surface: #FFFFFF;
+  --surface-elevated: #FFFFFF;
+  --surface-hover: #F1F5F9;
+  --surface-muted: #F8FAFC;
+
+  /* Text Hierarchy */
+  --foreground: #0F172A;
+  --secondary-text: #64748B;
+  --muted-foreground: #64748B;
 
   /* Legacy Compat Tokens */
   --bg-color: var(--background);
   --fg-color: var(--foreground);
+  --glass: var(--surface);
 
-  /* Surfaces & Containers */
-  --surface: #131b2e;
-  --surface-hover: #1b253b;
-  --surface-muted: #0f172a;
-  --glass: rgba(19, 27, 46, 0.85);
-
-  /* Borders */
-  --border: #1e293b;
-  --border-muted: #1e293b;
+  /* Crisp Enterprise Borders */
+  --border: #E2E8F0;
+  --border-muted: #E2E8F0;
   --surface-border: var(--border);
   --glass-border: var(--border);
 
-  /* Brand Action Colors */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  /* Functional Primary Accent (Restrained Blue) */
+  --primary: #2563EB;
+  --primary-hover: #1D4ED8;
+  --primary-dark: #1E40AF;
+  --primary-soft: #EFF6FF;
+  --primary-border: #BFDBFE;
   --primary-foreground: #ffffff;
-  --primary-glow: rgba(37, 99, 235, 0.2);
+  --primary-glow: rgba(37, 99, 235, 0.08);
 
-  --secondary: #334155;
-  --secondary-hover: #475569;
-  --secondary-foreground: #f8fafc;
-  --secondary-glow: rgba(51, 65, 85, 0.2);
+  --secondary: #F1F5F9;
+  --secondary-hover: #E2E8F0;
+  --secondary-foreground: #0F172A;
+  --secondary-glow: rgba(0, 0, 0, 0.04);
 
-  --accent: #0ea5e9;
-  --accent-subtle: rgba(14, 165, 233, 0.12);
+  --accent: #2563EB;
+  --accent-subtle: #EFF6FF;
 
-  /* Status Colors */
-  --success: #10b981;
-  --success-subtle: rgba(16, 185, 129, 0.12);
-  --warning: #f59e0b;
-  --warning-subtle: rgba(245, 158, 11, 0.12);
-  --error: #ef4444;
-  --error-subtle: rgba(239, 68, 68, 0.12);
-  --info: #3b82f6;
-  --info-subtle: rgba(59, 130, 246, 0.12);
+  /* Functional Status Colors */
+  --success: #16A34A;
+  --success-subtle: #F0FDF4;
+  --warning: #D97706;
+  --warning-subtle: #FFFBEB;
+  --error: #DC2626;
+  --error-subtle: #FEF2F2;
+  --info: #2563EB;
+  --info-subtle: #EFF6FF;
 
-  /* Focus & Restrained Geometry (4-8px) */
-  --focus-ring: rgba(59, 130, 246, 0.4);
+  /* Focus & Restrained Geometry (4px / 6px / 8px / 10px) */
+  --focus-ring: rgba(37, 99, 235, 0.25);
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 8px;
+  --radius-modal: 10px;
 
-  /* Safe Area Insets for Android Notches & Navigation */
+  /* Safe Area Insets for Mobile / Capacitor */
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
@@ -64,7 +70,7 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* Transitions */
-  --transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
@@ -97,7 +103,7 @@ input, textarea, select, [contenteditable="true"] {
 
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-heading);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.01em;
   color: var(--foreground);
 }
 
@@ -130,12 +136,12 @@ button {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
+  background: #CBD5E1;
   border-radius: var(--radius-sm);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: #94A3B8;
 }
 
 /* Reusable Enterprise Utility Components */
@@ -172,7 +178,7 @@ body.is-android-native [class*="menuToggle"] {
   margin-left: 0.75rem !important;
   min-width: 40px !important;
   min-height: 40px !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
 }
 
 body.is-android-native [class*="contentContainer"],

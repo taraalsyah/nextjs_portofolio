@@ -76,11 +76,11 @@ export async function sendTaskCloseNotification({
 
       const bodyHtml = `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 8px;">
-          <h2 style="color: #4f46e5; margin-top: 0;">Permintaan Penutupan Task (Request to Close)</h2>
+          <h2 style="color: #2563eb; margin-top: 0;">Permintaan Penutupan Task (Request to Close)</h2>
           <p>Halo <strong>${owner.name}</strong>,</p>
           <p><strong>${userTitle}</strong> mengajukan permintaan untuk menutup task berikut:</p>
           <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">
-            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd; width: 150px;"><strong>Task ID / No:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold; color: #4f46e5;">${taskNumber}</td></tr>
+            <tr><td style="padding: 8px; border-bottom: 1px solid #ddd; width: 150px;"><strong>Task ID / No:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd; font-weight: bold; color: #2563eb;">${taskNumber}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Judul Task:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${taskTitle}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Pemohon:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${userTitle}</td></tr>
             <tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Proyek:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${project.projectName}</td></tr>
@@ -89,12 +89,12 @@ export async function sendTaskCloseNotification({
             ${reason ? `<tr><td style="padding: 8px; border-bottom: 1px solid #ddd;"><strong>Alasan:</strong></td><td style="padding: 8px; border-bottom: 1px solid #ddd;">${reason}</td></tr>` : ''}
           </table>
           <p style="margin-top: 20px;">
-            <a href="${taskLink}" style="background-color: #4f46e5; color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            <a href="${taskLink}" style="background-color: #2563eb; color: #ffffff; padding: 10px 18px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
               Tinjau Task Ini
             </a>
           </p>
           <p style="font-size: 0.85rem; color: #64748b; margin-top: 15px;">
-            Atau buka tautan berikut: <a href="${taskLink}" style="color: #4f46e5;">${taskLink}</a>
+            Atau buka tautan berikut: <a href="${taskLink}" style="color: #2563eb;">${taskLink}</a>
           </p>
         </div>
       `;
@@ -187,7 +187,7 @@ export async function sendTaskDoneNotification({
 
       const bodyHtml = `
         <div style="font-family: Arial, sans-serif; padding: 20px; color: #333;">
-          <h2 style="color: #4f46e5;">Permintaan Penyelesaian Task (Request to Done)</h2>
+          <h2 style="color: #2563eb;">Permintaan Penyelesaian Task (Request to Done)</h2>
           <p>Halo,</p>
           <p><strong>${messageText}</strong></p>
           <table style="width: 100%; border-collapse: collapse; margin: 15px 0;">

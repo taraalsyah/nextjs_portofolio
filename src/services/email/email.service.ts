@@ -19,7 +19,7 @@ function baseTemplate(title: string, body: string): string {
 
           <!-- Header / Logo -->
           <tr>
-            <td align="center" style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);padding:36px 40px;">
+            <td align="center" style="background:#2563eb;padding:36px 40px;">
               <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">
                 🚀 Tara Alsyah
               </h1>
@@ -56,7 +56,7 @@ function baseTemplate(title: string, body: string): string {
 function otpBlock(otp: string): string {
   return `
     <div style="text-align:center;margin:28px 0;">
-      <span style="display:inline-block;font-size:40px;font-weight:800;letter-spacing:12px;color:#4f46e5;background-color:#eef2ff;padding:16px 32px;border-radius:12px;border:2px dashed #4f46e5;">
+      <span style="display:inline-block;font-size:40px;font-weight:800;letter-spacing:12px;color:#2563eb;background-color:#eef2ff;padding:16px 32px;border-radius:12px;border:2px dashed #1E40AF;">
         ${otp}
       </span>
     </div>
@@ -133,7 +133,7 @@ export class EmailService {
         <tr>
           <td align="center" style="padding:0 0 24px;">
             <a href="${resetLink}"
-               style="display:inline-block;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:10px;letter-spacing:0.3px;">
+               style="display:inline-block;background:#2563eb;color:#ffffff;font-size:16px;font-weight:700;text-decoration:none;padding:14px 36px;border-radius:10px;letter-spacing:0.3px;">
               🔐 Reset Password
             </a>
           </td>
@@ -145,7 +145,7 @@ export class EmailService {
         Jika tombol di atas tidak berfungsi, salin dan tempel URL berikut ke browser Anda:
       </p>
       <p style="font-size:12px;word-break:break-all;margin:0 0 24px;">
-        <a href="${resetLink}" style="color:#4f46e5;">${resetLink}</a>
+        <a href="${resetLink}" style="color:#2563eb;">${resetLink}</a>
       </p>
 
       <table width="100%" cellpadding="0" cellspacing="0"

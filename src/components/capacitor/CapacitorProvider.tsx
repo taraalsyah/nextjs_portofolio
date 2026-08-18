@@ -170,7 +170,7 @@ export function CapacitorProvider({ children }: { children: React.ReactNode }) {
               gap: '0.5rem',
               padding: '0.75rem 1.75rem',
               borderRadius: '10px',
-              background: 'linear-gradient(135deg, var(--secondary, #38bdf8) 0%, var(--primary, #818cf8) 100%)',
+              background: 'var(--primary, #3B82F6)',
               color: '#ffffff',
               fontSize: '0.9rem',
               fontWeight: 700,

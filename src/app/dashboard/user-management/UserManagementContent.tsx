@@ -256,7 +256,7 @@ export default function UserManagementContent({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'hsl(265, 90%, 80%)'
+            color: 'var(--primary)'
           }}>
             <UsersIcon size={18} />
           </div>

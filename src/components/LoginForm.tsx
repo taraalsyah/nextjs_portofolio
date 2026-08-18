@@ -133,11 +133,11 @@ export default function LoginForm() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`${styles.card} glass`}
+      className={styles.card}
     >
       <div className={styles.cardHeader}>
         <h1 className={styles.title}>
-          Selamat <span className="text-gradient">Datang</span>
+          Selamat Datang
         </h1>
         <p className={styles.subtitle}>Masuk ke akun Anda untuk melanjutkan</p>
       </div>

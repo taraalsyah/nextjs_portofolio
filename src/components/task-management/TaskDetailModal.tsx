@@ -1331,14 +1331,14 @@ export function TaskDetailModal({
           <div
             style={{
               padding: '0.65rem 0.85rem',
-              borderRadius: '8px',
+              borderRadius: 'var(--radius-md)',
               margin: '0.5rem 0',
-              background: 'hsla(270, 40%, 55%, 0.1)',
-              border: '1px solid hsla(270, 40%, 55%, 0.25)',
+              background: 'var(--info-subtle)',
+              border: '1px solid rgba(59, 130, 246, 0.25)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.8rem', color: 'hsla(270, 60%, 85%, 1)' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>
                 Pekerjaan selesai? Ajukan permintaan untuk menutup task.
               </span>
               <button
@@ -1349,9 +1349,9 @@ export function TaskDetailModal({
                   alignItems: 'center',
                   gap: '0.3rem',
                   padding: '0.35rem 0.75rem',
-                  borderRadius: '6px',
+                  borderRadius: 'var(--radius-sm)',
                   border: 'none',
-                  background: 'hsl(270, 40%, 55%)',
+                  background: 'var(--primary)',
                   color: '#fff',
                   cursor: isCloseRequestLoading ? 'not-allowed' : 'pointer',
                   fontSize: '0.8rem',
@@ -1365,8 +1365,8 @@ export function TaskDetailModal({
             </div>
 
             {showReasonInput && (
-              <div style={{ marginTop: '0.6rem', paddingTop: '0.5rem', borderTop: '1px dashed hsla(270, 40%, 55%, 0.3)' }}>
-                <label style={{ display: 'block', fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.8)', marginBottom: '0.3rem' }}>
+              <div style={{ marginTop: '0.6rem', paddingTop: '0.5rem', borderTop: '1px dashed rgba(59, 130, 246, 0.3)' }}>
+                <label style={{ display: 'block', fontSize: '0.78rem', color: 'var(--foreground)', marginBottom: '0.3rem' }}>
                   Alasan Permintaan Penutupan (Opsional):
                 </label>
                 <input
@@ -1383,9 +1383,9 @@ export function TaskDetailModal({
                     disabled={isCloseRequestLoading}
                     style={{
                       padding: '0.3rem 0.75rem',
-                      borderRadius: '6px',
+                      borderRadius: 'var(--radius-sm)',
                       border: 'none',
-                      background: 'hsl(270, 50%, 60%)',
+                      background: 'var(--primary-hover)',
                       color: '#fff',
                       fontSize: '0.8rem',
                       cursor: 'pointer',

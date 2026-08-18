@@ -51,10 +51,10 @@ export function CustomDropdown({
     };
   }, [isOpen]);
 
-  const activeColor = selectedOption?.color || (selectedOption?.value ? 'hsl(265, 90%, 90%)' : 'hsla(0, 0%, 100%, 0.7)');
-  const activeBg = selectedOption?.bgColor || (selectedOption?.value ? 'var(--primary-glow)' : 'var(--bg-color)');
-  const activeBorder = selectedOption?.borderColor || (selectedOption?.value ? 'hsla(265, 80%, 60%, 0.5)' : 'var(--glass-border)');
-  const dotColor = selectedOption?.dotColor || (selectedOption?.value ? '#38bdf8' : 'hsla(0, 0%, 100%, 0.3)');
+  const activeColor = selectedOption?.color || (selectedOption?.value ? 'var(--foreground)' : 'var(--muted-foreground)');
+  const activeBg = selectedOption?.bgColor || (selectedOption?.value ? 'var(--surface-elevated)' : 'var(--surface)');
+  const activeBorder = selectedOption?.borderColor || (selectedOption?.value ? 'var(--border)' : 'var(--border)');
+  const dotColor = selectedOption?.dotColor || (selectedOption?.value ? '#3B82F6' : 'var(--muted-foreground)');
 
   return (
     <div ref={dropdownRef} style={{ position: 'relative', width, minWidth }}>
@@ -68,9 +68,9 @@ export function CustomDropdown({
           justifyContent: 'space-between',
           gap: '0.5rem',
           width: '100%',
-          height: '40px',
+          height: '36px',
           padding: '0.45rem 0.75rem',
-          borderRadius: '8px',
+          borderRadius: 'var(--radius-md)',
           background: activeBg,
           border: `1px solid ${activeBorder}`,
           color: activeColor,
@@ -78,10 +78,7 @@ export function CustomDropdown({
           fontWeight: selectedOption?.value ? 600 : 500,
           cursor: disabled ? 'not-allowed' : 'pointer',
           opacity: disabled ? 0.7 : 1,
-          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isOpen
-            ? `0 0 0 2px ${activeBorder}, 0 4px 14px rgba(0, 0, 0, 0.35)`
-            : '0 2px 6px rgba(0, 0, 0, 0.15)',
+          transition: 'var(--transition)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -91,7 +88,6 @@ export function CustomDropdown({
               height: '8px',
               borderRadius: '50%',
               backgroundColor: dotColor,
-              boxShadow: selectedOption?.value ? `0 0 6px ${dotColor}` : 'none',
               flexShrink: 0,
             }}
           />
@@ -103,7 +99,7 @@ export function CustomDropdown({
           size={14}
           style={{
             transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-            transition: 'transform 0.2s ease',
+            transition: 'transform 0.15s ease',
             opacity: 0.8,
             flexShrink: 0,
           }}
@@ -114,17 +110,17 @@ export function CustomDropdown({
         <div
           style={{
             position: 'absolute',
-            top: 'calc(100% + 6px)',
+            top: 'calc(100% + 4px)',
             left: 0,
             width: '100%',
             minWidth: '170px',
             maxHeight: '240px',
             overflowY: 'auto',
-            background: '#0f172a',
-            border: '1px solid var(--glass-border)',
-            borderRadius: '10px',
-            boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px hsla(0, 0%, 100%, 0.08)',
-            padding: '0.35rem',
+            background: 'var(--surface-elevated)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-md)',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+            padding: '0.3rem',
             zIndex: 100,
             display: 'flex',
             flexDirection: 'column',
@@ -134,7 +130,7 @@ export function CustomDropdown({
           {options.map((opt) => {
             const isSelected = opt.value === value;
             const isOptionDisabled = !!opt.disabled;
-            const itemDot = opt.dotColor || (opt.value ? '#38bdf8' : 'hsla(0, 0%, 100%, 0.3)');
+            const itemDot = opt.dotColor || (opt.value ? '#3B82F6' : 'var(--muted-foreground)');
 
             return (
               <button
@@ -151,20 +147,20 @@ export function CustomDropdown({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '0.45rem 0.65rem',
-                  borderRadius: '6px',
-                  border: isSelected ? `1px solid ${opt.borderColor || 'hsla(265, 80%, 60%, 0.4)'}` : '1px solid transparent',
-                  background: isSelected ? (opt.bgColor || 'var(--primary-glow)') : 'transparent',
-                  color: isOptionDisabled ? 'hsla(0, 0%, 100%, 0.35)' : (opt.color || (isSelected ? 'hsl(265, 90%, 90%)' : 'var(--fg-color)')),
+                  borderRadius: 'var(--radius-sm)',
+                  border: isSelected ? `1px solid ${opt.borderColor || 'var(--primary)'}` : '1px solid transparent',
+                  background: isSelected ? (opt.bgColor || 'var(--info-subtle)') : 'transparent',
+                  color: isOptionDisabled ? 'var(--muted-foreground)' : (opt.color || (isSelected ? 'var(--primary)' : 'var(--foreground)')),
                   fontSize: '0.8rem',
-                  fontWeight: isSelected ? 700 : 500,
+                  fontWeight: isSelected ? 600 : 500,
                   cursor: isOptionDisabled ? 'not-allowed' : 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.15s ease',
+                  transition: 'var(--transition)',
                   whiteSpace: 'nowrap',
                 }}
                 onMouseEnter={(e) => {
                   if (!isSelected && !isOptionDisabled) {
-                    e.currentTarget.style.background = 'hsla(0, 0%, 100%, 0.06)';
+                    e.currentTarget.style.background = 'var(--secondary)';
                   }
                 }}
                 onMouseLeave={(e) => {

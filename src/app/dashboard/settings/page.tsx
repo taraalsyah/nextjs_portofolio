@@ -70,7 +70,7 @@ export default async function SettingsPage() {
                   Kirim log aktivitas login penting ke: <strong style={{ color: 'var(--fg-color)' }}>{user.email}</strong>
                 </span>
               </div>
-              <div style={{ position: 'relative', width: '36px', height: '20px', background: 'var(--primary-glow)', borderRadius: '100px', cursor: 'pointer', border: '1px solid hsla(265, 80%, 60%, 0.4)', flexShrink: 0 }}>
+              <div style={{ position: 'relative', width: '36px', height: '20px', background: 'var(--info-subtle)', borderRadius: '100px', cursor: 'pointer', border: '1px solid var(--border)', flexShrink: 0 }}>
                 <div style={{ position: 'absolute', top: '2px', right: '2px', width: '14px', height: '14px', background: 'white', borderRadius: '50%', boxShadow: '0 1px 3px rgba(0,0,0,0.2)' }} />
               </div>
             </div>

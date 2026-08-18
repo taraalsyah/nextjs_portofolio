@@ -13,18 +13,18 @@ export default function ProfileHeader({ name }: ProfileHeaderProps) {
       <div style={{
         width: '36px',
         height: '36px',
-        borderRadius: '8px',
-        background: 'var(--primary-glow)',
+        borderRadius: 'var(--radius-md)',
+        background: 'var(--info-subtle)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: 'hsl(265, 90%, 80%)'
+        color: 'var(--primary)'
       }}>
         <User size={18} />
       </div>
       <div>
         <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Profil Saya</h2>
-        <p style={{ color: 'hsla(0, 0%, 100%, 0.5)', margin: '0.05rem 0 0', fontSize: '0.78rem' }}>
+        <p style={{ color: 'var(--muted-foreground)', margin: '0.05rem 0 0', fontSize: '0.78rem' }}>
           Kelola informasi identitas, foto profil, dan data kontak Anda
         </p>
       </div>

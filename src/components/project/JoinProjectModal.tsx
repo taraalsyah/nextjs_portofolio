@@ -78,19 +78,19 @@ export function JoinProjectModal({
               style={{
                 width: '36px',
                 height: '36px',
-                borderRadius: '8px',
-                background: 'var(--primary-glow)',
+                borderRadius: 'var(--radius-md)',
+                background: 'var(--info-subtle)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'hsl(265, 90%, 80%)',
+                color: 'var(--primary)',
               }}
             >
               <UserPlus size={18} />
             </div>
             <div>
               <h3 className={styles.modalTitle} style={{ margin: 0 }}>Join Project</h3>
-              <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: 'hsla(0,0%,100%,0.5)' }}>
+              <p style={{ margin: '0.1rem 0 0', fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
                 Bergabung ke proyek menggunakan Invite Code
               </p>
             </div>

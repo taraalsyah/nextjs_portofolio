@@ -14,9 +14,9 @@
   display: inline-block;
   padding: 0.5rem 1.25rem;
   border-radius: 100px;
-  background: hsla(265, 80%, 60%, 0.15);
-  color: hsl(265, 80%, 75%);
-  border: 1px solid hsla(265, 80%, 60%, 0.3);
+  background: var(--info-subtle);
+  color: var(--primary);
+  border: 1px solid rgba(59, 130, 246, 0.25);
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -192,15 +192,15 @@
   --glow-color: var(--primary);
 }
 .emailCard:hover {
-  border-color: hsla(265, 80%, 60%, 0.4);
-  box-shadow: 0 10px 40px -10px hsla(265, 80%, 60%, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+  box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2);
 }
 .emailCard:hover .iconWrapper {
-  background: hsla(265, 80%, 60%, 0.2);
-  border-color: hsla(265, 80%, 60%, 0.4);
+  background: var(--info-subtle);
+  border-color: rgba(59, 130, 246, 0.4);
 }
 .emailCard:hover .icon {
-  color: hsl(265, 80%, 70%);
+  color: var(--primary);
 }
 
 /* 2. LinkedIn Card */

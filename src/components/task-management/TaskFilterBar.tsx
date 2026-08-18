@@ -14,27 +14,27 @@ interface TaskFilterBarProps {
 }
 
 const STATUS_FILTER_OPTIONS: CustomDropdownOption[] = [
-  { value: '', label: 'Semua Status', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
-  { value: 'BACKLOG', label: 'Backlog', dotColor: '#94a3b8', color: 'hsl(215, 20%, 85%)', bgColor: 'hsla(215, 20%, 65%, 0.15)', borderColor: 'hsla(215, 20%, 65%, 0.3)' },
-  { value: 'OPEN', label: 'Open', dotColor: '#38bdf8', color: 'hsl(210, 90%, 82%)', bgColor: 'hsla(210, 90%, 65%, 0.15)', borderColor: 'hsla(210, 90%, 65%, 0.3)' },
-  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 95%, 55%, 0.18)', borderColor: 'hsla(38, 95%, 55%, 0.35)' },
-  { value: 'DONE', label: 'Done', dotColor: '#10b981', color: 'hsl(145, 80%, 78%)', bgColor: 'hsla(145, 80%, 45%, 0.15)', borderColor: 'hsla(145, 80%, 45%, 0.3)' },
+  { value: '', label: 'Semua Status', dotColor: '#94a3b8' },
+  { value: 'BACKLOG', label: 'Backlog', dotColor: '#64748b', color: '#475569', bgColor: '#f1f5f9', borderColor: '#cbd5e1' },
+  { value: 'OPEN', label: 'Open', dotColor: '#2563eb', color: '#2563eb', bgColor: '#eff6ff', borderColor: '#bfdbfe' },
+  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#d97706', color: '#d97706', bgColor: '#fffbeb', borderColor: '#fde68a' },
+  { value: 'DONE', label: 'Done', dotColor: '#16a34a', color: '#16a34a', bgColor: '#f0fdf4', borderColor: '#bbf7d0' },
 ];
 
 const PRIORITY_FILTER_OPTIONS: CustomDropdownOption[] = [
-  { value: '', label: 'Semua Priority', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
-  { value: 'LOW', label: 'Low', dotColor: '#38bdf8', color: 'hsl(210, 90%, 80%)', bgColor: 'hsla(210, 80%, 55%, 0.12)', borderColor: 'hsla(210, 80%, 55%, 0.25)' },
-  { value: 'MEDIUM', label: 'Medium', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 90%, 55%, 0.15)', borderColor: 'hsla(38, 90%, 55%, 0.25)' },
-  { value: 'HIGH', label: 'High', dotColor: '#f97316', color: 'hsl(15, 95%, 80%)', bgColor: 'hsla(15, 90%, 60%, 0.18)', borderColor: 'hsla(15, 90%, 60%, 0.3)' },
-  { value: 'CRITICAL', label: 'Critical', dotColor: '#f43f5e', color: 'hsl(350, 95%, 82%)', bgColor: 'hsla(350, 90%, 60%, 0.2)', borderColor: 'hsla(350, 90%, 60%, 0.35)' },
+  { value: '', label: 'Semua Priority', dotColor: '#94a3b8' },
+  { value: 'LOW', label: 'Low', dotColor: '#64748b', color: '#475569', bgColor: '#f1f5f9', borderColor: '#cbd5e1' },
+  { value: 'MEDIUM', label: 'Medium', dotColor: '#2563eb', color: '#2563eb', bgColor: '#eff6ff', borderColor: '#bfdbfe' },
+  { value: 'HIGH', label: 'High', dotColor: '#d97706', color: '#d97706', bgColor: '#fffbeb', borderColor: '#fde68a' },
+  { value: 'CRITICAL', label: 'Critical', dotColor: '#dc2626', color: '#dc2626', bgColor: '#fef2f2', borderColor: '#fca5a5' },
 ];
 
 const SORT_FILTER_OPTIONS: CustomDropdownOption[] = [
-  { value: 'createdAt-desc', label: 'Terbaru (Default)', dotColor: '#38bdf8' },
+  { value: 'createdAt-desc', label: 'Terbaru (Default)', dotColor: '#2563eb' },
   { value: 'createdAt-asc', label: 'Terlama', dotColor: '#64748b' },
-  { value: 'dueDate-asc', label: 'Deadline Terdekat', dotColor: '#f59e0b' },
-  { value: 'dueDate-desc', label: 'Deadline Terjauh', dotColor: '#a855f7' },
-  { value: 'priority-desc', label: 'Prioritas Tertinggi', dotColor: '#f43f5e' },
+  { value: 'dueDate-asc', label: 'Deadline Terdekat', dotColor: '#d97706' },
+  { value: 'dueDate-desc', label: 'Deadline Terjauh', dotColor: '#2563eb' },
+  { value: 'priority-desc', label: 'Prioritas Tertinggi', dotColor: '#dc2626' },
 ];
 
 export function TaskFilterBar({
@@ -87,7 +87,7 @@ export function TaskFilterBar({
     ...categories.map((c) => ({
       value: String(c.id),
       label: c.name,
-      dotColor: '#a855f7',
+      dotColor: '#3b82f6',
     })),
   ];
 

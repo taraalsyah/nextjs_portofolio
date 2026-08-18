@@ -328,3 +328,36 @@ Choose usability over decoration.
 Choose simplicity over visual complexity.
 
 Choose product-specific design over generic AI-generated patterns.
+
+## Color Identity
+
+Do NOT use purple as a primary or accent color.
+
+Avoid purple/blue gradients entirely unless explicitly requested.
+
+The application should NOT use the common AI/SaaS visual combination:
+
+purple + blue + gradient + glow + glassmorphism.
+
+Prefer a restrained enterprise color palette.
+
+Recommended direction:
+
+- Neutral dark/gray foundation
+- Blue as a functional primary accent
+- Green for success
+- Amber for warning
+- Red for error
+- Cyan/light blue for information
+
+Primary blue must be used selectively for:
+- Primary actions
+- Active navigation
+- Focus states
+- Important links
+- Selected states
+
+Do not use primary blue for large decorative backgrounds,
+large borders, or every interactive component.
+
+Color should communicate meaning, not decoration.

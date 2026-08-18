@@ -130,8 +130,8 @@
 
 .filterLabel {
   font-size: 0.72rem;
-  font-weight: 700;
-  color: hsla(0, 0%, 100%, 0.55);
+  font-weight: 600;
+  color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin: 0;
@@ -146,19 +146,19 @@
 .searchInput {
   width: 100%;
   padding: 0.5rem 0.75rem 0.5rem 2.4rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--bg-color);
-  color: var(--fg-color);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
   font-size: 0.82rem;
   outline: none;
-  height: 40px;
+  height: 38px;
   transition: var(--transition);
 }
 
 .searchInput:focus {
-  border-color: var(--secondary);
-  box-shadow: 0 0 0 2px var(--secondary-glow);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .searchIcon {
@@ -166,7 +166,7 @@
   left: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   pointer-events: none;
 }
 
@@ -177,15 +177,15 @@
 
 .filterSelect {
   width: 100%;
-  padding: 0.55rem 2.3rem 0.55rem 0.85rem;
-  border-radius: 10px;
-  border: 1px solid var(--glass-border);
-  background: var(--bg-color);
-  color: var(--fg-color);
+  padding: 0.5rem 2.2rem 0.5rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
   font-size: 0.82rem;
   font-weight: 500;
   outline: none;
-  height: 42px;
+  height: 38px;
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
@@ -193,49 +193,40 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.25);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: var(--transition);
 }
 
 .filterSelect option {
-  background-color: #0f172a;
-  color: #f8fafc;
-  padding: 0.65rem 0.85rem;
+  background-color: #ffffff;
+  color: #0f172a;
+  padding: 0.5rem;
   font-size: 0.82rem;
 }
 
 .filterSelect:hover {
-  border-color: hsla(265, 80%, 65%, 0.45);
-  background: hsla(0, 0%, 100%, 0.03);
-  box-shadow: 0 6px 16px -2px rgba(0, 0, 0, 0.35);
+  border-color: var(--primary);
+  background: var(--surface-hover);
 }
 
 .filterSelect:focus {
-  border-color: var(--secondary);
-  box-shadow: 0 0 0 3px var(--secondary-glow), 0 6px 20px -2px rgba(0, 0, 0, 0.4);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 .activeSelect {
-  border-color: hsla(265, 80%, 60%, 0.6) !important;
-  background: var(--primary-glow) !important;
-  color: hsl(265, 90%, 90%) !important;
+  border-color: var(--primary) !important;
+  background: var(--primary-soft) !important;
+  color: var(--primary) !important;
   font-weight: 600 !important;
-  box-shadow: 0 0 12px var(--primary-glow), 0 4px 14px -2px rgba(0, 0, 0, 0.3) !important;
 }
 
 .selectIcon {
   position: absolute;
-  right: 0.85rem;
+  right: 0.75rem;
   top: 50%;
   transform: translateY(-50%);
-  color: hsla(0, 0%, 100%, 0.5);
+  color: var(--muted-foreground);
   pointer-events: none;
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.selectWrapper:hover .selectIcon {
-  color: var(--secondary);
-  transform: translateY(-50%) scale(1.1);
 }
 
 .filterActionItem {
@@ -249,22 +240,22 @@
   justify-content: center;
   gap: 0.35rem;
   padding: 0.4rem 0.85rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: hsla(0, 0%, 100%, 0.7);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--secondary-text);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
-  height: 40px;
+  height: 38px;
   transition: var(--transition);
   white-space: nowrap;
 }
 
 .clearFilterBtn:hover {
-  background: hsla(0, 0%, 100%, 0.08);
-  color: var(--fg-color);
-  border-color: var(--secondary);
+  background: var(--surface-hover);
+  color: var(--foreground);
+  border-color: var(--secondary-text);
 }
 
 /* Table View */
@@ -272,9 +263,9 @@
   position: relative;
   width: 100%;
   overflow-x: auto;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: hsla(0, 0%, 100%, 0.01);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
   min-height: 180px;
 }
 
@@ -284,24 +275,12 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(2px);
-  -webkit-backdrop-filter: blur(2px);
+  background: rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10;
-  border-radius: 8px;
-  animation: fadeInOverlay 0.15s ease-in-out;
-}
-
-@keyframes fadeInOverlay {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  border-radius: var(--radius-lg);
 }
 
 .tableLoadingBadge {
@@ -309,25 +288,25 @@
   align-items: center;
   gap: 0.55rem;
   padding: 0.55rem 1.1rem;
-  background: rgba(15, 23, 42, 0.9);
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: #ffffff;
+  border: 1px solid var(--primary-border);
   border-radius: 20px;
-  color: #38bdf8;
+  color: var(--primary);
   font-size: 0.82rem;
   font-weight: 600;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .pageBtn {
   min-width: 32px;
   height: 32px;
   padding: 0 0.5rem;
-  border-radius: 6px;
-  border: 1px solid var(--glass-border);
-  background: transparent;
-  color: hsla(0, 0%, 100%, 0.7);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--secondary-text);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 500;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -336,16 +315,14 @@
 }
 
 .pageBtn:hover:not(:disabled) {
-  background: hsla(0, 0%, 100%, 0.08);
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.2);
+  background: var(--surface-hover);
+  color: var(--foreground);
 }
 
 .pageBtnActive {
-  background: linear-gradient(135deg, hsl(210, 90%, 55%), hsl(250, 85%, 60%)) !important;
+  background: var(--primary) !important;
   color: #fff !important;
-  border-color: transparent !important;
-  box-shadow: 0 2px 8px rgba(56, 189, 248, 0.3);
+  border-color: var(--primary) !important;
 }
 
 .pageBtn:disabled {
@@ -362,23 +339,23 @@
 }
 
 .table th {
-  background: hsla(0, 0%, 100%, 0.03);
-  color: hsla(0, 0%, 100%, 0.5);
+  background: var(--background);
+  color: var(--muted-foreground);
   font-weight: 600;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--glass-border);
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border);
   white-space: nowrap;
 }
 
 .table td {
-  padding: 0.6rem 0.85rem;
-  border-bottom: 1px solid var(--glass-border);
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
   line-height: 1.4;
-  color: hsla(0, 0%, 100%, 0.85);
+  color: var(--foreground);
 }
 
 .table tr:last-child td {
@@ -386,7 +363,7 @@
 }
 
 .table tr:hover td {
-  background: hsla(0, 0%, 100%, 0.02);
+  background: var(--surface-hover);
 }
 
 /* Badges */
@@ -395,7 +372,7 @@
   align-items: center;
   justify-content: center;
   font-size: 0.68rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.15rem 0.55rem;
   border-radius: 4px;
   text-transform: uppercase;
@@ -405,50 +382,50 @@
 
 .taskNumber {
   font-family: var(--font-heading);
-  font-weight: 700;
-  color: var(--secondary);
+  font-weight: 600;
+  color: var(--secondary-text);
   font-size: 0.82rem;
   white-space: nowrap;
 }
 
 /* Status Badges */
 .statusBacklog {
-  background: hsla(215, 20%, 65%, 0.15);
-  color: hsl(215, 20%, 80%);
-  border: 1px solid hsla(215, 20%, 65%, 0.25);
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
 }
 
 .statusOpen {
-  background: hsla(210, 90%, 65%, 0.15);
-  color: hsl(210, 90%, 82%);
-  border: 1px solid hsla(210, 90%, 65%, 0.25);
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
 }
 
 .statusInProgress {
-  background: hsla(38, 95%, 55%, 0.18);
-  color: hsl(38, 95%, 80%);
-  border: 1px solid hsla(38, 95%, 55%, 0.3);
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FDE68A;
 }
 
 .statusDone {
-  background: hsla(145, 80%, 45%, 0.15);
-  color: hsl(145, 80%, 75%);
-  border: 1px solid hsla(145, 80%, 45%, 0.25);
+  background: #F0FDF4;
+  color: #16A34A;
+  border: 1px solid #BBF7D0;
 }
 
 .statusLocked {
-  background: hsla(0, 75%, 55%, 0.18);
-  color: hsl(0, 85%, 85%);
-  border: 1px solid hsla(0, 75%, 55%, 0.35);
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
 }
 
 .lockedBanner {
   padding: 0.65rem 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   margin: 0.5rem 0;
-  background: hsla(0, 75%, 55%, 0.15);
-  border: 1px solid hsla(0, 75%, 55%, 0.35);
-  color: hsl(0, 85%, 85%);
+  background: #FEF2F2;
+  border: 1px solid #FCA5A5;
+  color: #DC2626;
   font-size: 0.82rem;
   font-weight: 600;
   display: flex;
@@ -458,27 +435,27 @@
 
 /* Priority Badges */
 .priorityLow {
-  background: hsla(210, 80%, 55%, 0.12);
-  color: hsl(210, 90%, 80%);
-  border: 1px solid hsla(210, 80%, 55%, 0.2);
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
 }
 
 .priorityMedium {
-  background: hsla(38, 90%, 55%, 0.15);
-  color: hsl(38, 95%, 80%);
-  border: 1px solid hsla(38, 90%, 55%, 0.25);
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
 }
 
 .priorityHigh {
-  background: hsla(15, 90%, 60%, 0.18);
-  color: hsl(15, 95%, 80%);
-  border: 1px solid hsla(15, 90%, 60%, 0.3);
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FDE68A;
 }
 
 .priorityCritical {
-  background: hsla(350, 90%, 60%, 0.2);
-  color: hsl(350, 95%, 82%);
-  border: 1px solid hsla(350, 90%, 60%, 0.35);
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
 }
 
 .actionBtn {
@@ -487,24 +464,24 @@
   justify-content: center;
   width: 28px;
   height: 28px;
-  border-radius: 6px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: hsla(0, 0%, 100%, 0.6);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--secondary-text);
   cursor: pointer;
   transition: var(--transition);
 }
 
 .actionBtn:hover {
-  background: hsla(0, 0%, 100%, 0.05);
-  border-color: var(--secondary);
-  color: var(--secondary);
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .deleteBtn:hover {
-  border-color: hsl(350, 80%, 60%);
-  color: hsl(350, 80%, 65%);
-  background: hsla(350, 80%, 60%, 0.1);
+  border-color: var(--error);
+  color: var(--error);
+  background: var(--error-subtle);
 }
 
 /* Assigned User & Task Action cursor overrides */
@@ -547,9 +524,9 @@
 }
 
 .kanbanColumn {
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -561,26 +538,28 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.65rem;
 }
 
 .kanbanTitle {
   font-size: 0.85rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  color: var(--foreground);
 }
 
 .kanbanCount {
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   padding: 0.1rem 0.45rem;
   border-radius: 100px;
-  background: hsla(0, 0%, 100%, 0.08);
-  color: hsla(0, 0%, 100%, 0.7);
+  background: var(--surface-hover);
+  color: var(--secondary-text);
+  border: 1px solid var(--border);
 }
 
 .kanbanCardList {
@@ -591,22 +570,21 @@
 }
 
 .kanbanCard {
-  background: var(--bg-color);
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 0.85rem;
   display: flex;
   flex-direction: column;
   gap: 0.6rem;
   cursor: grab;
   transition: var(--transition);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .kanbanCard:hover {
-  border-color: var(--secondary);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35);
+  border-color: var(--primary);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
 .kanbanCardHeader {
@@ -619,7 +597,7 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin: 0;
-  color: var(--fg-color);
+  color: var(--foreground);
   line-height: 1.35;
 }
 
@@ -627,10 +605,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px dashed var(--glass-border);
+  border-top: 1px border-dashed var(--border);
   padding-top: 0.5rem;
   font-size: 0.75rem;
-  color: hsla(0, 0%, 100%, 0.5);
+  color: var(--muted-foreground);
 }
 
 /* Calendar View Layout */
@@ -652,24 +630,24 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 1px;
-  background: var(--glass-border);
-  border-radius: 12px;
+  background: var(--border);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  border: 1px solid var(--glass-border);
+  border: 1px solid var(--border);
 }
 
 .calendarDayHeader {
-  background: hsla(0, 0%, 100%, 0.03);
+  background: var(--surface-muted);
   padding: 0.6rem 0.5rem;
   text-align: center;
   font-size: 0.75rem;
-  font-weight: 700;
-  color: hsla(0, 0%, 100%, 0.5);
+  font-weight: 600;
+  color: var(--muted-foreground);
   text-transform: uppercase;
 }
 
 .calendarDayCell {
-  background: var(--bg-color);
+  background: var(--surface);
   min-height: 100px;
   padding: 0.5rem;
   display: flex;
@@ -679,20 +657,20 @@
 }
 
 .calendarDayCell:hover {
-  background: hsla(0, 0%, 100%, 0.02);
+  background: var(--surface-hover);
 }
 
 .calendarDayNum {
   font-size: 0.78rem;
-  font-weight: 700;
-  color: hsla(0, 0%, 100%, 0.5);
+  font-weight: 600;
+  color: var(--muted-foreground);
 }
 
 .calendarEventItem {
   padding: 0.2rem 0.45rem;
   border-radius: 4px;
   font-size: 0.7rem;
-  font-weight: 600;
+  font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -700,14 +678,10 @@
   transition: var(--transition);
 }
 
-.calendarEventItem:hover {
-  transform: scale(1.02);
-}
-
 .overdueEvent {
-  background: hsla(350, 90%, 55%, 0.25);
-  color: hsl(350, 95%, 85%);
-  border: 1px solid hsla(350, 90%, 55%, 0.4);
+  background: #FEF2F2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
 }
 
 /* Reports Dashboard Grid */
@@ -719,38 +693,38 @@
 }
 
 .reportCard {
-  background: var(--glass);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   padding: 1.25rem;
   display: flex;
   align-items: center;
   gap: 1rem;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
 }
 
 .reportIcon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--primary-glow);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: hsl(265, 90%, 80%);
+  color: var(--primary);
   flex-shrink: 0;
 }
 
 .reportValue {
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: 700;
   margin: 0;
   line-height: 1;
+  color: var(--foreground);
 }
 
 .reportLabel {
   font-size: 0.78rem;
-  color: hsla(0, 0%, 100%, 0.5);
+  color: var(--muted-foreground);
   margin: 0.2rem 0 0;
 }
 
@@ -758,14 +732,12 @@
 .modalOverlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
-  animation: fadeIn 0.2s ease-out;
 }
 
 .modalContent {
@@ -773,11 +745,11 @@
   max-width: 720px;
   max-height: 90vh;
   overflow-y: auto;
-  background: var(--bg-color);
-  border: 1px solid var(--glass-border);
-  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
   padding: 1.5rem;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
@@ -787,20 +759,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 0.85rem;
 }
 
 .modalTitle {
   font-size: 1.05rem;
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
+  color: var(--foreground);
 }
 
 .closeBtn {
   background: transparent;
   border: none;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: var(--transition);
 }

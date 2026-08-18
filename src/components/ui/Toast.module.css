@@ -15,55 +15,38 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.85rem 1.15rem;
-  border-radius: 0.75rem;
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #f8fafc;
-  font-size: 0.875rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-  animation: slideIn 250ms cubic-bezier(0.16, 1, 0.3, 1);
-  transition: all 200ms ease;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(16px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.85rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: var(--transition);
 }
 
 .error {
-  border-left: 4px solid #ef4444;
-  background: rgba(24, 15, 22, 0.92);
+  border-left: 4px solid var(--error);
 }
 
 .error .toastIcon {
-  color: #ef4444;
+  color: var(--error);
 }
 
 .success {
-  border-left: 4px solid #10b981;
-  background: rgba(15, 24, 20, 0.92);
+  border-left: 4px solid var(--success);
 }
 
 .success .toastIcon {
-  color: #10b981;
+  color: var(--success);
 }
 
 .info {
-  border-left: 4px solid #3b82f6;
-  background: rgba(15, 23, 42, 0.92);
+  border-left: 4px solid var(--primary);
 }
 
 .info .toastIcon {
-  color: #3b82f6;
+  color: var(--primary);
 }
 
 .toastIcon {

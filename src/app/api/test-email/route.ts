@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       subject: 'Test Email – Zoho SMTP',
       html: `
         <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fafafa;border:1px solid #e5e7eb;border-radius:12px;">
-          <h2 style="color:#4f46e5;margin:0 0 12px;">✅ Koneksi SMTP Berhasil!</h2>
+          <h2 style="color:#3B82F6;margin:0 0 12px;">✅ Koneksi SMTP Berhasil!</h2>
           <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 8px;">
             Email ini dikirmkan melalui <strong>Zoho SMTP</strong> pada:
           </p>

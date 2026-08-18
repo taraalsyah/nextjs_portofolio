@@ -93,11 +93,11 @@ export default function RegisterForm() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className={`${styles.card} glass`}
+      className={styles.card}
     >
       <div className={styles.cardHeader}>
         <h1 className={styles.title}>
-          Buat <span className="text-gradient">Akun</span>
+          Buat Akun
         </h1>
         <p className={styles.subtitle}>Daftarkan diri Anda untuk membuat akun baru</p>
       </div>

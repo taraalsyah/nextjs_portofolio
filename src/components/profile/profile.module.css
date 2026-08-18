@@ -9,9 +9,11 @@
 }
 
 .profileCard {
-  border-radius: 12px;
+  border-radius: var(--radius-lg);
   padding: 1.5rem;
-  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.4);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* ─── CARD HEADER (Mode Badge + Edit Button) ────────────────────────────────── */
@@ -29,28 +31,22 @@
   padding: 0.2rem 0.6rem;
   border-radius: 20px;
   font-size: 0.65rem;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   transition: var(--transition);
 }
 
 .modeBadgeView {
-  background: hsla(0, 0%, 100%, 0.06);
-  border: 1px solid hsla(0, 0%, 100%, 0.1);
-  color: hsla(0, 0%, 100%, 0.5);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--muted-foreground);
 }
 
 .modeBadgeEdit {
-  background: hsla(180, 70%, 50%, 0.12);
-  border: 1px solid hsla(180, 70%, 50%, 0.25);
-  color: hsl(180, 80%, 65%);
-  animation: badgePulse 2s ease-in-out infinite;
-}
-
-@keyframes badgePulse {
-  0%, 100% { box-shadow: 0 0 0 0 hsla(180, 70%, 50%, 0); }
-  50% { box-shadow: 0 0 8px 1px hsla(180, 70%, 50%, 0.12); }
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
 }
 
 .editBtn {
@@ -58,20 +54,20 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.85rem;
-  border-radius: 6px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: var(--fg-color);
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-weight: 500;
   font-size: 0.78rem;
   cursor: pointer;
   transition: var(--transition);
 }
 
 .editBtn:hover {
-  background: hsla(0, 0%, 100%, 0.08);
-  border-color: var(--secondary);
-  color: var(--secondary);
+  background: var(--surface-hover);
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* ─── AVATAR SECTION ─────────────────────────────────────────────────────────── */
@@ -80,7 +76,7 @@
   align-items: center;
   gap: 1.25rem;
   padding-bottom: 1.25rem;
-  border-bottom: 1px solid var(--glass-border);
+  border-bottom: 1px solid var(--border);
 }
 
 .avatarWrapper {
@@ -89,15 +85,14 @@
   height: 64px;
   border-radius: 50%;
   overflow: hidden;
-  background: linear-gradient(135deg, var(--secondary) 0%, var(--primary) 100%);
+  background: var(--primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 800;
-  font-size: 1.5rem;
+  font-weight: 700;
+  font-size: 1.4rem;
   color: white;
-  border: 2px solid var(--glass-border);
-  box-shadow: 0 4px 12px var(--secondary-glow);
+  border: 2px solid var(--border);
   flex-shrink: 0;
 }
 
@@ -122,12 +117,12 @@
 .avatarViewName {
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--fg-color);
+  color: var(--foreground);
 }
 
 .avatarViewEmail {
   font-size: 0.72rem;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
 }
 
 .uploadBtn {
@@ -135,19 +130,18 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.35rem 0.85rem;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--primary);
   color: white;
   font-weight: 600;
   font-size: 0.78rem;
   cursor: pointer;
   transition: var(--transition);
-  border: 1px solid var(--primary-glow);
+  border: 1px solid var(--primary-hover);
 }
 
 .uploadBtn:hover {
-  background: hsl(265, 80%, 50%);
-  transform: translateY(-1px);
+  background: var(--primary-hover);
 }
 
 .uploadLabel {
@@ -163,7 +157,7 @@
 
 .avatarInfoText {
   font-size: 0.68rem;
-  color: hsla(0, 0%, 100%, 0.35);
+  color: var(--muted-foreground);
   line-height: 1.4;
 }
 
@@ -194,7 +188,7 @@
 .label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: hsla(0, 0%, 100%, 0.45);
+  color: var(--muted-foreground);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   display: flex;
@@ -203,16 +197,16 @@
 }
 
 .labelIcon {
-  color: var(--secondary);
+  color: var(--primary);
 }
 
 .input {
   width: 100%;
   padding: 0.5rem 0.75rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: var(--fg-color);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
   font-family: inherit;
   font-size: 0.82rem;
   font-weight: 500;
@@ -222,42 +216,41 @@
 }
 
 .input:focus {
-  border-color: var(--secondary);
-  background: hsla(0, 0%, 100%, 0.06);
-  box-shadow: 0 0 10px var(--secondary-glow);
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--focus-ring);
 }
 
 /* Permanently readonly fields (email, role, dates) */
 .readonlyInput {
-  background: hsla(0, 0%, 100%, 0.02);
-  border-color: var(--glass-border);
-  color: hsla(0, 0%, 100%, 0.4);
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--muted-foreground);
   cursor: not-allowed;
 }
 
 .readonlyInput:focus {
-  border-color: var(--glass-border);
-  background: hsla(0, 0%, 100%, 0.02);
+  border-color: var(--border);
+  background: var(--background);
   box-shadow: none;
 }
 
 /* View Mode input styling */
 .viewModeInput {
-  background: hsla(0, 0%, 100%, 0.02);
-  border-color: transparent;
-  color: hsla(0, 0%, 100%, 0.75);
+  background: var(--background);
+  border-color: var(--border);
+  color: var(--foreground);
   cursor: default;
 }
 
 .viewModeInput:focus {
-  border-color: transparent;
-  background: hsla(0, 0%, 100%, 0.02);
+  border-color: var(--border);
+  background: var(--background);
   box-shadow: none;
 }
 
 .errorText {
   font-size: 0.7rem;
-  color: hsl(330, 90%, 65%);
+  color: var(--error);
   font-weight: 500;
   display: flex;
   align-items: center;
@@ -270,9 +263,8 @@
   justify-content: flex-end;
   gap: 0.6rem;
   margin-top: 1.25rem;
-  border-top: 1px solid var(--glass-border);
+  border-top: 1px solid var(--border);
   padding-top: 1.25rem;
-  animation: fadeSlideUp 0.3s ease-out;
 }
 
 .saveBtn {
@@ -305,11 +297,11 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: var(--fg-color);
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-weight: 500;
   font-size: 0.82rem;
   cursor: pointer;
   transition: var(--transition);
@@ -317,8 +309,8 @@
 }
 
 .resetBtn:hover:not(:disabled) {
-  background: hsla(0, 0%, 100%, 0.05);
-  border-color: var(--fg-color);
+  background: var(--surface-hover);
+  border-color: var(--primary);
 }
 
 .resetBtn:disabled {
@@ -331,11 +323,11 @@
   align-items: center;
   gap: 0.4rem;
   padding: 0.45rem 1rem;
-  border-radius: 8px;
-  border: 1px solid var(--glass-border);
-  background: var(--glass);
-  color: var(--fg-color);
-  font-weight: 600;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-weight: 500;
   font-size: 0.82rem;
   cursor: pointer;
   transition: var(--transition);
@@ -343,33 +335,32 @@
 }
 
 .cancelBtn:hover {
-  background: hsla(330, 90%, 65%, 0.08);
-  border-color: hsl(330, 90%, 65%);
-  color: hsl(330, 90%, 75%);
+  background: var(--error-subtle);
+  border-color: var(--error);
+  color: var(--error);
 }
 
 /* Alert Notification */
 .alert {
   padding: 0.65rem 0.85rem;
-  border-radius: 8px;
+  border-radius: var(--radius-md);
   font-size: 0.82rem;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  animation: fadeSlideUp 0.3s ease-out;
 }
 
 .alertSuccess {
-  background: hsla(180, 70%, 50%, 0.1);
-  border: 1px solid hsla(180, 70%, 50%, 0.2);
-  color: hsl(180, 90%, 80%);
+  background: var(--success-subtle);
+  border: 1px solid #BBF7D0;
+  color: var(--success);
 }
 
 .alertError {
-  background: hsla(330, 90%, 65%, 0.1);
-  border: 1px solid hsla(330, 90%, 65%, 0.2);
-  color: hsl(330, 90%, 80%);
+  background: var(--error-subtle);
+  border: 1px solid #FCA5A5;
+  color: var(--error);
 }
 
 /* Loading Spinners */

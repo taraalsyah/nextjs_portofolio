@@ -25,13 +25,14 @@
 }
 
 .rowUser .avatar {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid var(--glass-border);
+  background: #E2E8F0;
+  border: 1px solid #CBD5E1;
+  color: #0F172A;
 }
 
 .rowAssistant .avatar {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
-  box-shadow: 0 0 12px var(--primary-glow);
+  background: var(--primary);
+  color: #ffffff;
 }
 
 .contentWrapper {
@@ -49,40 +50,39 @@
 }
 
 .bubble {
-  border-radius: 14px;
-  padding: 0.875rem 1.125rem;
-  font-size: 0.9375rem;
+  border-radius: var(--radius-lg);
+  padding: 0.75rem 1rem;
+  font-size: 0.88rem;
   position: relative;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   width: 100%;
 }
 
 .rowUser .bubble {
-  background: linear-gradient(135deg, rgba(147, 51, 234, 0.25) 0%, rgba(59, 130, 246, 0.25) 100%);
-  border: 1px solid rgba(168, 85, 247, 0.3);
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
   color: #ffffff;
   border-bottom-right-radius: 2px;
 }
 
 .rowAssistant .bubble {
-  background: var(--surface);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--glass-border);
-  color: var(--fg-color);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  color: var(--foreground);
   border-bottom-left-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .rowError .bubble {
-  background: rgba(239, 68, 68, 0.08);
-  border-color: rgba(239, 68, 68, 0.3);
+  background: #FEF2F2;
+  border-color: #FCA5A5;
+  color: #DC2626;
 }
 
 .errorHeader {
   display: flex;
   align-items: center;
   gap: 0.375rem;
-  color: #f87171;
+  color: #DC2626;
   font-weight: 600;
   font-size: 0.8125rem;
   margin-bottom: 0.5rem;
@@ -91,7 +91,7 @@
 .userText {
   white-space: pre-wrap;
   word-break: break-word;
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .actionsBar {
@@ -104,7 +104,7 @@
 
 .timestamp {
   font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--muted-foreground);
 }
 
 .actionBtn, .retryBtn {

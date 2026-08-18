@@ -48,11 +48,11 @@ export default async function DashboardPage() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       {/* Welcome Section */}
-      <div className="glass" style={{ padding: '1.25rem', borderRadius: '10px', border: '1px solid var(--surface-border)' }}>
-        <h2 style={{ fontSize: '1.15rem', fontWeight: 700, margin: 0, color: 'var(--fg-color)' }}>
-          Selamat datang kembali, {dbUser.name}! 👋
+      <div style={{ padding: '1.25rem', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)' }}>
+        <h2 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--foreground)' }}>
+          Selamat datang kembali, {dbUser.name}!
         </h2>
-        <p style={{ color: 'rgba(255, 255, 255, 0.6)', marginTop: '0.25rem', fontSize: '0.82rem', margin: '0.25rem 0 0' }}>
+        <p style={{ color: 'var(--muted-foreground)', marginTop: '0.25rem', fontSize: '0.82rem' }}>
           Semua sistem berjalan normal. Kelola workspace dan data akun Anda secara aman.
         </p>
       </div>
@@ -64,69 +64,69 @@ export default async function DashboardPage() {
         gap: '0.75rem'
       }}>
         {/* Card 1: Active Role */}
-        <div className="glass" style={{ padding: '1rem', borderRadius: '10px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ padding: '1rem', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <div style={{
             width: '36px',
             height: '36px',
-            borderRadius: '8px',
-            background: 'var(--primary-glow)',
+            borderRadius: '6px',
+            background: 'var(--primary-soft)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'hsl(265, 90%, 80%)',
+            color: 'var(--primary)',
             flexShrink: 0,
           }}>
             <Shield size={18} />
           </div>
           <div>
-            <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsla(0, 0%, 100%, 0.4)', fontWeight: 600 }}>Hak Akses</span>
-            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginTop: '0.05rem' }}>
+            <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', fontWeight: 600 }}>Hak Akses</span>
+            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginTop: '0.05rem', color: 'var(--foreground)' }}>
               {dbUser.role || 'user'}
             </span>
           </div>
         </div>
 
         {/* Card 2: Verification status */}
-        <div className="glass" style={{ padding: '1rem', borderRadius: '10px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ padding: '1rem', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <div style={{
             width: '36px',
             height: '36px',
-            borderRadius: '8px',
-            background: 'hsla(180, 70%, 50%, 0.15)',
+            borderRadius: '6px',
+            background: 'var(--success-subtle)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--secondary)',
+            color: 'var(--success)',
             flexShrink: 0,
           }}>
             <CheckCircle size={18} />
           </div>
           <div>
-            <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsla(0, 0%, 100%, 0.4)', fontWeight: 600 }}>Status Akun</span>
-            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginTop: '0.05rem' }}>
+            <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', fontWeight: 600 }}>Status Akun</span>
+            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginTop: '0.05rem', color: 'var(--foreground)' }}>
               {dbUser.status === 'ACTIVE' ? 'Aktif & Terverifikasi' : 'Tertunda'}
             </span>
           </div>
         </div>
 
         {/* Card 3: Membership Date */}
-        <div className="glass" style={{ padding: '1rem', borderRadius: '10px', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div style={{ padding: '1rem', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <div style={{
             width: '36px',
             height: '36px',
-            borderRadius: '8px',
-            background: 'hsla(330, 90%, 65%, 0.15)',
+            borderRadius: '6px',
+            background: 'var(--primary-soft)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--accent)',
+            color: 'var(--primary)',
             flexShrink: 0,
           }}>
             <Clock size={18} />
           </div>
           <div>
-            <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'hsla(0, 0%, 100%, 0.4)', fontWeight: 600 }}>Bergabung Sejak</span>
-            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginTop: '0.05rem' }}>
+            <span style={{ display: 'block', fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted-foreground)', fontWeight: 600 }}>Bergabung Sejak</span>
+            <span style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginTop: '0.05rem', color: 'var(--foreground)' }}>
               {memberSince}
             </span>
           </div>
@@ -140,45 +140,45 @@ export default async function DashboardPage() {
         gap: '0.75rem'
       }}>
         {/* Info panel left */}
-        <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h3 style={{ fontSize: '0.88rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
-            <UserIcon size={16} style={{ color: 'var(--secondary)' }} /> Ringkasan Profil
+        <div style={{ padding: '1.25rem', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ fontSize: '0.88rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, color: 'var(--foreground)' }}>
+            <UserIcon size={16} style={{ color: 'var(--primary)' }} /> Ringkasan Profil
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', fontSize: '0.82rem' }}>
-              <span style={{ color: 'hsla(0, 0%, 100%, 0.5)' }}>ID Pengguna</span>
-              <span style={{ fontWeight: 600 }}>{dbUser.id}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', fontSize: '0.82rem' }}>
+              <span style={{ color: 'var(--muted-foreground)' }}>ID Pengguna</span>
+              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{dbUser.id}</span>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem', fontSize: '0.82rem' }}>
-              <span style={{ color: 'hsla(0, 0%, 100%, 0.5)' }}>Nama Lengkap</span>
-              <span style={{ fontWeight: 600 }}>{dbUser.name}</span>
+            <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', fontSize: '0.82rem' }}>
+              <span style={{ color: 'var(--muted-foreground)' }}>Nama Lengkap</span>
+              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{dbUser.name}</span>
             </div>
             <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '0.15rem', fontSize: '0.82rem' }}>
-              <span style={{ color: 'hsla(0, 0%, 100%, 0.5)' }}>Alamat Email</span>
-              <span style={{ fontWeight: 600 }}>{dbUser.email}</span>
+              <span style={{ color: 'var(--muted-foreground)' }}>Alamat Email</span>
+              <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>{dbUser.email}</span>
             </div>
           </div>
         </div>
 
         {/* System log right */}
-        <div className="glass" style={{ padding: '1.25rem', borderRadius: '12px', border: '1px solid var(--glass-border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          <h3 style={{ fontSize: '0.88rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
-            <Activity size={16} style={{ color: 'var(--accent)' }} /> Aktivitas Terkini
+        <div style={{ padding: '1.25rem', borderRadius: '8px', background: 'var(--surface)', border: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <h3 style={{ fontSize: '0.88rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0, color: 'var(--foreground)' }}>
+            <Activity size={16} style={{ color: 'var(--primary)' }} /> Aktivitas Terkini
           </h3>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {recentActivities.length === 0 ? (
-              <span style={{ fontSize: '0.78rem', color: 'hsla(0, 0%, 100%, 0.4)' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)' }}>
                 Belum ada log aktivitas tercatat.
               </span>
             ) : (
               recentActivities.map((act) => (
                 <div key={act.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'flex-start' }}>
-                  <AlertCircle size={14} style={{ color: 'var(--secondary)', marginTop: '0.15rem', flexShrink: 0 }} />
+                  <AlertCircle size={14} style={{ color: 'var(--primary)', marginTop: '0.15rem', flexShrink: 0 }} />
                   <div>
-                    <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 500 }}>
+                    <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 500, color: 'var(--foreground)' }}>
                       {act.action}: {act.description.split('\n')[0]}
                     </span>
-                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'hsla(0, 0%, 100%, 0.4)' }}>
+                    <span style={{ display: 'block', fontSize: '0.7rem', color: 'var(--muted-foreground)' }}>
                       {formatActivityDate(act.createdAt)}
                     </span>
                   </div>

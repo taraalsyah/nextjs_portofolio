@@ -128,7 +128,7 @@ export function TaskFormModal({
     ...categories.map((c) => ({
       value: String(c.id),
       label: c.name,
-      dotColor: '#a855f7',
+      dotColor: '#3b82f6',
     })),
   ];
 
