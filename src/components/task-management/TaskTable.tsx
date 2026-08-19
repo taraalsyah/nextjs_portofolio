@@ -211,7 +211,7 @@ export function TaskTable({
                         {task.title}
                       </span>
                       {totalChecklists > 0 && (
-                        <span style={{ fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.4)' }}>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 500 }}>
                           Checklist: {completedCount}/{totalChecklists} Selesai
                         </span>
                       )}
@@ -226,7 +226,7 @@ export function TaskTable({
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <User size={13} style={{ color: 'var(--secondary)' }} />
+                      <User size={13} style={{ color: 'var(--muted-foreground)' }} />
                       <span style={{ fontSize: '0.8rem' }}>
                         {task.assignee?.name || 'Unassigned'}
                       </span>
@@ -234,12 +234,12 @@ export function TaskTable({
                   </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Calendar size={13} style={{ color: 'hsla(0,0%,100%,0.4)' }} />
+                      <Calendar size={13} style={{ color: 'var(--muted-foreground)' }} />
                       <span style={{ fontSize: '0.78rem' }}>{formatDate(task.dueDate)}</span>
                     </div>
                   </td>
                   <td>
-                    <span style={{ fontSize: '0.75rem', color: 'hsla(0,0%,100%,0.4)' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--secondary-text)', fontWeight: 500 }}>
                       {formatDate(task.updatedAt)}
                     </span>
                   </td>
@@ -311,9 +311,9 @@ export function TaskTable({
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '0.75rem 1rem',
-            borderTop: '1px solid var(--glass-border)',
+            borderTop: '1px solid var(--border)',
             fontSize: '0.78rem',
-            color: 'hsla(0,0%,100%,0.5)',
+            color: 'var(--muted-foreground)',
             flexWrap: 'wrap',
             gap: '0.5rem',
           }}
@@ -342,7 +342,7 @@ export function TaskTable({
                   {page}
                 </button>
               ) : (
-                <span key={idx} style={{ padding: '0 0.25rem', color: 'hsla(0,0%,100%,0.3)' }}>
+                <span key={idx} style={{ padding: '0 0.25rem', color: 'var(--muted-foreground)' }}>
                   {page}
                 </span>
               )
