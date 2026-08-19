@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle, Unlock } from 'lucide-react';
+import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle, Unlock, Search, Mail, Shield, Filter, Calendar, RotateCcw } from 'lucide-react';
 import { ButtonLoading, InlineSpinner } from '@/components/ui/loading';
 import { formatShortWIB, getRemainingTimeString, isExpired } from '@/lib/date';
 import styles from './users.module.css';
@@ -32,12 +32,21 @@ interface RoleData {
   description: string | null;
 }
 
+interface FilterParams {
+  name: string;
+  email: string;
+  roleId: string;
+  status: string;
+  joinedDate: string;
+}
+
 interface UserManagementContentProps {
   initialUsers: UserData[];
   availableRoles: RoleData[];
   sessionUserId: number;
   totalItems: number;
   currentPage: number;
+  filterParams: FilterParams;
 }
 
 /**
@@ -77,6 +86,7 @@ export default function UserManagementContent({
   sessionUserId,
   totalItems,
   currentPage,
+  filterParams,
 }: UserManagementContentProps) {
   const [users, setUsers] = useState<UserData[]>(initialUsers);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
@@ -88,10 +98,86 @@ export default function UserManagementContent({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
-  // Sync users state when initialUsers updates (e.g. on server-side pagination page changes)
+  // Local filter states for real-time typing and UI responsiveness
+  const [nameFilter, setNameFilter] = useState<string>(filterParams?.name || '');
+  const [emailFilter, setEmailFilter] = useState<string>(filterParams?.email || '');
+  const [roleIdFilter, setRoleIdFilter] = useState<string>(filterParams?.roleId || '');
+  const [statusFilter, setStatusFilter] = useState<string>(filterParams?.status || '');
+  const [joinedDateFilter, setJoinedDateFilter] = useState<string>(filterParams?.joinedDate || '');
+
+  // Sync state when initialUsers or filterParams props update (e.g. from server page navigation)
   useEffect(() => {
     setUsers(initialUsers);
   }, [initialUsers]);
+
+  useEffect(() => {
+    setNameFilter(filterParams?.name || '');
+    setEmailFilter(filterParams?.email || '');
+    setRoleIdFilter(filterParams?.roleId || '');
+    setStatusFilter(filterParams?.status || '');
+    setJoinedDateFilter(filterParams?.joinedDate || '');
+  }, [filterParams]);
+
+  // Helper to build URL & navigate router with transition
+  const applyFilters = (overrides?: Partial<FilterParams & { page: number }>) => {
+    const params = new URLSearchParams();
+
+    const name = overrides?.name !== undefined ? overrides.name : nameFilter;
+    const email = overrides?.email !== undefined ? overrides.email : emailFilter;
+    const roleId = overrides?.roleId !== undefined ? overrides.roleId : roleIdFilter;
+    const statusVal = overrides?.status !== undefined ? overrides.status : statusFilter;
+    const joinedDate = overrides?.joinedDate !== undefined ? overrides.joinedDate : joinedDateFilter;
+    const page = overrides?.page !== undefined ? overrides.page : 1;
+
+    if (name.trim()) params.set('name', name.trim());
+    if (email.trim()) params.set('email', email.trim());
+    if (roleId.trim()) params.set('roleId', roleId.trim());
+    if (statusVal.trim()) params.set('status', statusVal.trim());
+    if (joinedDate.trim()) params.set('joinedDate', joinedDate.trim());
+    if (page > 1) params.set('page', page.toString());
+
+    const queryString = params.toString();
+    const targetUrl = `/dashboard/user-management${queryString ? `?${queryString}` : ''}`;
+
+    startTransition(() => {
+      router.push(targetUrl);
+    });
+  };
+
+  // Debounce URL updates for text search inputs (Name & Email)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const currentNameProp = filterParams?.name || '';
+      const currentEmailProp = filterParams?.email || '';
+      if (nameFilter !== currentNameProp || emailFilter !== currentEmailProp) {
+        applyFilters({ name: nameFilter, email: emailFilter, page: 1 });
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [nameFilter, emailFilter]);
+
+  const handleResetFilters = () => {
+    setNameFilter('');
+    setEmailFilter('');
+    setRoleIdFilter('');
+    setStatusFilter('');
+    setJoinedDateFilter('');
+
+    startTransition(() => {
+      router.push('/dashboard/user-management');
+    });
+  };
+
+  const activeFilterCount = [
+    nameFilter,
+    emailFilter,
+    roleIdFilter,
+    statusFilter,
+    joinedDateFilter,
+  ].filter((f) => f.trim() !== '').length;
+
+  const hasActiveFilters = activeFilterCount > 0;
 
   const handleUnblockUser = async (userId: number, name: string) => {
     const confirmed = window.confirm(`Apakah Anda yakin ingin membuka blokir registrasi akun "${name}"?`);
@@ -133,9 +219,7 @@ export default function UserManagementContent({
 
   const handlePageNavigate = (targetPage: number) => {
     if (targetPage === currentPage || targetPage < 1 || targetPage > Math.ceil(totalItems / 10)) return;
-    startTransition(() => {
-      router.push(`/dashboard/user-management?page=${targetPage}`);
-    });
+    applyFilters({ page: targetPage });
   };
 
   // ─── HANDLERS ──────────────────────────────────────────────────────────────
@@ -267,6 +351,115 @@ export default function UserManagementContent({
               Lihat daftar anggota, edit hak akses role, serta kelola akun secara aman
             </p>
           </div>
+        </div>
+
+        {/* Filter Section Toolbar */}
+        <div className={styles.filterSection}>
+          <div className={styles.filterGrid}>
+            {/* 1. Kolom Pengguna (Text Search) */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Search size={13} /> Pengguna
+              </label>
+              <input
+                type="text"
+                placeholder="Cari nama atau username..."
+                value={nameFilter}
+                onChange={(e) => setNameFilter(e.target.value)}
+                className={styles.filterInput}
+              />
+            </div>
+
+            {/* 2. Kolom Alamat Email (Text Search) */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Mail size={13} /> Alamat Email
+              </label>
+              <input
+                type="text"
+                placeholder="Cari alamat email..."
+                value={emailFilter}
+                onChange={(e) => setEmailFilter(e.target.value)}
+                className={styles.filterInput}
+              />
+            </div>
+
+            {/* 3. Kolom Hak Akses / Role (Select Dropdown) */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Shield size={13} /> Hak Akses (Role)
+              </label>
+              <select
+                value={roleIdFilter}
+                onChange={(e) => {
+                  setRoleIdFilter(e.target.value);
+                  applyFilters({ roleId: e.target.value, page: 1 });
+                }}
+                className={styles.filterSelect}
+              >
+                <option value="">Semua Role</option>
+                {availableRoles.map((r) => (
+                  <option key={r.id} value={r.id.toString()}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* 4. Kolom Status (Select Dropdown) */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Filter size={13} /> Status
+              </label>
+              <select
+                value={statusFilter}
+                onChange={(e) => {
+                  setStatusFilter(e.target.value);
+                  applyFilters({ status: e.target.value, page: 1 });
+                }}
+                className={styles.filterSelect}
+              >
+                <option value="">Semua Status</option>
+                <option value="ACTIVE">Aktif</option>
+                <option value="PENDING">Tertunda</option>
+                <option value="SOFT_BLOCKED">Soft Blocked</option>
+                <option value="BLOCKED">Terblokir (Blocked)</option>
+              </select>
+            </div>
+
+            {/* 5. Kolom Tanggal Gabung (Date Picker) */}
+            <div className={styles.filterGroup}>
+              <label className={styles.filterLabel}>
+                <Calendar size={13} /> Tanggal Gabung
+              </label>
+              <input
+                type="date"
+                value={joinedDateFilter}
+                onChange={(e) => {
+                  setJoinedDateFilter(e.target.value);
+                  applyFilters({ joinedDate: e.target.value, page: 1 });
+                }}
+                className={styles.filterDateInput}
+              />
+            </div>
+          </div>
+
+          {/* Filter Actions (Reset & Active Indicator) */}
+          {hasActiveFilters && (
+            <div className={styles.filterActions}>
+              <span className={styles.activeFilterCount}>
+                <Filter size={13} /> {activeFilterCount} Filter Aktif
+              </span>
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className={styles.resetFilterBtn}
+                title="Hapus seluruh filter pencarian"
+              >
+                <RotateCcw size={13} /> Reset Filter
+              </button>
+            </div>
+          )}
         </div>
 
         {/* User Table List */}
