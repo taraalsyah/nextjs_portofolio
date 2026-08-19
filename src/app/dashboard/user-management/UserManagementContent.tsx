@@ -252,7 +252,8 @@ export default function UserManagementContent({
             width: '36px',
             height: '36px',
             borderRadius: '8px',
-            background: 'var(--primary-glow)',
+            background: 'var(--primary-soft)',
+            border: '1px solid var(--primary-border)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -261,8 +262,8 @@ export default function UserManagementContent({
             <UsersIcon size={18} />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0 }}>Manajemen Pengguna</h2>
-            <p style={{ color: 'hsla(0, 0%, 100%, 0.5)', margin: '0.05rem 0 0', fontSize: '0.78rem' }}>
+            <h2 style={{ fontSize: '1.05rem', fontWeight: 700, margin: 0, color: 'var(--foreground)' }}>Manajemen Pengguna</h2>
+            <p style={{ color: 'var(--muted-foreground)', margin: '0.05rem 0 0', fontSize: '0.78rem' }}>
               Lihat daftar anggota, edit hak akses role, serta kelola akun secara aman
             </p>
           </div>
@@ -270,7 +271,7 @@ export default function UserManagementContent({
 
         {/* User Table List */}
         {totalItems === 0 ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'hsla(0, 0%, 100%, 0.4)' }}>
+          <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--muted-foreground)' }}>
             Belum ada pengguna terdaftar.
           </div>
         ) : (
@@ -280,7 +281,7 @@ export default function UserManagementContent({
                 <div style={{
                   position: 'absolute',
                   inset: 0,
-                  background: 'hsla(230, 20%, 5%, 0.45)',
+                  background: 'rgba(255, 255, 255, 0.7)',
                   backdropFilter: 'blur(2px)',
                   display: 'flex',
                   alignItems: 'center',
@@ -288,7 +289,7 @@ export default function UserManagementContent({
                   zIndex: 10,
                   borderRadius: '8px',
                 }}>
-                  <InlineSpinner size={28} color="var(--secondary)" />
+                  <InlineSpinner size={28} color="var(--primary)" />
                 </div>
               )}
               <div className={styles.tableWrapper}>
@@ -345,7 +346,7 @@ export default function UserManagementContent({
                             return <span className={`${styles.badge} ${styles.statusPending}`}>Tertunda</span>;
                           })()}
                         </td>
-                        <td>
+                        <td className={styles.dateCol}>
                           {formatShortWIB(u.createdAt)}
                         </td>
                         <td>
@@ -358,7 +359,7 @@ export default function UserManagementContent({
                                 title="Buka Blokir (Unblock)"
                               >
                                 {unblockingUserId === u.id ? (
-                                  <InlineSpinner size={13} color="var(--secondary)" />
+                                  <InlineSpinner size={13} color="#16A34A" />
                                 ) : (
                                   <Unlock size={13} />
                                 )}
@@ -379,7 +380,7 @@ export default function UserManagementContent({
                                 title="Hapus Pengguna"
                               >
                                 {deletingUserId === u.id ? (
-                                  <InlineSpinner size={13} color="hsl(350, 80%, 75%)" />
+                                  <InlineSpinner size={13} color="var(--error)" />
                                 ) : (
                                   <Trash2 size={13} />
                                 )}
@@ -480,7 +481,7 @@ export default function UserManagementContent({
 
             <div className={styles.formGroup}>
               <span className={styles.label}>Nama Pengguna</span>
-              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--fg-color)' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--foreground)' }}>
                 {editingUser.name} ({editingUser.email})
               </span>
             </div>

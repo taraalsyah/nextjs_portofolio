@@ -467,12 +467,12 @@
 
 .userName {
   font-weight: 600;
-  color: #f8fafc;
+  color: var(--foreground);
 }
 
 .userHandle {
   font-size: 0.75rem;
-  color: #94a3b8;
+  color: var(--muted-foreground);
 }
 
 .actionCell {
@@ -483,44 +483,45 @@
 
 .transferBtn {
   padding: 0.35rem 0.6rem;
-  background: rgba(234, 179, 8, 0.12);
-  border: 1px solid rgba(234, 179, 8, 0.3);
-  color: #fde047;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  color: #D97706;
   border-radius: 6px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
-  transition: background 0.15s ease;
+  transition: var(--transition);
 }
 
 .transferBtn:hover {
-  background: rgba(234, 179, 8, 0.25);
+  background: #FEF3C7;
 }
 
 .iconBtn {
   padding: 0.35rem;
   background: transparent;
-  border: none;
-  color: #ef4444;
+  border: 1px solid transparent;
+  color: var(--error);
   cursor: pointer;
   border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s ease;
+  transition: var(--transition);
 }
 
 .iconBtn:hover {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--error-subtle);
+  border-color: #FCA5A5;
 }
 
 /* Matrix Table Styles */
 .matrixCategoryRow {
-  background: rgba(56, 189, 248, 0.08) !important;
-  color: #38bdf8 !important;
+  background: #EFF6FF !important;
+  color: #2563EB !important;
   font-weight: 700;
   font-size: 0.8rem;
   letter-spacing: 0.03em;
@@ -530,7 +531,7 @@
 .matrixCheckbox {
   width: 16px;
   height: 16px;
-  accent-color: #38bdf8;
+  accent-color: var(--primary);
   cursor: pointer;
 }
 

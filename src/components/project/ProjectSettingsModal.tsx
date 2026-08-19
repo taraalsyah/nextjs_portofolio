@@ -567,8 +567,8 @@ export function ProjectSettingsModal({
     return (
       <div
         style={{
-          background: 'rgba(255, 255, 255, 0.03)',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
+          background: 'var(--surface-muted)',
+          border: '1px solid var(--border)',
           borderRadius: '10px',
           padding: '1rem 1.2rem',
           display: 'flex',
@@ -579,8 +579,8 @@ export function ProjectSettingsModal({
       >
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Key size={16} style={{ color: '#38bdf8' }} />
-            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
+            <Key size={16} style={{ color: 'var(--primary)' }} />
+            <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--foreground)' }}>
               Invite Code Project
             </span>
           </div>
@@ -590,9 +590,9 @@ export function ProjectSettingsModal({
               fontWeight: 600,
               padding: '0.2rem 0.6rem',
               borderRadius: '20px',
-              background: inviteCode ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-              color: inviteCode ? '#4ade80' : '#fbbf24',
-              border: inviteCode ? '1px solid rgba(34, 197, 94, 0.3)' : '1px solid rgba(245, 158, 11, 0.3)',
+              background: inviteCode ? '#F0FDF4' : '#FFFBEB',
+              color: inviteCode ? '#16A34A' : '#D97706',
+              border: inviteCode ? '1px solid #BBF7D0' : '1px solid #FDE68A',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '0.3rem',
@@ -611,15 +611,15 @@ export function ProjectSettingsModal({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.6rem',
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  background: 'var(--primary-soft)',
+                  border: '1px solid var(--primary-border)',
                   borderRadius: '8px',
                   padding: '0.45rem 0.85rem',
                   fontFamily: 'monospace',
                   fontSize: '1rem',
                   fontWeight: 700,
                   letterSpacing: '0.08em',
-                  color: '#38bdf8',
+                  color: 'var(--primary)',
                 }}
               >
                 <span>{inviteCode}</span>
@@ -632,9 +632,9 @@ export function ProjectSettingsModal({
                 style={{
                   padding: '0.45rem 0.85rem',
                   fontSize: '0.78rem',
-                  background: isCopyingCode ? 'rgba(16, 185, 129, 0.2)' : 'rgba(56, 189, 248, 0.15)',
-                  border: isCopyingCode ? '1px solid rgba(16, 185, 129, 0.4)' : '1px solid rgba(56, 189, 248, 0.3)',
-                  color: isCopyingCode ? '#34d399' : '#38bdf8',
+                  background: isCopyingCode ? '#F0FDF4' : 'var(--primary-soft)',
+                  border: isCopyingCode ? '1px solid #BBF7D0' : '1px solid var(--primary-border)',
+                  color: isCopyingCode ? '#16A34A' : 'var(--primary)',
                 }}
               >
                 {isCopyingCode ? <CheckCircle2 size={14} /> : <Copy size={14} />}
@@ -661,8 +661,9 @@ export function ProjectSettingsModal({
                 style={{
                   padding: '0.45rem 0.75rem',
                   fontSize: '0.78rem',
-                  border: '1px solid hsla(350, 80%, 60%, 0.3)',
-                  color: 'hsl(350, 95%, 85%)',
+                  background: 'var(--error-subtle)',
+                  border: '1px solid #FCA5A5',
+                  color: 'var(--error)',
                   borderRadius: '8px',
                 }}
                 title="Nonaktifkan Invite Code"
@@ -672,7 +673,7 @@ export function ProjectSettingsModal({
             </>
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', width: '100%', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
                 Belum ada Invite Code aktif untuk proyek ini.
               </span>
               <button
@@ -701,7 +702,7 @@ export function ProjectSettingsModal({
       <div className={styles.modalCard} onClick={(e) => e.stopPropagation()}>
         <div className={styles.modalHeader}>
           <div className={styles.modalTitle}>
-            <Settings size={20} style={{ color: '#38bdf8' }} />
+            <Settings size={20} style={{ color: 'var(--primary)' }} />
             Pengaturan Proyek: {projectData?.projectName || '...'}
           </div>
           <button onClick={onClose} className={styles.closeBtn}>
@@ -733,7 +734,7 @@ export function ProjectSettingsModal({
             <button
               className={`${styles.tabBtn} ${activeTab === 'danger' ? styles.tabBtnActive : ''}`}
               onClick={() => setActiveTab('danger')}
-              style={{ color: activeTab === 'danger' ? '#f87171' : undefined }}
+              style={{ color: activeTab === 'danger' ? 'var(--error)' : undefined }}
             >
               <AlertTriangle size={14} /> Danger Zone
             </button>
@@ -746,9 +747,10 @@ export function ProjectSettingsModal({
               style={{
                 padding: '0.65rem 0.85rem',
                 borderRadius: '8px',
-                background: 'hsla(350, 90%, 55%, 0.15)',
-                border: '1px solid hsla(350, 90%, 55%, 0.3)',
-                color: 'hsl(350, 95%, 85%)',
+                background: 'var(--error-subtle)',
+                border: '1px solid #FCA5A5',
+                color: 'var(--error)',
+                fontWeight: 500,
                 fontSize: '0.8rem',
               }}
             >
@@ -761,9 +763,10 @@ export function ProjectSettingsModal({
               style={{
                 padding: '0.65rem 0.85rem',
                 borderRadius: '8px',
-                background: 'hsla(145, 80%, 45%, 0.15)',
-                border: '1px solid hsla(145, 80%, 45%, 0.3)',
-                color: 'hsl(145, 80%, 85%)',
+                background: 'var(--success-subtle)',
+                border: '1px solid #BBF7D0',
+                color: 'var(--success)',
+                fontWeight: 500,
                 fontSize: '0.8rem',
               }}
             >
@@ -772,7 +775,7 @@ export function ProjectSettingsModal({
           )}
 
           {isLoading ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--muted-foreground)' }}>
               Memuat data proyek...
             </div>
           ) : (
@@ -845,7 +848,7 @@ export function ProjectSettingsModal({
                       justifyContent: 'space-between',
                     }}
                   >
-                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--foreground)' }}>
                       Daftar Anggota Proyek ({members.length})
                     </div>
                   </div>
@@ -889,7 +892,7 @@ export function ProjectSettingsModal({
                               </div>
                             </td>
                             <td>{renderRoleBadge(m.role)}</td>
-                            <td style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                            <td style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
                               {m.joinedAt
                                 ? format(new Date(m.joinedAt), 'dd MMM yyyy')
                                 : '-'}
@@ -943,9 +946,9 @@ export function ProjectSettingsModal({
                                           alignItems: 'center',
                                           gap: '0.3rem',
                                           padding: '0.35rem 0.65rem',
-                                          background: 'rgba(239, 68, 68, 0.12)',
-                                          border: '1px solid rgba(239, 68, 68, 0.3)',
-                                          color: '#ef4444',
+                                          background: 'var(--error-subtle)',
+                                          border: '1px solid #FCA5A5',
+                                          color: 'var(--error)',
                                           borderRadius: '6px',
                                           fontSize: '0.75rem',
                                           fontWeight: 500,
@@ -961,7 +964,7 @@ export function ProjectSettingsModal({
                                       </button>
                                     </>
                                   ) : (
-                                    <span style={{ fontSize: '0.75rem', color: '#64748b', fontStyle: 'italic' }}>
+                                    <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
                                       Owner Utama
                                     </span>
                                   )}
@@ -987,10 +990,10 @@ export function ProjectSettingsModal({
                     }}
                   >
                     <div>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc' }}>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--foreground)' }}>
                         Configurable Project Role Permission Matrix
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.1rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.1rem' }}>
                         Atur hak akses granular dan transisi workflow untuk setiap peran proyek.
                       </div>
                     </div>
@@ -1052,7 +1055,7 @@ export function ProjectSettingsModal({
 
                       {/* Workflow Transition Matrix Table */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
+                        <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--foreground)' }}>
                           Workflow Transition Permission
                         </div>
                         <div className={styles.tableContainer}>
@@ -1100,9 +1103,9 @@ export function ProjectSettingsModal({
                 <div
                   style={{
                     padding: '1.25rem',
-                    background: 'hsla(350, 85%, 50%, 0.08)',
+                    background: 'var(--error-subtle)',
                     borderRadius: '12px',
-                    border: '1px solid hsla(350, 85%, 50%, 0.25)',
+                    border: '1px solid #FCA5A5',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '1rem',
@@ -1113,14 +1116,14 @@ export function ProjectSettingsModal({
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.5rem',
-                      color: 'hsl(350, 95%, 85%)',
+                      color: 'var(--error)',
                       fontWeight: 600,
                     }}
                   >
                     <AlertTriangle size={20} />
                     Hapus Proyek Ini
                   </div>
-                  <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--foreground)', lineHeight: 1.5 }}>
                     Tindakan ini tidak dapat dibatalkan. Seluruh tugas, lampiran, komentar, dan
                     riwayat aktivitas yang terkait dengan proyek ini akan dihapus secara permanen dari
                     basis data.
@@ -1165,7 +1168,7 @@ export function ProjectSettingsModal({
           >
             <div className={styles.modalHeader}>
               <div className={styles.modalTitle}>
-                <UserPlus size={18} style={{ color: '#38bdf8' }} />
+                <UserPlus size={18} style={{ color: 'var(--primary)' }} />
                 Invite Member
               </div>
               <button
@@ -1205,20 +1208,20 @@ export function ProjectSettingsModal({
                         left: '0.8rem',
                         top: '50%',
                         transform: 'translateY(-50%)',
-                        color: '#94a3b8',
+                        color: 'var(--muted-foreground)',
                       }}
                     />
                   </div>
 
                   {inviteSearchQuery.trim().length > 0 &&
                     inviteSearchQuery.trim().length < 3 && (
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.2rem' }}>
                         Ketik minimal 3 karakter untuk melakukan pencarian...
                       </span>
                     )}
 
                   {isSearching && (
-                    <span style={{ fontSize: '0.75rem', color: '#38bdf8', marginTop: '0.2rem' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--primary)', marginTop: '0.2rem' }}>
                       Mencari di server...
                     </span>
                   )}
@@ -1226,8 +1229,9 @@ export function ProjectSettingsModal({
                   {searchResults.length > 0 && !selectedInviteUser && (
                     <div
                       style={{
-                        background: '#0f172a',
-                        border: '1px solid rgba(255, 255, 255, 0.15)',
+                        background: 'var(--surface)',
+                        border: '1px solid var(--border)',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
                         borderRadius: '8px',
                         marginTop: '6px',
                         maxHeight: '200px',
@@ -1244,7 +1248,7 @@ export function ProjectSettingsModal({
                           style={{
                             padding: '0.6rem 0.85rem',
                             cursor: 'pointer',
-                            borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                            borderBottom: '1px solid var(--border)',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '0.6rem',
@@ -1255,7 +1259,7 @@ export function ProjectSettingsModal({
                               width: '28px',
                               height: '28px',
                               borderRadius: '50%',
-                              background: '#3b82f6',
+                              background: 'var(--primary)',
                               color: '#fff',
                               display: 'flex',
                               alignItems: 'center',
@@ -1267,10 +1271,10 @@ export function ProjectSettingsModal({
                             {u.name ? u.name[0].toUpperCase() : 'U'}
                           </div>
                           <div>
-                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#f8fafc' }}>
+                            <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--foreground)' }}>
                               {u.name}
                             </div>
-                            <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
                               {u.email} {u.username ? `(@${u.username})` : ''}
                             </div>
                           </div>
@@ -1284,8 +1288,8 @@ export function ProjectSettingsModal({
                   <div
                     style={{
                       padding: '0.65rem 0.85rem',
-                      background: 'rgba(56, 189, 248, 0.1)',
-                      border: '1px solid rgba(56, 189, 248, 0.3)',
+                      background: 'var(--primary-soft)',
+                      border: '1px solid var(--primary-border)',
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
@@ -1293,10 +1297,10 @@ export function ProjectSettingsModal({
                     }}
                   >
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: '#f8fafc' }}>
+                      <div style={{ fontWeight: 600, fontSize: '0.85rem', color: 'var(--foreground)' }}>
                         {selectedInviteUser.name}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)' }}>
                         {selectedInviteUser.email}
                       </div>
                     </div>
@@ -1309,7 +1313,7 @@ export function ProjectSettingsModal({
                       style={{
                         background: 'transparent',
                         border: 'none',
-                        color: '#94a3b8',
+                        color: 'var(--muted-foreground)',
                         cursor: 'pointer',
                       }}
                     >
@@ -1375,7 +1379,7 @@ export function ProjectSettingsModal({
             onClick={(e) => e.stopPropagation()}
           >
             <div className={styles.modalHeader}>
-              <div className={styles.modalTitle} style={{ color: '#fde047' }}>
+              <div className={styles.modalTitle} style={{ color: '#D97706' }}>
                 <Crown size={20} />
                 Transfer Kepemilikan Proyek
               </div>
@@ -1388,7 +1392,7 @@ export function ProjectSettingsModal({
             </div>
 
             <div className={styles.modalBody}>
-              <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--foreground)', lineHeight: 1.5 }}>
                 Apakah Anda yakin ingin mentransfer kepemilikan proyek{' '}
                 <strong>"{projectData?.projectName}"</strong> kepada{' '}
                 <strong>"{transferTargetUser.user.name}"</strong>?
@@ -1396,11 +1400,11 @@ export function ProjectSettingsModal({
               <div
                 style={{
                   padding: '0.75rem',
-                  background: 'rgba(234, 179, 8, 0.1)',
-                  border: '1px solid rgba(234, 179, 8, 0.3)',
+                  background: '#FFFBEB',
+                  border: '1px solid #FDE68A',
                   borderRadius: '8px',
                   fontSize: '0.8rem',
-                  color: '#fde047',
+                  color: '#D97706',
                 }}
               >
                 ⚠️ Perhatian: Setelah transfer, Anda akan menjadi <strong>Admin</strong> proyek ini dan
@@ -1419,7 +1423,7 @@ export function ProjectSettingsModal({
               <button
                 onClick={handleTransferOwnership}
                 className={styles.submitBtn}
-                style={{ background: 'linear-gradient(135deg, #eab308, #ca8a04)' }}
+                style={{ background: 'linear-gradient(135deg, #d97706, #b45309)' }}
                 disabled={isTransferring}
               >
                 <ArrowRightLeft size={16} />
