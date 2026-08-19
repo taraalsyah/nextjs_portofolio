@@ -92,10 +92,12 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                   style={{
                     padding: '2rem 1rem',
                     textAlign: 'center',
-                    color: 'hsla(0,0%,100%,0.3)',
-                    fontSize: '0.78rem',
-                    border: '1px dashed var(--glass-border)',
-                    borderRadius: '8px',
+                    color: 'var(--muted-foreground)',
+                    fontSize: '0.8rem',
+                    fontWeight: 500,
+                    background: 'var(--surface)',
+                    border: '1px dashed var(--border)',
+                    borderRadius: 'var(--radius-md)',
                   }}
                 >
                   Tidak ada task
