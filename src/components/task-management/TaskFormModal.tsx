@@ -124,7 +124,7 @@ export function TaskFormModal({
   };
 
   const categoryOptions: CustomDropdownOption[] = [
-    { value: '', label: 'Pilih Kategori', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+    { value: '', label: 'Pilih Kategori', dotColor: '#94a3b8' },
     ...categories.map((c) => ({
       value: String(c.id),
       label: c.name,

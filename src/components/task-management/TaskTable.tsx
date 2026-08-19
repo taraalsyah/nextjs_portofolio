@@ -220,7 +220,7 @@ export function TaskTable({
                   <td>{getStatusBadge(task.status)}</td>
                   <td>{getPriorityBadge(task.priority)}</td>
                   <td>
-                    <span style={{ color: 'hsla(0,0%,100%,0.7)', fontSize: '0.8rem' }}>
+                    <span style={{ color: 'var(--foreground)', fontSize: '0.8rem', fontWeight: 500 }}>
                       {task.category?.name || '-'}
                     </span>
                   </td>

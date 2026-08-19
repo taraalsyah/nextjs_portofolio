@@ -128,7 +128,7 @@ export function TaskReportDashboard({ data, isLoading }: TaskReportDashboardProp
           </h4>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {byCategory.length === 0 ? (
-              <p style={{ fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.4)', margin: 0 }}>Belum ada kategori.</p>
+              <p style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', margin: 0 }}>Belum ada kategori.</p>
             ) : (
               byCategory.map((cat) => {
                 const pct = summary.totalTasks > 0 ? Math.round((cat.taskCount / summary.totalTasks) * 100) : 0;

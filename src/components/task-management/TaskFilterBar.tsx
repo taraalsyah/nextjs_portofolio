@@ -83,7 +83,7 @@ export function TaskFilterBar({
     search || status || priority || categoryId || assigneeId || sortBy !== 'createdAt' || sortOrder !== 'desc';
 
   const categoryOptions: CustomDropdownOption[] = [
-    { value: '', label: 'Semua Category', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+    { value: '', label: 'Semua Category', dotColor: '#94a3b8' },
     ...categories.map((c) => ({
       value: String(c.id),
       label: c.name,

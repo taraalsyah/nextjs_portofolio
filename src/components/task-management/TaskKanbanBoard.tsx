@@ -159,7 +159,7 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                       <h5 className={styles.kanbanTaskTitle}>{task.title}</h5>
 
                       {task.category && (
-                        <div style={{ fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.5)' }}>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--secondary-text)', fontWeight: 500 }}>
                           🏷️ {task.category.name}
                         </div>
                       )}

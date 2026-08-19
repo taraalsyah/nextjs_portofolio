@@ -75,13 +75,20 @@
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
+  color: var(--foreground);
+}
 
-  p {
-    margin-top: 0.1rem;
-    font-size: 0.78rem;
-    font-weight: 400;
-    color: var(--muted-foreground);
-  }
+.headerTitle p {
+  margin-top: 0.1rem;
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--muted-foreground);
+}
+
+.categoryName {
+  font-weight: 600;
+  color: var(--foreground);
+  opacity: 1;
 }
 
 .createBtn {

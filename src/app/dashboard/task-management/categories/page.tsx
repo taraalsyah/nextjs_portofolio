@@ -223,7 +223,7 @@ export default function CategoriesPage() {
                 {categories.map((c) => (
                   <tr key={c.id}>
                     <td>#{c.id}</td>
-                    <td style={{ fontWeight: 600, color: 'white' }}>{c.name}</td>
+                    <td className={styles.categoryName}>{c.name}</td>
                     <td>{c.description || '-'}</td>
                     <td>{new Date(c.createdAt).toLocaleDateString('id-ID')}</td>
                     <td>
