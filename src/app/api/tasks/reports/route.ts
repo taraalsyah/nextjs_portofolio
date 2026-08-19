@@ -103,6 +103,12 @@ export async function GET(req: NextRequest) {
       _count: { id: true },
     });
 
+    const assigneeStatusGroups = await prisma.task.groupBy({
+      by: ['assigneeId', 'status'],
+      where: accessWhere,
+      _count: { id: true },
+    });
+
     const projectMembers = await prisma.projectMember.findMany({
       where: { projectId: activeProject.projectId },
       select: { user: { select: { id: true, name: true, username: true } } },
@@ -111,12 +117,34 @@ export async function GET(req: NextRequest) {
     const assigneeMap = new Map<number, { name: string; username?: string | null }>();
     projectMembers.forEach((m) => assigneeMap.set(m.user.id, { name: m.user.name, username: m.user.username }));
 
-    const byAssignee = assigneeGroups.map((g) => ({
-      id: g.assigneeId || 0,
-      name: g.assigneeId ? assigneeMap.get(g.assigneeId)?.name || 'Unassigned' : 'Unassigned',
-      username: g.assigneeId ? assigneeMap.get(g.assigneeId)?.username : undefined,
-      taskCount: g._count.id,
-    }));
+    const assigneeStatusMap = new Map<number, { BACKLOG: number; OPEN: number; IN_PROGRESS: number; DONE: number }>();
+    assigneeStatusGroups.forEach((g) => {
+      const assId = g.assigneeId || 0;
+      if (!assigneeStatusMap.has(assId)) {
+        assigneeStatusMap.set(assId, { BACKLOG: 0, OPEN: 0, IN_PROGRESS: 0, DONE: 0 });
+      }
+      const stMap = assigneeStatusMap.get(assId)!;
+      if (g.status in stMap) {
+        stMap[g.status as keyof typeof stMap] = g._count.id;
+      }
+    });
+
+    const byAssignee = assigneeGroups.map((g) => {
+      const assId = g.assigneeId || 0;
+      const stCounts = assigneeStatusMap.get(assId) || { BACKLOG: 0, OPEN: 0, IN_PROGRESS: 0, DONE: 0 };
+      return {
+        id: assId,
+        name: assId ? assigneeMap.get(assId)?.name || 'Unassigned' : 'Unassigned',
+        username: assId ? assigneeMap.get(assId)?.username : undefined,
+        taskCount: g._count.id,
+        statusCounts: {
+          backlog: stCounts.BACKLOG,
+          open: stCounts.OPEN,
+          inProgress: stCounts.IN_PROGRESS,
+          done: stCounts.DONE,
+        },
+      };
+    });
 
     return NextResponse.json({
       summary: {
