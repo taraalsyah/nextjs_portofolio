@@ -39,14 +39,14 @@ export function TaskHistorySection({ histories }: TaskHistorySectionProps) {
         style={{
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.6rem',
-          borderLeft: '2px solid var(--glass-border)',
-          paddingLeft: '0.85rem',
-          marginLeft: '0.35rem',
+          gap: '0.85rem',
+          borderLeft: '2px solid var(--border)',
+          paddingLeft: '1rem',
+          marginLeft: '0.4rem',
         }}
       >
         {histories.length === 0 ? (
-          <p style={{ fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.4)', margin: 0 }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', margin: 0 }}>
             Belum ada riwayat aktivitas pada task ini.
           </p>
         ) : (
@@ -57,44 +57,59 @@ export function TaskHistorySection({ histories }: TaskHistorySectionProps) {
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '0.2rem',
-                fontSize: '0.78rem',
+                gap: '0.25rem',
+                fontSize: '0.8rem',
               }}
             >
               <div
                 style={{
                   position: 'absolute',
-                  left: '-1.25rem',
+                  left: '-1.35rem',
                   top: '0.25rem',
                   width: '8px',
                   height: '8px',
                   borderRadius: '50%',
-                  background: 'var(--secondary)',
+                  background: 'var(--primary)',
+                  boxShadow: '0 0 0 3px var(--surface-muted)',
                 }}
               />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span style={{ fontWeight: 700, color: 'var(--secondary)' }}>{h.user.name}</span>
-                <span style={{ color: 'hsla(0,0%,100%,0.4)', fontSize: '0.72rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                <span style={{ fontWeight: 600, fontSize: '0.82rem', color: 'var(--foreground)' }}>
+                  👤 {h.user.name}
+                </span>
+                <span style={{ color: 'var(--muted-foreground)', fontSize: '0.74rem' }}>
                   • {formatDate(h.createdAt)}
                 </span>
               </div>
 
-              <div style={{ color: 'var(--fg-color)' }}>{h.action}</div>
+              <div style={{ color: 'var(--foreground)', fontSize: '0.82rem', lineHeight: '1.4' }}>
+                {h.action}
+              </div>
 
               {(h.previousValue || h.newValue) && (
                 <div
                   style={{
                     fontSize: '0.75rem',
-                    color: 'hsla(0,0%,100%,0.6)',
-                    background: 'hsla(0,0%,100%,0.03)',
-                    padding: '0.35rem 0.5rem',
+                    color: 'var(--foreground)',
+                    background: 'var(--surface-muted)',
+                    border: '1px solid var(--border)',
+                    padding: '0.4rem 0.6rem',
                     borderRadius: '6px',
-                    marginTop: '0.15rem',
+                    marginTop: '0.2rem',
+                    lineHeight: '1.4',
                   }}
                 >
-                  {h.previousValue && <div>Sebelumnya: {h.previousValue}</div>}
-                  {h.newValue && <div>Menjadi: {h.newValue}</div>}
+                  {h.previousValue && (
+                    <div style={{ color: 'var(--muted-foreground)' }}>
+                      <strong>Sebelumnya:</strong> {h.previousValue}
+                    </div>
+                  )}
+                  {h.newValue && (
+                    <div style={{ color: 'var(--foreground)', marginTop: h.previousValue ? '0.15rem' : 0 }}>
+                      <strong>Menjadi:</strong> {h.newValue}
+                    </div>
+                  )}
                 </div>
               )}
             </div>

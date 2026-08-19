@@ -12,6 +12,7 @@ import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 import { TASK_MUTATED_EVENT, notifyTaskMutated } from '@/lib/task-event';
+import { InlineSpinner } from '@/components/ui/loading';
 
 export default function KanbanPage() {
   const { data: session, status } = useSession();
@@ -193,8 +194,9 @@ export default function KanbanPage() {
         </div>
 
         {isLoading ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
-            Memuat Kanban Board...
+          <div className={styles.loadingBox}>
+            <InlineSpinner size={18} color="var(--primary)" />
+            <span>Memuat Kanban Board...</span>
           </div>
         ) : (
           <TaskKanbanBoard

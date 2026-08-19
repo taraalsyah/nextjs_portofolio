@@ -289,12 +289,50 @@
   gap: 0.55rem;
   padding: 0.55rem 1.1rem;
   background: #ffffff;
-  border: 1px solid var(--primary-border);
+  border: 1px solid var(--border);
   border-radius: 20px;
-  color: var(--primary);
+  color: var(--foreground);
   font-size: 0.82rem;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+/* Reusable High-Contrast Loading Box */
+.loadingBox {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--foreground);
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+/* Reusable Empty State Box */
+.emptyBox {
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--muted-foreground);
+  font-size: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.emptyBoxTitle {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.emptyBoxSubtitle {
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  margin: 0;
 }
 
 .pageBtn {
@@ -666,19 +704,68 @@
   color: var(--muted-foreground);
 }
 
+.todayCell {
+  background: #EFF6FF !important;
+  border: 1px solid #BFDBFE !important;
+}
+
+.todayNum {
+  color: var(--primary) !important;
+  font-weight: 700 !important;
+}
+
 .calendarEventItem {
-  padding: 0.2rem 0.45rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-weight: 500;
+  padding: 0.3rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   cursor: pointer;
   transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  line-height: 1.3;
 }
 
-.overdueEvent {
+.calendarEventItem:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.calEventBacklog {
+  background: #F1F5F9;
+  color: #475569;
+  border: 1px solid #CBD5E1;
+}
+
+.calEventOpen {
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
+}
+
+.calEventInProgress {
+  background: #FFFBEB;
+  color: #D97706;
+  border: 1px solid #FDE68A;
+}
+
+.calEventDone {
+  background: #F0FDF4;
+  color: #16A34A;
+  border: 1px solid #BBF7D0;
+}
+
+.calEventClosed {
+  background: #F8FAFC;
+  color: #64748B;
+  border: 1px solid #CBD5E1;
+}
+
+.calEventOverdue {
   background: #FEF2F2;
   color: #DC2626;
   border: 1px solid #FCA5A5;
@@ -803,11 +890,63 @@
 }
 
 .label {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 600;
-  color: hsla(0, 0%, 100%, 0.5);
+  color: var(--muted-foreground);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  margin: 0;
+}
+
+/* Information Field Cards — Tab Informasi Umum */
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+}
+
+.infoCard {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  transition: var(--transition);
+}
+
+.infoCard:hover {
+  border-color: #CBD5E1;
+  background: #F1F5F9;
+}
+
+.infoCardFull {
+  grid-column: span 2;
+}
+
+.infoValue {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-height: 24px;
+}
+
+.infoIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.descriptionBox {
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--foreground);
+  white-space: pre-wrap;
+  margin-top: 0.2rem;
 }
 
 .input,
@@ -862,11 +1001,13 @@
     grid-template-columns: 1fr;
   }
 
-  .formGrid {
+  .formGrid,
+  .infoGrid {
     grid-template-columns: 1fr;
   }
 
-  .formGroupFull {
+  .formGroupFull,
+  .infoCardFull {
     grid-column: span 1;
   }
 

@@ -11,6 +11,7 @@ import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 import { TASK_MUTATED_EVENT } from '@/lib/task-event';
+import { InlineSpinner } from '@/components/ui/loading';
 
 export default function CalendarPage() {
   const { data: session, status } = useSession();
@@ -163,8 +164,9 @@ export default function CalendarPage() {
         </div>
 
         {isLoading ? (
-          <div style={{ padding: '3rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
-            Memuat Kalender Task...
+          <div className={styles.loadingBox}>
+            <InlineSpinner size={18} color="var(--primary)" />
+            <span>Memuat Kalender Task...</span>
           </div>
         ) : (
           <TaskCalendarView

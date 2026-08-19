@@ -129,16 +129,16 @@ export function TaskCommentSection({
           style={{
             padding: '0.5rem 0.75rem',
             borderRadius: '8px',
-            background: 'hsla(350, 90%, 55%, 0.15)',
-            border: '1px solid hsla(350, 90%, 55%, 0.3)',
-            color: 'hsl(350, 95%, 85%)',
+            background: '#FEF2F2',
+            border: '1px solid #FCA5A5',
+            color: '#991B1B',
             fontSize: '0.78rem',
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
           }}
         >
-          <AlertCircle size={14} />
+          <AlertCircle size={14} style={{ color: '#DC2626' }} />
           {error}
         </div>
       )}
@@ -146,7 +146,7 @@ export function TaskCommentSection({
       {/* Comment List (Chronological: Newest last) */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
         {comments.length === 0 ? (
-          <p style={{ fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.4)', margin: 0 }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', margin: 0 }}>
             Belum ada komentar pada task ini.
           </p>
         ) : (
@@ -159,27 +159,28 @@ export function TaskCommentSection({
               <div
                 key={c.id}
                 style={{
-                  padding: '0.75rem',
-                  borderRadius: '10px',
-                  background: 'var(--glass)',
-                  border: '1px solid var(--glass-border)',
+                  padding: '0.75rem 0.9rem',
+                  borderRadius: '8px',
+                  background: 'var(--surface-muted)',
+                  border: '1px solid var(--border)',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.35rem',
+                  gap: '0.4rem',
                   opacity: isDeleting ? 0.7 : 1,
+                  transition: 'var(--transition)',
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--secondary)' }}>
-                    {c.user.name}
+                  <span style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--foreground)' }}>
+                    👤 {c.user.name}
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <span style={{ fontSize: '0.7rem', color: 'hsla(0,0%,100%,0.4)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <span style={{ fontSize: '0.74rem', color: 'var(--muted-foreground)' }}>
                       {formatDate(c.createdAt)}
                     </span>
                     {isDeleting ? (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--secondary)' }}>
-                        <InlineSpinner size={12} color="var(--secondary)" />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.72rem', color: 'var(--muted-foreground)' }}>
+                        <InlineSpinner size={12} color="var(--primary)" />
                         <span>Menghapus...</span>
                       </div>
                     ) : canUpdateProgress && isOwner && !isEditing ? (
@@ -192,6 +193,7 @@ export function TaskCommentSection({
                           disabled={isDeleting}
                           className={styles.actionBtn}
                           style={{ width: '22px', height: '22px' }}
+                          title="Edit Komentar"
                         >
                           <Edit2 size={11} />
                         </button>
@@ -200,6 +202,7 @@ export function TaskCommentSection({
                           disabled={isDeleting}
                           className={`${styles.actionBtn} ${styles.deleteBtn}`}
                           style={{ width: '22px', height: '22px' }}
+                          title="Hapus Komentar"
                         >
                           <Trash2 size={11} />
                         </button>
@@ -225,7 +228,7 @@ export function TaskCommentSection({
                     </button>
                   </div>
                 ) : (
-                  <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--fg-color)', whiteSpace: 'pre-wrap' }}>
+                  <p style={{ margin: 0, fontSize: '0.85rem', lineHeight: '1.5', color: 'var(--foreground)', whiteSpace: 'pre-wrap' }}>
                     {c.content}
                   </p>
                 )}

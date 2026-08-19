@@ -74,6 +74,34 @@ export function TaskCalendarView({ tasks, onTaskClick }: TaskCalendarViewProps) 
     return new Date(dueDateStr) < new Date();
   };
 
+  const todayDate = new Date();
+  const isToday = (day: number) => {
+    return (
+      todayDate.getFullYear() === year &&
+      todayDate.getMonth() === month &&
+      todayDate.getDate() === day
+    );
+  };
+
+  const getCalendarEventClass = (status: string, overdue: boolean) => {
+    if (overdue) return styles.calEventOverdue;
+
+    switch (status) {
+      case 'BACKLOG':
+        return styles.calEventBacklog;
+      case 'OPEN':
+        return styles.calEventOpen;
+      case 'IN_PROGRESS':
+        return styles.calEventInProgress;
+      case 'DONE':
+        return styles.calEventDone;
+      case 'CLOSED':
+        return styles.calEventClosed;
+      default:
+        return styles.calEventBacklog;
+    }
+  };
+
   return (
     <div className={styles.calendarContainer}>
       <div className={styles.calendarHeader}>
@@ -99,38 +127,61 @@ export function TaskCalendarView({ tasks, onTaskClick }: TaskCalendarViewProps) 
 
         {daysGrid.map((day, idx) => {
           if (day === null) {
-            return <div key={`empty-${idx}`} className={styles.calendarDayCell} style={{ opacity: 0.2 }} />;
+            return (
+              <div
+                key={`empty-${idx}`}
+                className={styles.calendarDayCell}
+                style={{ opacity: 0.35, background: 'var(--surface-muted)' }}
+              />
+            );
           }
 
           const dayTasks = getTasksForDay(day);
+          const currentDay = isToday(day);
 
           return (
-            <div key={`day-${day}`} className={styles.calendarDayCell}>
-              <span className={styles.calendarDayNum}>{day}</span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', overflowY: 'auto' }}>
+            <div
+              key={`day-${day}`}
+              className={`${styles.calendarDayCell} ${currentDay ? styles.todayCell : ''}`}
+            >
+              <span className={`${styles.calendarDayNum} ${currentDay ? styles.todayNum : ''}`}>
+                {day}
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', overflowY: 'auto' }}>
                 {dayTasks.map((t) => {
                   const overdue = isOverdue(t.dueDate, t.status);
+                  const eventClass = getCalendarEventClass(t.status, overdue);
+
                   return (
                     <div
                       key={t.id}
                       onClick={() => onTaskClick(t)}
-                      className={`${styles.calendarEventItem} ${overdue ? styles.overdueEvent : ''}`}
-                      style={{
-                        background: overdue
-                          ? undefined
-                          : t.status === 'DONE'
-                          ? 'hsla(145, 80%, 45%, 0.2)'
-                          : 'hsla(210, 90%, 65%, 0.2)',
-                        color: overdue
-                          ? undefined
-                          : t.status === 'DONE'
-                          ? 'hsl(145, 80%, 80%)'
-                          : 'hsl(210, 90%, 85%)',
-                      }}
-                      title={`${t.taskNumber} - ${t.title}`}
+                      className={`${styles.calendarEventItem} ${eventClass}`}
+                      title={`${t.taskNumber} - ${t.title} (${t.status}${overdue ? ' - TERLAMBAT' : ''})`}
                     >
-                      {overdue && <AlertCircle size={10} style={{ marginRight: '2px' }} />}
-                      {t.taskNumber}: {t.title}
+                      {overdue ? (
+                        <AlertCircle size={12} style={{ flexShrink: 0, color: '#DC2626' }} />
+                      ) : (
+                        <span
+                          style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: 'currentColor',
+                            flexShrink: 0,
+                            opacity: 0.8,
+                          }}
+                        />
+                      )}
+                      <span
+                        style={{
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                        }}
+                      >
+                        {t.taskNumber}: {t.title}
+                      </span>
                     </div>
                   );
                 })}

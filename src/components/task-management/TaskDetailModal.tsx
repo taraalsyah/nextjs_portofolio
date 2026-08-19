@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Edit3, ShieldAlert, CheckCircle, XCircle, Clock, Send, Ban, CheckSquare, ChevronDown, Check } from 'lucide-react';
+import { X, Edit3, ShieldAlert, CheckCircle, XCircle, Clock, Send, Ban, CheckSquare, ChevronDown, Check, User, UserCheck, Tag, Calendar, Hash } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { TaskChecklistSection, ChecklistItem } from './TaskChecklistSection';
 import { TaskCommentSection } from './TaskCommentSection';
@@ -94,34 +94,42 @@ const STATUS_OPTIONS: { key: string; label: string; color: string; bgColor: stri
   {
     key: 'BACKLOG',
     label: 'Backlog',
-    color: 'hsl(215, 20%, 85%)',
-    bgColor: 'hsla(215, 20%, 65%, 0.15)',
-    borderColor: 'hsla(215, 20%, 65%, 0.3)',
-    dotColor: '#94a3b8',
+    color: '#475569',
+    bgColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+    dotColor: '#64748B',
   },
   {
     key: 'OPEN',
     label: 'Open',
-    color: 'hsl(210, 90%, 82%)',
-    bgColor: 'hsla(210, 90%, 65%, 0.15)',
-    borderColor: 'hsla(210, 90%, 65%, 0.3)',
-    dotColor: '#38bdf8',
+    color: '#2563EB',
+    bgColor: '#EFF6FF',
+    borderColor: '#BFDBFE',
+    dotColor: '#2563EB',
   },
   {
     key: 'IN_PROGRESS',
     label: 'In Progress',
-    color: 'hsl(38, 95%, 80%)',
-    bgColor: 'hsla(38, 95%, 55%, 0.18)',
-    borderColor: 'hsla(38, 95%, 55%, 0.35)',
-    dotColor: '#f59e0b',
+    color: '#D97706',
+    bgColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    dotColor: '#D97706',
   },
   {
     key: 'DONE',
     label: 'Done',
-    color: 'hsl(145, 80%, 78%)',
-    bgColor: 'hsla(145, 80%, 45%, 0.15)',
-    borderColor: 'hsla(145, 80%, 45%, 0.3)',
-    dotColor: '#10b981',
+    color: '#16A34A',
+    bgColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+    dotColor: '#16A34A',
+  },
+  {
+    key: 'CLOSED',
+    label: 'Closed',
+    color: '#DC2626',
+    bgColor: '#FEF2F2',
+    borderColor: '#FCA5A5',
+    dotColor: '#DC2626',
   },
 ];
 
@@ -232,10 +240,10 @@ function StatusDropdown({
             left: 0,
             width: '100%',
             minWidth: '210px',
-            background: '#0f172a',
-            border: '1px solid var(--glass-border)',
-            borderRadius: '10px',
-            boxShadow: '0 12px 32px -4px rgba(0, 0, 0, 0.65), 0 0 0 1px hsla(0, 0%, 100%, 0.08)',
+            background: 'var(--surface)',
+            border: '1px solid var(--border)',
+            borderRadius: '8px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
             padding: '0.35rem',
             zIndex: 100,
             display: 'flex',
@@ -265,16 +273,17 @@ function StatusDropdown({
                   borderRadius: '6px',
                   border: isSelected ? `1px solid ${opt.borderColor}` : '1px solid transparent',
                   background: isSelected ? opt.bgColor : 'transparent',
-                  color: isOptionDisabled ? 'hsla(0, 0%, 100%, 0.35)' : opt.color,
+                  color: isOptionDisabled ? 'var(--muted-foreground)' : opt.color,
                   fontSize: '0.8rem',
                   fontWeight: isSelected ? 700 : 500,
                   cursor: isOptionDisabled ? 'not-allowed' : 'pointer',
                   textAlign: 'left',
                   transition: 'all 0.15s ease',
+                  opacity: isOptionDisabled ? 0.5 : 1,
                 }}
                 onMouseEnter={(e) => {
                   if (!isSelected && !isOptionDisabled) {
-                    e.currentTarget.style.background = 'hsla(0, 0%, 100%, 0.06)';
+                    e.currentTarget.style.background = 'var(--surface-hover)';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -309,6 +318,75 @@ function StatusDropdown({
     </div>
   );
 }
+
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case 'BACKLOG':
+      return styles.statusBacklog;
+    case 'OPEN':
+      return styles.statusOpen;
+    case 'IN_PROGRESS':
+      return styles.statusInProgress;
+    case 'DONE':
+      return styles.statusDone;
+    case 'CLOSED':
+    case 'LOCKED':
+      return styles.statusLocked;
+    default:
+      return styles.statusBacklog;
+  }
+};
+
+const getPriorityBadgeClass = (priority: string) => {
+  switch (priority) {
+    case 'LOW':
+    case 'Low':
+      return styles.priorityLow;
+    case 'MEDIUM':
+    case 'Medium':
+      return styles.priorityMedium;
+    case 'HIGH':
+    case 'High':
+      return styles.priorityHigh;
+    case 'CRITICAL':
+    case 'Critical':
+      return styles.priorityCritical;
+    default:
+      return styles.priorityLow;
+  }
+};
+
+const renderFormattedStatusMsg = (msg: string) => {
+  const statusKeys = ['BACKLOG', 'OPEN', 'IN_PROGRESS', 'DONE', 'CLOSED'];
+  const foundStatus = statusKeys.find((key) => msg.includes(key));
+
+  if (foundStatus) {
+    const parts = msg.split(foundStatus);
+    const displayLabel = foundStatus === 'IN_PROGRESS' ? 'IN PROGRESS' : foundStatus;
+    const badgeClass = getStatusBadgeClass(foundStatus);
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.2rem' }}>
+        <span>{parts[0]}</span>
+        <span
+          className={`${styles.badge} ${badgeClass}`}
+          style={{
+            margin: '0 0.25rem',
+            padding: '0.2rem 0.55rem',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.03em',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          {displayLabel}
+        </span>
+        <span>{parts[1]}</span>
+      </span>
+    );
+  }
+
+  return <span>{msg}</span>;
+};
 
 export function TaskDetailModal({
   taskId,
@@ -852,20 +930,50 @@ export function TaskDetailModal({
         {statusMsg && (
           <div
             style={{
-              padding: '0.65rem 0.85rem',
+              padding: '0.75rem 1rem',
               borderRadius: '8px',
-              margin: '0.5rem 0',
-              background: statusMsg.type === 'error' ? 'hsla(350, 90%, 55%, 0.15)' : 'hsla(145, 80%, 45%, 0.15)',
-              border: statusMsg.type === 'error' ? '1px solid hsla(350, 90%, 55%, 0.3)' : '1px solid hsla(145, 80%, 45%, 0.3)',
-              color: statusMsg.type === 'error' ? 'hsl(350, 95%, 85%)' : 'hsl(145, 80%, 85%)',
-              fontSize: '0.8rem',
+              margin: '0.65rem 0',
+              background: statusMsg.type === 'error' ? '#FEF2F2' : '#F0FDF4',
+              border: statusMsg.type === 'error' ? '1px solid #FCA5A5' : '1px solid #BBF7D0',
+              color: statusMsg.type === 'error' ? '#991B1B' : '#15803D',
+              fontSize: '0.85rem',
+              fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
             }}
           >
-            {statusMsg.type === 'error' && <ShieldAlert size={16} />}
-            {statusMsg.message}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1 }}>
+              {statusMsg.type === 'error' ? (
+                <ShieldAlert size={18} style={{ color: '#DC2626', flexShrink: 0 }} />
+              ) : (
+                <CheckCircle size={18} style={{ color: '#16A34A', flexShrink: 0 }} />
+              )}
+              <div style={{ lineHeight: '1.4' }}>
+                {renderFormattedStatusMsg(statusMsg.message)}
+              </div>
+            </div>
+            <button
+              onClick={() => setStatusMsg(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: statusMsg.type === 'error' ? '#991B1B' : '#15803D',
+                cursor: 'pointer',
+                padding: '0.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                opacity: 0.7,
+                transition: 'opacity 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+              title="Tutup notifikasi"
+            >
+              <X size={15} />
+            </button>
           </div>
         )}
 
@@ -1525,18 +1633,19 @@ export function TaskDetailModal({
 
         {/* Content Body */}
         {isLoading || !task ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
-            Memuat detail task...
+          <div className={styles.loadingBox}>
+            <InlineSpinner size={18} color="var(--primary)" />
+            <span>Memuat detail task...</span>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '300px' }}>
             {activeTab === 'info' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div className={styles.formGrid}>
-                  <div>
+                <div className={styles.infoGrid}>
+                  {/* Status Workflow */}
+                  <div className={styles.infoCard}>
                     <label className={styles.label}>Status Workflow</label>
-                    <div style={{ marginTop: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                      {/* If Assigned to Self or Owner/Admin, render Workflow Selector with Transition Control */}
+                    <div className={styles.infoValue}>
                       {isAssignee || isOwnerOrAdmin ? (
                         <StatusDropdown
                           currentStatus={task.status}
@@ -1546,63 +1655,100 @@ export function TaskDetailModal({
                           isUpdatingStatus={isUpdatingStatus}
                         />
                       ) : (
-                        <span className={`${styles.badge} ${styles[`status${task.status}`]}`}>
+                        <span className={`${styles.badge} ${getStatusBadgeClass(task.status)}`}>
                           {task.status} (Read Only)
                         </span>
                       )}
                     </div>
                   </div>
-                  <div>
+
+                  {/* Prioritas */}
+                  <div className={styles.infoCard}>
                     <label className={styles.label}>Prioritas</label>
-                    <div style={{ marginTop: '0.3rem' }}>
-                      <span className={`${styles.badge} ${styles[`priority${task.priority}`]}`}>
+                    <div className={styles.infoValue}>
+                      <span className={`${styles.badge} ${getPriorityBadgeClass(task.priority)}`}>
                         {task.priority}
                       </span>
                     </div>
                   </div>
-                  <div>
-                    <label className={styles.label}>Assignee (Penanggung Jawab)</label>
-                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.85rem' }}>
-                      👤 {task.assignee?.name || 'Unassigned'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className={styles.label}>Reporter (Dibuat Oleh)</label>
-                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.85rem' }}>
-                      ✍️ {task.createdBy?.name || '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className={styles.label}>Kategori</label>
-                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.85rem' }}>
-                      🏷️ {task.category?.name || '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className={styles.label}>Tags</label>
-                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.85rem' }}>
-                      {task.tags || '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className={styles.label}>Start Date</label>
-                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.85rem' }}>
-                      📅 {task.startDate ? new Date(task.startDate).toLocaleDateString('id-ID') : '-'}
-                    </p>
-                  </div>
-                  <div>
-                    <label className={styles.label}>Due Date (Deadline)</label>
-                    <p style={{ margin: '0.3rem 0 0', fontSize: '0.85rem' }}>
-                      📅 {task.dueDate ? new Date(task.dueDate).toLocaleDateString('id-ID') : '-'}
-                    </p>
-                  </div>
-                </div>
 
-                <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '0.85rem' }}>
-                  <label className={styles.label}>Deskripsi Lengkap</label>
-                  <p style={{ margin: '0.4rem 0 0', fontSize: '0.85rem', lineHeight: '1.5', whiteSpace: 'pre-wrap' }}>
-                    {task.description}
-                  </p>
+                  {/* Assignee */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Assignee (Penanggung Jawab)</label>
+                    <div className={styles.infoValue}>
+                      <User size={15} className={styles.infoIcon} />
+                      <span>{task.assignee?.name || 'Unassigned'}</span>
+                    </div>
+                  </div>
+
+                  {/* Reporter */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Reporter (Dibuat Oleh)</label>
+                    <div className={styles.infoValue}>
+                      <UserCheck size={15} className={styles.infoIcon} />
+                      <span>{task.createdBy?.name || '-'}</span>
+                    </div>
+                  </div>
+
+                  {/* Kategori */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Kategori</label>
+                    <div className={styles.infoValue}>
+                      <Tag size={15} className={styles.infoIcon} />
+                      <span>{task.category?.name || '-'}</span>
+                    </div>
+                  </div>
+
+                  {/* Tags */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Tags</label>
+                    <div className={styles.infoValue}>
+                      <Hash size={15} className={styles.infoIcon} />
+                      <span>{task.tags || '-'}</span>
+                    </div>
+                  </div>
+
+                  {/* Start Date */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Start Date</label>
+                    <div className={styles.infoValue}>
+                      <Calendar size={15} className={styles.infoIcon} />
+                      <span>
+                        {task.startDate
+                          ? new Date(task.startDate).toLocaleDateString('id-ID', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Due Date */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Due Date (Deadline)</label>
+                    <div className={styles.infoValue}>
+                      <Calendar size={15} className={styles.infoIcon} />
+                      <span>
+                        {task.dueDate
+                          ? new Date(task.dueDate).toLocaleDateString('id-ID', {
+                              day: '2-digit',
+                              month: 'short',
+                              year: 'numeric',
+                            })
+                          : '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Deskripsi Lengkap */}
+                  <div className={`${styles.infoCard} ${styles.infoCardFull}`}>
+                    <label className={styles.label}>Deskripsi Lengkap</label>
+                    <p className={styles.descriptionBox}>
+                      {task.description || 'Tidak ada deskripsi.'}
+                    </p>
+                  </div>
                 </div>
               </div>
             )}

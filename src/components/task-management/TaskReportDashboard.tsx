@@ -3,6 +3,7 @@
 import React from 'react';
 import { ListTodo, CheckCircle2, Clock, AlertTriangle, Layers, Users, BarChart } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
+import { InlineSpinner } from '@/components/ui/loading';
 
 interface TaskReportData {
   summary: {
@@ -32,8 +33,9 @@ interface TaskReportDashboardProps {
 export function TaskReportDashboard({ data, isLoading }: TaskReportDashboardProps) {
   if (isLoading || !data) {
     return (
-      <div style={{ padding: '2.5rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
-        Memuat data laporan statistik...
+      <div className={styles.loadingBox}>
+        <InlineSpinner size={18} color="var(--primary)" />
+        <span>Memuat data laporan statistik...</span>
       </div>
     );
   }

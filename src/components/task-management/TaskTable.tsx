@@ -134,8 +134,8 @@ export function TaskTable({
       {isFetching && tasks.length > 0 && (
         <div className={styles.tableLoadingOverlay}>
           <div className={styles.tableLoadingBadge}>
-            <InlineSpinner size={16} />
-            <span>Memuat data task...</span>
+            <InlineSpinner size={16} color="var(--primary)" />
+            <span style={{ color: 'var(--foreground)', fontWeight: 600 }}>Memuat data task...</span>
           </div>
         </div>
       )}
@@ -158,8 +158,8 @@ export function TaskTable({
           {isInitialLoading ? (
             <tr>
               <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', color: 'hsla(0,0%,100%,0.6)' }}>
-                  <InlineSpinner size={18} />
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', color: 'var(--foreground)', fontWeight: 600, fontSize: '0.85rem' }}>
+                  <InlineSpinner size={18} color="var(--primary)" />
                   <span>Memuat data task...</span>
                 </div>
               </td>
@@ -167,11 +167,11 @@ export function TaskTable({
           ) : tasks.length === 0 ? (
             <tr>
               <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
-                <div style={{ color: 'hsla(0,0%,100%,0.5)' }}>
-                  <p style={{ fontWeight: 600, fontSize: '0.9rem', margin: 0 }}>
+                <div style={{ color: 'var(--muted-foreground)' }}>
+                  <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)', margin: 0 }}>
                     Tidak ada task ditemukan
                   </p>
-                  <p style={{ fontSize: '0.78rem', marginTop: '0.2rem' }}>
+                  <p style={{ fontSize: '0.78rem', marginTop: '0.2rem', color: 'var(--muted-foreground)' }}>
                     Coba sesuaikan kata kunci pencarian atau filter Anda.
                   </p>
                 </div>

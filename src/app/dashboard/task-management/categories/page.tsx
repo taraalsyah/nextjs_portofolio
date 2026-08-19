@@ -9,6 +9,7 @@ import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
+import { InlineSpinner } from '@/components/ui/loading';
 
 interface CategoryItem {
   id: number;
@@ -197,12 +198,14 @@ export default function CategoriesPage() {
         </div>
 
         {isLoading ? (
-          <div style={{ padding: '2rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
-            Memuat kategori task...
+          <div className={styles.loadingBox}>
+            <InlineSpinner size={18} color="var(--primary)" />
+            <span>Memuat kategori task...</span>
           </div>
         ) : categories.length === 0 ? (
-          <div style={{ padding: '2.5rem', textAlign: 'center', color: 'hsla(0,0%,100%,0.5)' }}>
-            Belum ada kategori task yang dibuat.
+          <div className={styles.emptyBox}>
+            <p className={styles.emptyBoxTitle}>Belum ada kategori task yang dibuat</p>
+            <p className={styles.emptyBoxSubtitle}>Klik tombol "Tambah Kategori" di atas untuk membuat kategori baru.</p>
           </div>
         ) : (
           <div style={{ overflowX: 'auto' }}>

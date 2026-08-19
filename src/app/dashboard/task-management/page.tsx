@@ -16,6 +16,8 @@ import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 import { TASK_MUTATED_EVENT, notifyTaskMutated } from '@/lib/task-event';
 
+import { InlineSpinner } from '@/components/ui/loading';
+
 export default function AllTasksPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -221,7 +223,12 @@ export default function AllTasksPage() {
   };
 
   if (status === 'loading') {
-    return <div style={{ padding: '2rem', textAlign: 'center' }}>Memuat...</div>;
+    return (
+      <div className={styles.loadingBox}>
+        <InlineSpinner size={18} color="var(--primary)" />
+        <span>Memuat data task...</span>
+      </div>
+    );
   }
 
   return (

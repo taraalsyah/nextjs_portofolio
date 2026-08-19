@@ -186,16 +186,16 @@ export function TaskAttachmentSection({
           style={{
             padding: '0.5rem 0.75rem',
             borderRadius: '8px',
-            background: 'hsla(350, 90%, 55%, 0.15)',
-            border: '1px solid hsla(350, 90%, 55%, 0.3)',
-            color: 'hsl(350, 95%, 85%)',
+            background: '#FEF2F2',
+            border: '1px solid #FCA5A5',
+            color: '#991B1B',
             fontSize: '0.78rem',
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
           }}
         >
-          <AlertCircle size={14} />
+          <AlertCircle size={14} style={{ color: '#DC2626' }} />
           {error}
         </div>
       )}
@@ -204,12 +204,12 @@ export function TaskAttachmentSection({
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
           gap: '0.75rem',
         }}
       >
         {attachments.length === 0 ? (
-          <p style={{ fontSize: '0.78rem', color: 'hsla(0,0%,100%,0.4)', margin: 0, gridColumn: 'span 2' }}>
+          <p style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)', margin: 0, gridColumn: 'span 2' }}>
             Belum ada lampiran gambar pada task ini.
           </p>
         ) : (
@@ -222,19 +222,20 @@ export function TaskAttachmentSection({
                 key={att.id}
                 style={{
                   borderRadius: '8px',
-                  background: 'var(--glass)',
-                  border: '1px solid var(--glass-border)',
+                  background: 'var(--surface-muted)',
+                  border: '1px solid var(--border)',
                   overflow: 'hidden',
                   display: 'flex',
                   flexDirection: 'column',
                   position: 'relative',
                   opacity: isDeleting ? 0.7 : 1,
+                  transition: 'var(--transition)',
                 }}
               >
                 <div
                   style={{
                     height: '110px',
-                    background: '#000',
+                    background: '#0f172a',
                     position: 'relative',
                     display: 'flex',
                     alignItems: 'center',
@@ -258,12 +259,12 @@ export function TaskAttachmentSection({
                         alignItems: 'center',
                         justifyContent: 'center',
                         gap: '0.4rem',
-                        color: 'var(--secondary)',
+                        color: '#ffffff',
                         fontSize: '0.75rem',
                         fontWeight: 600,
                       }}
                     >
-                      <InlineSpinner size={20} color="var(--secondary)" />
+                      <InlineSpinner size={20} color="#ffffff" />
                       <span>Menghapus...</span>
                     </div>
                   ) : (
@@ -309,27 +310,34 @@ export function TaskAttachmentSection({
                     </div>
                   )}
                 </div>
-              <div style={{ padding: '0.45rem 0.6rem' }}>
-                <p
-                  style={{
-                    margin: 0,
-                    fontSize: '0.78rem',
-                    fontWeight: 600,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                >
-                  {att.fileName}
-                </p>
-                <span style={{ fontSize: '0.7rem', color: 'hsla(0,0%,100%,0.4)' }}>
-                  {formatFileSize(att.fileSize)}
-                </span>
+                <div style={{ padding: '0.55rem 0.65rem', display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  <p
+                    title={att.fileName}
+                    style={{
+                      margin: 0,
+                      fontSize: '0.8rem',
+                      fontWeight: 600,
+                      color: 'var(--foreground)',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {att.fileName}
+                  </p>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.74rem' }}>
+                    <span style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                      👤 {att.uploadedBy?.name || 'User'}
+                    </span>
+                    <span style={{ color: 'var(--muted-foreground)' }}>
+                      {formatFileSize(att.fileSize)}
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
-          );
-        })
-      )}
+            );
+          })
+        )}
       </div>
 
       {/* Full Preview Modal */}

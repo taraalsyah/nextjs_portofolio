@@ -3,7 +3,7 @@
 import React, { useState, useEffect, use } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Edit3, Trash2, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, Edit3, Trash2, ShieldAlert, User, UserCheck, Tag, Calendar, Hash, CheckCircle, X } from 'lucide-react';
 import styles from '../task.module.css';
 import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { TaskChecklistSection } from '@/components/task-management/TaskChecklistSection';
@@ -54,6 +54,75 @@ interface TaskFormData {
   startDate?: string | null;
   dueDate?: string | null;
 }
+
+const getStatusBadgeClass = (status: string) => {
+  switch (status) {
+    case 'BACKLOG':
+      return styles.statusBacklog;
+    case 'OPEN':
+      return styles.statusOpen;
+    case 'IN_PROGRESS':
+      return styles.statusInProgress;
+    case 'DONE':
+      return styles.statusDone;
+    case 'CLOSED':
+    case 'LOCKED':
+      return styles.statusLocked;
+    default:
+      return styles.statusBacklog;
+  }
+};
+
+const getPriorityBadgeClass = (priority: string) => {
+  switch (priority) {
+    case 'LOW':
+    case 'Low':
+      return styles.priorityLow;
+    case 'MEDIUM':
+    case 'Medium':
+      return styles.priorityMedium;
+    case 'HIGH':
+    case 'High':
+      return styles.priorityHigh;
+    case 'CRITICAL':
+    case 'Critical':
+      return styles.priorityCritical;
+    default:
+      return styles.priorityLow;
+  }
+};
+
+const renderFormattedStatusMsg = (msg: string) => {
+  const statusKeys = ['BACKLOG', 'OPEN', 'IN_PROGRESS', 'DONE', 'CLOSED'];
+  const foundStatus = statusKeys.find((key) => msg.includes(key));
+
+  if (foundStatus) {
+    const parts = msg.split(foundStatus);
+    const displayLabel = foundStatus === 'IN_PROGRESS' ? 'IN PROGRESS' : foundStatus;
+    const badgeClass = getStatusBadgeClass(foundStatus);
+    return (
+      <span style={{ display: 'inline-flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.2rem' }}>
+        <span>{parts[0]}</span>
+        <span
+          className={`${styles.badge} ${badgeClass}`}
+          style={{
+            margin: '0 0.25rem',
+            padding: '0.2rem 0.55rem',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            letterSpacing: '0.03em',
+            boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
+          }}
+        >
+          {displayLabel}
+        </span>
+        <span>{parts[1]}</span>
+      </span>
+    );
+  }
+
+  return <span>{msg}</span>;
+};
 
 export default function TaskDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -201,8 +270,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
     return (
       <div className={styles.container}>
         <TaskNavTab />
-        <div className={styles.tableCard} style={{ textAlign: 'center', padding: '3rem' }}>
-          Memuat detail task #{id}...
+        <div className={styles.tableCard}>
+          <div className={styles.loadingBox}>
+            <InlineSpinner size={18} color="var(--primary)" />
+            <span>Memuat detail task #{id}...</span>
+          </div>
         </div>
       </div>
     );
@@ -296,30 +368,61 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         {statusMsg && (
           <div
             style={{
-              padding: '0.65rem 0.85rem',
+              padding: '0.75rem 1rem',
               borderRadius: '8px',
-              margin: '0.5rem 0 1rem',
-              background: statusMsg.type === 'error' ? 'hsla(350, 90%, 55%, 0.15)' : 'hsla(145, 80%, 45%, 0.15)',
-              border: statusMsg.type === 'error' ? '1px solid hsla(350, 90%, 55%, 0.3)' : '1px solid hsla(145, 80%, 45%, 0.3)',
-              color: statusMsg.type === 'error' ? 'hsl(350, 95%, 85%)' : 'hsl(145, 80%, 85%)',
-              fontSize: '0.8rem',
+              margin: '0.65rem 0 1rem',
+              background: statusMsg.type === 'error' ? '#FEF2F2' : '#F0FDF4',
+              border: statusMsg.type === 'error' ? '1px solid #FCA5A5' : '1px solid #BBF7D0',
+              color: statusMsg.type === 'error' ? '#991B1B' : '#15803D',
+              fontSize: '0.85rem',
+              fontWeight: 500,
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
+              justifyContent: 'space-between',
+              gap: '0.75rem',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.03)',
             }}
           >
-            {statusMsg.type === 'error' && <ShieldAlert size={16} />}
-            {statusMsg.message}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flex: 1 }}>
+              {statusMsg.type === 'error' ? (
+                <ShieldAlert size={18} style={{ color: '#DC2626', flexShrink: 0 }} />
+              ) : (
+                <CheckCircle size={18} style={{ color: '#16A34A', flexShrink: 0 }} />
+              )}
+              <div style={{ lineHeight: '1.4' }}>
+                {renderFormattedStatusMsg(statusMsg.message)}
+              </div>
+            </div>
+            <button
+              onClick={() => setStatusMsg(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: statusMsg.type === 'error' ? '#991B1B' : '#15803D',
+                cursor: 'pointer',
+                padding: '0.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                opacity: 0.7,
+                transition: 'opacity 0.15s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.opacity = '1')}
+              onMouseLeave={(e) => (e.currentTarget.style.opacity = '0.7')}
+              title="Tutup notifikasi"
+            >
+              <X size={15} />
+            </button>
           </div>
         )}
 
         {/* Active Tab Body */}
         {activeTab === 'info' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-            <div className={styles.formGrid}>
-              <div>
+            <div className={styles.infoGrid}>
+              {/* Status Workflow */}
+              <div className={styles.infoCard}>
                 <label className={styles.label}>Status Workflow</label>
-                <div style={{ marginTop: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <div className={styles.infoValue}>
                   {canUpdateProgress ? (
                     <>
                       <select
@@ -338,69 +441,106 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
                         {task.status === 'CLOSED' && <option value="CLOSED">Closed</option>}
                       </select>
                       {isUpdatingStatus && (
-                        <span style={{ fontSize: '0.8rem', color: '#38bdf8', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--primary)', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
                           <InlineSpinner size={14} /> Updating...
                         </span>
                       )}
                     </>
                   ) : (
-                    <span className={`${styles.badge} ${styles[`status${task.status}`]}`}>
+                    <span className={`${styles.badge} ${getStatusBadgeClass(task.status)}`}>
                       {task.status}
                     </span>
                   )}
                 </div>
               </div>
-              <div>
+
+              {/* Prioritas */}
+              <div className={styles.infoCard}>
                 <label className={styles.label}>Prioritas</label>
-                <div style={{ marginTop: '0.35rem' }}>
-                  <span className={`${styles.badge} ${styles[`priority${task.priority}`]}`}>
+                <div className={styles.infoValue}>
+                  <span className={`${styles.badge} ${getPriorityBadgeClass(task.priority)}`}>
                     {task.priority}
                   </span>
                 </div>
               </div>
-              <div>
-                <label className={styles.label}>Assignee (Penanggung Jawab)</label>
-                <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
-                  👤 {task.assignee?.name || 'Unassigned'}
-                </p>
-              </div>
-              <div>
-                <label className={styles.label}>Reporter (Pembuat Task)</label>
-                <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
-                  ✍️ {task.createdBy?.name || '-'}
-                </p>
-              </div>
-              <div>
-                <label className={styles.label}>Kategori</label>
-                <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
-                  🏷️ {task.category?.name || '-'}
-                </p>
-              </div>
-              <div>
-                <label className={styles.label}>Tags</label>
-                <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
-                  {task.tags || '-'}
-                </p>
-              </div>
-              <div>
-                <label className={styles.label}>Start Date</label>
-                <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
-                  📅 {task.startDate ? new Date(task.startDate).toLocaleDateString('id-ID') : '-'}
-                </p>
-              </div>
-              <div>
-                <label className={styles.label}>Due Date (Deadline)</label>
-                <p style={{ margin: '0.35rem 0 0', fontWeight: 600 }}>
-                  📅 {task.dueDate ? new Date(task.dueDate).toLocaleDateString('id-ID') : '-'}
-                </p>
-              </div>
-            </div>
 
-            <div style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '1rem' }}>
-              <label className={styles.label}>Deskripsi Lengkap</label>
-              <p style={{ margin: '0.5rem 0 0', fontSize: '0.88rem', lineHeight: '1.6', whiteSpace: 'pre-wrap' }}>
-                {task.description}
-              </p>
+              {/* Assignee */}
+              <div className={styles.infoCard}>
+                <label className={styles.label}>Assignee (Penanggung Jawab)</label>
+                <div className={styles.infoValue}>
+                  <User size={15} className={styles.infoIcon} />
+                  <span>{task.assignee?.name || 'Unassigned'}</span>
+                </div>
+              </div>
+
+              {/* Reporter */}
+              <div className={styles.infoCard}>
+                <label className={styles.label}>Reporter (Pembuat Task)</label>
+                <div className={styles.infoValue}>
+                  <UserCheck size={15} className={styles.infoIcon} />
+                  <span>{task.createdBy?.name || '-'}</span>
+                </div>
+              </div>
+
+              {/* Kategori */}
+              <div className={styles.infoCard}>
+                <label className={styles.label}>Kategori</label>
+                <div className={styles.infoValue}>
+                  <Tag size={15} className={styles.infoIcon} />
+                  <span>{task.category?.name || '-'}</span>
+                </div>
+              </div>
+
+              {/* Tags */}
+              <div className={styles.infoCard}>
+                <label className={styles.label}>Tags</label>
+                <div className={styles.infoValue}>
+                  <Hash size={15} className={styles.infoIcon} />
+                  <span>{task.tags || '-'}</span>
+                </div>
+              </div>
+
+              {/* Start Date */}
+              <div className={styles.infoCard}>
+                <label className={styles.label}>Start Date</label>
+                <div className={styles.infoValue}>
+                  <Calendar size={15} className={styles.infoIcon} />
+                  <span>
+                    {task.startDate
+                      ? new Date(task.startDate).toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      : '-'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Due Date */}
+              <div className={styles.infoCard}>
+                <label className={styles.label}>Due Date (Deadline)</label>
+                <div className={styles.infoValue}>
+                  <Calendar size={15} className={styles.infoIcon} />
+                  <span>
+                    {task.dueDate
+                      ? new Date(task.dueDate).toLocaleDateString('id-ID', {
+                          day: '2-digit',
+                          month: 'short',
+                          year: 'numeric',
+                        })
+                      : '-'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Deskripsi Lengkap */}
+              <div className={`${styles.infoCard} ${styles.infoCardFull}`}>
+                <label className={styles.label}>Deskripsi Lengkap</label>
+                <p className={styles.descriptionBox}>
+                  {task.description || 'Tidak ada deskripsi.'}
+                </p>
+              </div>
             </div>
           </div>
         )}
