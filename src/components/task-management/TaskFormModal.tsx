@@ -148,146 +148,149 @@ export function TaskFormModal({
           <h3 className={styles.modalTitle}>
             {initialData ? `Edit Task ${initialData.taskNumber || ''}` : 'Buat Task Baru'}
           </h3>
-          <button onClick={onClose} className={styles.closeBtn}>
+          <button type="button" onClick={onClose} className={styles.closeBtn}>
             <X size={18} />
           </button>
         </div>
 
-        {isTaskDone && (
-          <div className={styles.lockedBanner}>
-            <span className={`${styles.badge} ${styles.statusDone}`}>Done</span>
-            <span>Task yang telah selesai tidak dapat diedit atau dihapus.</span>
-          </div>
-        )}
+        <form onSubmit={handleSubmit} className={styles.formScrollContainer}>
+          <div className={styles.formBody}>
+            {isTaskDone && (
+              <div className={styles.lockedBanner}>
+                <span className={`${styles.badge} ${styles.statusDone}`}>Done</span>
+                <span>Task yang telah selesai tidak dapat diedit atau dihapus.</span>
+              </div>
+            )}
 
-        {error && (
-          <div
-            style={{
-              padding: '0.65rem 0.85rem',
-              borderRadius: '8px',
-              background: 'hsla(350, 90%, 55%, 0.15)',
-              border: '1px solid hsla(350, 90%, 55%, 0.3)',
-              color: 'hsl(350, 95%, 85%)',
-              fontSize: '0.8rem',
-            }}
-          >
-            {error}
-          </div>
-        )}
+            {error && (
+              <div
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '8px',
+                  background: 'hsla(350, 90%, 55%, 0.15)',
+                  border: '1px solid hsla(350, 90%, 55%, 0.3)',
+                  color: 'hsl(350, 95%, 85%)',
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                }}
+              >
+                {error}
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} className={styles.formGrid}>
-          <div className={styles.formGroupFull}>
-            <label className={styles.label}>Judul Task *</label>
-            <input
-              type="text"
-              placeholder="Contoh: Implementasi fitur otentikasi dua faktor"
-              maxLength={200}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className={styles.input}
-              required
-            />
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Judul Task *</label>
+              <input
+                type="text"
+                placeholder="Contoh: Implementasi fitur otentikasi dua faktor"
+                maxLength={200}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className={styles.input}
+                required
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Deskripsi *</label>
+              <textarea
+                placeholder="Jelaskan kebutuhan, ruang lingkup, atau langkah pengerjaan task..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className={styles.textarea}
+                required
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Status Workflow</label>
+              <CustomDropdown
+                value={status}
+                options={STATUS_FORM_OPTIONS}
+                onChange={(val) => setStatus(val)}
+                disabled={isSubmitting}
+                minWidth="100%"
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Prioritas</label>
+              <CustomDropdown
+                value={priority}
+                options={PRIORITY_FORM_OPTIONS}
+                onChange={(val) => setPriority(val)}
+                disabled={isSubmitting}
+                minWidth="100%"
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Kategori</label>
+              <CustomDropdown
+                value={categoryId}
+                options={categoryOptions}
+                onChange={(val) => setCategoryId(val)}
+                disabled={isSubmitting}
+                minWidth="100%"
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Penugasan (Assignee)</label>
+              <CustomDropdown
+                value={assigneeId}
+                options={assigneeOptions}
+                onChange={(val) => setAssigneeId(val)}
+                disabled={isSubmitting}
+                minWidth="100%"
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Start Date</label>
+              <DatePicker
+                value={startDate}
+                onChange={(val) => setStartDate(val)}
+                placeholder="Pilih Tanggal Mulai"
+                disabled={isSubmitting || isTaskDone}
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Due Date (Deadline)</label>
+              <DatePicker
+                value={dueDate}
+                onChange={(val) => setDueDate(val)}
+                minDate={startDate || undefined}
+                placeholder="Pilih Tanggal Tenggat"
+                disabled={isSubmitting || isTaskDone}
+              />
+            </div>
+
+            <div className={styles.formGroupFull}>
+              <label className={styles.label}>Tags (Pisahkan dengan koma)</label>
+              <input
+                type="text"
+                placeholder="Contoh: frontend, bugfix, api"
+                value={tags}
+                onChange={(e) => setTags(e.target.value)}
+                className={styles.input}
+              />
+            </div>
           </div>
 
-          <div className={styles.formGroupFull}>
-            <label className={styles.label}>Deskripsi *</label>
-            <textarea
-              placeholder="Jelaskan kebutuhan, ruang lingkup, atau langkah pengerjaan task..."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className={styles.textarea}
-              required
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Status Workflow</label>
-            <CustomDropdown
-              value={status}
-              options={STATUS_FORM_OPTIONS}
-              onChange={(val) => setStatus(val)}
-              disabled={isSubmitting}
-              minWidth="100%"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Prioritas</label>
-            <CustomDropdown
-              value={priority}
-              options={PRIORITY_FORM_OPTIONS}
-              onChange={(val) => setPriority(val)}
-              disabled={isSubmitting}
-              minWidth="100%"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Kategori</label>
-            <CustomDropdown
-              value={categoryId}
-              options={categoryOptions}
-              onChange={(val) => setCategoryId(val)}
-              disabled={isSubmitting}
-              minWidth="100%"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Penugasan (Assignee)</label>
-            <CustomDropdown
-              value={assigneeId}
-              options={assigneeOptions}
-              onChange={(val) => setAssigneeId(val)}
-              disabled={isSubmitting}
-              minWidth="100%"
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Start Date</label>
-            <DatePicker
-              value={startDate}
-              onChange={(val) => setStartDate(val)}
-              placeholder="Pilih Tanggal Mulai"
-              disabled={isSubmitting || isTaskDone}
-            />
-          </div>
-
-          <div className={styles.formGroup}>
-            <label className={styles.label}>Due Date (Deadline)</label>
-            <DatePicker
-              value={dueDate}
-              onChange={(val) => setDueDate(val)}
-              minDate={startDate || undefined}
-              placeholder="Pilih Tanggal Tenggat"
-              disabled={isSubmitting || isTaskDone}
-            />
-          </div>
-
-          <div className={styles.formGroupFull}>
-            <label className={styles.label}>Tags (Pisahkan dengan koma)</label>
-            <input
-              type="text"
-              placeholder="Contoh: frontend, bugfix, api"
-              value={tags}
-              onChange={(e) => setTags(e.target.value)}
-              className={styles.input}
-            />
-          </div>
-
-          <div className={styles.modalFooter} style={{ gridColumn: 'span 2' }}>
+          <div className={styles.modalFooter}>
             <button
               type="button"
               onClick={onClose}
-              className={styles.clearFilterBtn}
+              className={styles.modalCancelBtn}
               disabled={isSubmitting}
             >
               Batal
             </button>
             <button
               type="submit"
-              className={styles.createBtn}
+              className={styles.modalSubmitBtn}
               disabled={isSubmitting}
               style={{ opacity: isSubmitting ? 0.6 : 1 }}
             >
