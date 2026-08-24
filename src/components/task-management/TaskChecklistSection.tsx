@@ -179,7 +179,10 @@ export function TaskChecklistSection({ taskId, checklists, onRefresh, canUpdateP
                   style={{
                     fontSize: '0.84rem',
                     textDecoration: item.isCompleted ? 'line-through' : 'none',
-                    color: item.isCompleted ? 'hsla(0, 0%, 100%, 0.45)' : 'var(--fg-color)',
+                    color: item.isCompleted ? 'var(--foreground)' : 'var(--fg-color)',
+                    opacity: item.isCompleted ? 1 : 0.75,
+                    fontWeight: item.isCompleted ? 600 : 400,
+                    transition: 'opacity 0.2s ease, color 0.2s ease, font-weight 0.2s ease',
                   }}
                 >
                   {item.title}
