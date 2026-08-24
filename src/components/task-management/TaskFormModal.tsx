@@ -179,13 +179,18 @@ export function TaskFormModal({
             )}
 
             <div className={styles.formGroupFull}>
-              <label className={styles.label}>Judul Task *</label>
+              <div className={styles.labelRow}>
+                <label className={styles.label}>Judul Task *</label>
+                <span className={`${styles.charCounter} ${title.length >= 70 ? styles.charCounterMax : ''}`}>
+                  {title.length}/70
+                </span>
+              </div>
               <input
                 type="text"
                 placeholder="Contoh: Implementasi fitur otentikasi dua faktor"
-                maxLength={200}
+                maxLength={70}
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => setTitle(e.target.value.slice(0, 70))}
                 className={styles.input}
                 required
               />

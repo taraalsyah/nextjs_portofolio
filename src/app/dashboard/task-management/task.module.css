@@ -967,6 +967,24 @@
   margin: 0;
 }
 
+.labelRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.charCounter {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  transition: color 0.2s ease;
+}
+
+.charCounterMax {
+  color: #ef4444;
+}
+
 /* Information Field Cards — Tab Informasi Umum */
 .infoGrid {
   display: grid;
