@@ -144,7 +144,7 @@ export function TaskTable({
         <thead>
           <tr>
             <th>Task Number</th>
-            <th>Title</th>
+            <th className={styles.taskTitleTd}>Title</th>
             <th>Status</th>
             <th>Priority</th>
             <th>Category</th>
@@ -198,15 +198,11 @@ export function TaskTable({
                   <td>
                     <span className={styles.taskNumber}>{task.taskNumber}</span>
                   </td>
-                  <td>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                  <td className={styles.taskTitleTd}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0, width: '100%' }}>
                       <span
                         onClick={() => onView(task)}
-                        style={{
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          color: 'var(--fg-color)',
-                        }}
+                        className={styles.taskTitleCell}
                       >
                         {task.title}
                       </span>

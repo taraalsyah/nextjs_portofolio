@@ -380,10 +380,11 @@
 
 .table {
   width: 100%;
-  min-width: 850px;
+  min-width: 900px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.82rem;
+  table-layout: fixed;
 }
 
 .table th {
@@ -396,7 +397,18 @@
   padding: 0.65rem 0.85rem;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.table th:nth-child(1) { width: 110px; }
+.table th:nth-child(3) { width: 110px; }
+.table th:nth-child(4) { width: 100px; }
+.table th:nth-child(5) { width: 110px; }
+.table th:nth-child(6) { width: 130px; }
+.table th:nth-child(7) { width: 110px; }
+.table th:nth-child(8) { width: 110px; }
+.table th:nth-child(9) { width: 100px; }
 
 .table td {
   padding: 0.65rem 0.85rem;
@@ -412,6 +424,34 @@
 
 .table tr:hover td {
   background: var(--surface-hover);
+}
+
+.taskTitleTd {
+  width: 220px !important;
+  max-width: 220px !important;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  white-space: normal !important;
+}
+
+.taskTitleCell {
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--fg-color);
+  word-break: break-word;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  white-space: normal !important;
+  line-height: 1.4;
+  display: block;
+  width: 100%;
+  max-width: 220px;
+  transition: color 0.15s ease;
+}
+
+.taskTitleCell:hover {
+  color: var(--primary);
 }
 
 /* Badges */
