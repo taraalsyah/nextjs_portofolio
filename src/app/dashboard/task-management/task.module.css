@@ -419,7 +419,7 @@
 
 .table {
   width: 100%;
-  min-width: 900px;
+  min-width: 800px;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.82rem;
@@ -447,7 +447,6 @@
 .table th:nth-child(6) { width: 130px; }
 .table th:nth-child(7) { width: 110px; }
 .table th:nth-child(8) { width: 110px; }
-.table th:nth-child(9) { width: 110px; }
 
 .table td {
   padding: 0.65rem 0.85rem;

@@ -152,14 +152,13 @@ export function TaskTable({
               <th>Category</th>
               <th>Assignee</th>
               <th>Due Date</th>
-              <th>Updated At</th>
               <th className={styles.actionColTd} style={{ textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {isInitialLoading ? (
               <tr>
-                <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem' }}>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', color: 'var(--foreground)', fontWeight: 600, fontSize: '0.85rem' }}>
                     <InlineSpinner size={18} color="var(--primary)" />
                     <span>Memuat data task...</span>
@@ -168,7 +167,7 @@ export function TaskTable({
               </tr>
             ) : tasks.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
+                <td colSpan={8} style={{ textAlign: 'center', padding: '2.5rem' }}>
                   <div style={{ color: 'var(--muted-foreground)' }}>
                     <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)', margin: 0 }}>
                       Tidak ada task ditemukan
@@ -235,11 +234,6 @@ export function TaskTable({
                         <Calendar size={13} style={{ color: 'var(--muted-foreground)' }} />
                         <span style={{ fontSize: '0.78rem' }}>{formatDate(task.dueDate)}</span>
                       </div>
-                    </td>
-                    <td>
-                      <span style={{ fontSize: '0.75rem', color: 'var(--secondary-text)', fontWeight: 500 }}>
-                        {formatDate(task.updatedAt)}
-                      </span>
                     </td>
                     <td className={styles.actionColTd} style={{ textAlign: 'right' }}>
                       <div className={styles.actionBtnGroup}>
