@@ -166,6 +166,83 @@ export class EmailService {
 
     return sendEmail({ to: email, subject, html: baseTemplate(subject, body) });
   }
+
+  /**
+   * Kirim email notifikasi task overdue.
+   */
+  async sendOverdueTaskEmail(params: {
+    to: string;
+    recipientName: string;
+    taskNumber: string;
+    taskTitle: string;
+    assigneeName: string;
+    ownerName: string;
+    dueDate: string;
+    status: string;
+    taskDetailUrl: string;
+  }): Promise<EmailResult> {
+    const subject = `[Task Overdue] Task "${params.taskTitle}" telah melewati deadline`;
+
+    const body = `
+      <h2 style="margin:0 0 16px;font-size:20px;color:#dc2626;">⚠️ Pemberitahuan Task Overdue</h2>
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 16px;">
+        Halo <strong>${params.recipientName}</strong>,
+      </p>
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 20px;">
+        Task berikut telah <strong>melewati batas waktu (due date)</strong> dan memerlukan perhatian atau tindak lanjut segera:
+      </p>
+
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#fef2f2;border:1px solid #fecaca;border-radius:12px;margin:0 0 24px;">
+        <tr>
+          <td style="padding:20px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="font-size:14px;color:#1f2937;">
+              <tr>
+                <td style="padding:4px 0;width:120px;color:#6b7280;font-weight:600;">Task ID:</td>
+                <td style="padding:4px 0;font-weight:700;color:#dc2626;">${params.taskNumber}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;color:#6b7280;font-weight:600;">Judul Task:</td>
+                <td style="padding:4px 0;font-weight:600;color:#111827;">${params.taskTitle}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;color:#6b7280;font-weight:600;">Due Date:</td>
+                <td style="padding:4px 0;font-weight:700;color:#b91c1c;">${params.dueDate}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;color:#6b7280;font-weight:600;">Status:</td>
+                <td style="padding:4px 0;font-weight:600;color:#4b5563;">${params.status}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;color:#6b7280;font-weight:600;">Assignee:</td>
+                <td style="padding:4px 0;">${params.assigneeName}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;color:#6b7280;font-weight:600;">Task Owner:</td>
+                <td style="padding:4px 0;">${params.ownerName}</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td align="center" style="padding:0 0 24px;">
+            <a href="${params.taskDetailUrl}"
+               style="display:inline-block;background:#dc2626;color:#ffffff;font-size:15px;font-weight:700;text-decoration:none;padding:12px 32px;border-radius:10px;">
+              📋 Lihat Detail Task
+            </a>
+          </td>
+        </tr>
+      </table>
+
+      <hr style="border:0;border-top:1px solid #e5e7eb;margin:0 0 20px;" />
+      <p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0;">
+        Harap segera perbarui status task atau selesaikan pekerjaan yang ditugaskan.
+      </p>`;
+
+    return sendEmail({ to: params.to, subject, html: baseTemplate(subject, body) });
+  }
 }
 
 export const emailService = new EmailService();

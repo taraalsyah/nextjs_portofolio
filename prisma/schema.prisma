@@ -206,6 +206,7 @@ model Task {
   doneReviewedAt     DateTime?        @map("done_reviewed_at")
   doneRejectReason   String?          @map("done_reject_reason") @db.Text
   isLocked           Boolean          @default(false) @map("is_locked")
+  overdueNotifiedAt  DateTime?        @map("overdue_notified_at")
   attachments        TaskAttachment[]
   checklists         TaskChecklist[]
   comments           TaskComment[]
@@ -229,6 +230,7 @@ model Task {
   @@index([createdAt])
   @@index([updatedAt])
   @@index([deletedAt])
+  @@index([dueDate, overdueNotifiedAt, status])
   @@index([projectId, status])
   @@index([projectId, assigneeId])
   @@index([status, priority])

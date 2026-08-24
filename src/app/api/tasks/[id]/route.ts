@@ -229,6 +229,9 @@ export async function PUT(
       );
     }
 
+    // Reset overdue notification flag if due date is extended into the future
+    const shouldResetOverdue = parsedDueDate && parsedDueDate > new Date();
+
     let newAssigneeId = oldTask.assigneeId;
     if (assigneeId !== undefined) {
       const parsedAssId = assigneeId ? parseInt(String(assigneeId), 10) : null;
@@ -266,6 +269,7 @@ export async function PUT(
           tags: tags !== undefined ? (tags?.trim() || null) : oldTask.tags,
           startDate: parsedStartDate,
           dueDate: parsedDueDate,
+          overdueNotifiedAt: shouldResetOverdue ? null : undefined,
         },
         select: {
           id: true,
