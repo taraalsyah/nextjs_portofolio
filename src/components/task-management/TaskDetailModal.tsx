@@ -868,13 +868,13 @@ export function TaskDetailModal({
     <div className={styles.modalOverlay} onClick={handleCloseWithReset}>
       <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
         <div className={styles.modalHeader}>
-          <div>
+          <div style={{ flex: 1, minWidth: 0, paddingRight: '0.75rem' }}>
             <span className={styles.taskNumber}>{task?.taskNumber || 'Task Detail'}</span>
             <h3 className={styles.modalTitle} style={{ marginTop: '0.2rem' }}>
               {task?.title || 'Memuat...'}
             </h3>
           </div>
-          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
             {task && (() => {
               const isDone = task.status === 'DONE' || task.status === 'CLOSED' || task.isLocked === true;
               const isEditBtnDisabled = isDone || !isOwnerOrAdmin;
@@ -918,13 +918,15 @@ export function TaskDetailModal({
           </div>
         </div>
 
-        {/* Task Completed Read-Only Banner */}
-        {isTaskDone && (
-          <div className={styles.lockedBanner}>
-            <span className={`${styles.badge} ${styles.statusDone}`}>Done</span>
-            <span>Task yang telah selesai tidak dapat diedit atau dihapus.</span>
-          </div>
-        )}
+        {/* Top Banners Container */}
+        <div className={styles.detailBannerSection}>
+          {/* Task Completed Read-Only Banner */}
+          {isTaskDone && (
+            <div className={styles.lockedBanner}>
+              <span className={`${styles.badge} ${styles.statusDone}`}>Done</span>
+              <span>Task yang telah selesai tidak dapat diedit atau dihapus.</span>
+            </div>
+          )}
 
         {/* Status Alert Banner */}
         {statusMsg && (
@@ -1596,9 +1598,10 @@ export function TaskDetailModal({
             </div>
           </div>
         )}
+        </div>
 
-        {/* Tab Navigation */}
-        <div style={{ display: 'flex', gap: '0.4rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.65rem' }}>
+        {/* Tab Navigation Sticky */}
+        <div className={styles.detailStickyTabNav}>
           <button
             onClick={() => setActiveTab('info')}
             className={`${styles.tabItem} ${activeTab === 'info' ? styles.activeTabItem : ''}`}
@@ -1631,14 +1634,15 @@ export function TaskDetailModal({
           </button>
         </div>
 
-        {/* Content Body */}
-        {isLoading || !task ? (
-          <div className={styles.loadingBox}>
-            <InlineSpinner size={18} color="var(--primary)" />
-            <span>Memuat detail task...</span>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '300px' }}>
+        {/* Content Body Scrollable Area */}
+        <div className={styles.detailScrollBody}>
+          {isLoading || !task ? (
+            <div className={styles.loadingBox}>
+              <InlineSpinner size={18} color="var(--primary)" />
+              <span>Memuat detail task...</span>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '300px' }}>
             {activeTab === 'info' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className={styles.infoGrid}>
@@ -1745,9 +1749,9 @@ export function TaskDetailModal({
                   {/* Deskripsi Lengkap */}
                   <div className={`${styles.infoCard} ${styles.infoCardFull}`}>
                     <label className={styles.label}>Deskripsi Lengkap</label>
-                    <p className={styles.descriptionBox}>
+                    <div className={styles.descriptionBox}>
                       {task.description || 'Tidak ada deskripsi.'}
-                    </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1796,6 +1800,7 @@ export function TaskDetailModal({
             )}
           </div>
         )}
+        </div>
       </div>
     </div>
   );
