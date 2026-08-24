@@ -160,7 +160,7 @@ export function TaskCalendarView({ tasks, onTaskClick }: TaskCalendarViewProps) 
                       title={`${t.taskNumber} - ${t.title} (${t.status}${overdue ? ' - TERLAMBAT' : ''})`}
                     >
                       {overdue ? (
-                        <AlertCircle size={12} style={{ flexShrink: 0, color: '#DC2626' }} />
+                        <AlertCircle size={12} style={{ flexShrink: 0, color: '#DC2626', marginTop: '2px' }} />
                       ) : (
                         <span
                           style={{
@@ -170,16 +170,11 @@ export function TaskCalendarView({ tasks, onTaskClick }: TaskCalendarViewProps) 
                             backgroundColor: 'currentColor',
                             flexShrink: 0,
                             opacity: 0.8,
+                            marginTop: '5px',
                           }}
                         />
                       )}
-                      <span
-                        style={{
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                        }}
-                      >
+                      <span className={styles.calEventTitle}>
                         {t.taskNumber}: {t.title}
                       </span>
                     </div>
