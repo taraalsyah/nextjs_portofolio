@@ -489,8 +489,8 @@ export default function UserManagementContent({
                 <table className={styles.table}>
                   <thead>
                     <tr>
-                      <th>Pengguna</th>
-                      <th>Alamat Email</th>
+                      <th className={styles.userColTd}>Pengguna</th>
+                      <th className={styles.emailColTd}>Alamat Email</th>
                       <th>Hak Akses (Role)</th>
                       <th>Status</th>
                       <th>Tanggal Gabung</th>
@@ -500,13 +500,15 @@ export default function UserManagementContent({
                   <tbody>
                     {users.map((u) => (
                       <tr key={u.id}>
-                        <td>
+                        <td className={styles.userColTd}>
                           <div className={styles.userCol}>
                             <span className={styles.nameText}>{u.name}</span>
                             <span className={styles.usernameText}>@{u.username || 'user'}</span>
                           </div>
                         </td>
-                        <td className={styles.emailCol}>{u.email}</td>
+                        <td className={styles.emailColTd}>
+                          <span className={styles.emailCol}>{u.email}</span>
+                        </td>
                         <td>
                           <span className={`${styles.badge} ${styles.roleBadge}`}>
                             {u.roleRel?.name || u.role || 'Staff'}
