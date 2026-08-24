@@ -1,13 +1,9 @@
-/* Reusable Dashboard Layout Styles — Enterprise Design System */
-
 .layoutContainer {
   display: flex;
-  height: 100vh;
-  max-height: 100vh;
+  min-height: 100vh;
   background-color: var(--background);
   color: var(--foreground);
   position: relative;
-  overflow: hidden;
 }
 
 /* ─── SIDEBAR ────────────────────────────────────────────────────────────────── */
@@ -144,9 +140,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  max-height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
   transition: margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -347,10 +341,8 @@
   margin-top: 52px;
   position: relative;
   z-index: 10;
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Mobile Drawer Overlay */

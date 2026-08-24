@@ -147,7 +147,7 @@ export function TaskCalendarView({ tasks, onTaskClick }: TaskCalendarViewProps) 
               <span className={`${styles.calendarDayNum} ${currentDay ? styles.todayNum : ''}`}>
                 {day}
               </span>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', overflowY: 'auto' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
                 {dayTasks.map((t) => {
                   const overdue = isOverdue(t.dueDate, t.status);
                   const eventClass = getCalendarEventClass(t.status, overdue);

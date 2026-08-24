@@ -7,9 +7,6 @@
   flex-direction: column;
   gap: 1rem;
   width: 100%;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
 }
 
 .tableCard {
@@ -20,11 +17,6 @@
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
 }
 
 /* Submenu Bar Navigation — Clean Underline Indicator */
@@ -35,7 +27,12 @@
   border-bottom: 1px solid var(--border);
   margin-bottom: 1rem;
   overflow-x: auto;
-  flex-shrink: 0;
+  position: sticky;
+  top: -1.25rem;
+  z-index: 30;
+  background: var(--background);
+  padding: 0.75rem 0 0.5rem 0;
+  margin-top: -0.25rem;
 }
 
 .tabItem {
@@ -287,9 +284,6 @@
   background: var(--surface);
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  flex: 1;
-  min-height: 0;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
 }
 
@@ -304,12 +298,9 @@
 }
 
 .tableScrollBody {
-  flex: 1;
-  overflow-y: auto;
-  overflow-x: auto;
   width: 100%;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  overflow-x: auto;
+  overflow-y: visible;
   -webkit-overflow-scrolling: touch;
 }
 
@@ -436,9 +427,6 @@
 }
 
 .table th {
-  position: sticky;
-  top: 0;
-  z-index: 5;
   background: var(--background);
   color: var(--muted-foreground);
   font-weight: 600;
@@ -515,7 +503,6 @@
 }
 
 .tablePaginationBar {
-  flex-shrink: 0;
   background: var(--surface);
   border-top: 1px solid var(--border);
   padding: 0.75rem 1.25rem;
@@ -526,7 +513,6 @@
   color: var(--muted-foreground);
   flex-wrap: wrap;
   gap: 0.5rem;
-  z-index: 10;
 }
 
 .paginationBtnGroup {
@@ -704,8 +690,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  min-height: 500px;
-  max-height: 75vh;
+  min-height: 250px;
 }
 
 .kanbanHeader {
@@ -740,12 +725,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  min-height: 400px;
-  overflow-y: auto;
-  flex: 1;
-  padding-right: 0.2rem;
-  scrollbar-width: thin;
-  scrollbar-color: var(--border) transparent;
+  min-height: 150px;
+  overflow-y: visible;
 }
 
 .kanbanCardList::-webkit-scrollbar {
