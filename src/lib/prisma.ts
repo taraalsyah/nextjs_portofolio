@@ -9,31 +9,26 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-// In development, check if cached global instance is missing newly generated models (like twoFactorToken)
-if (process.env.NODE_ENV !== 'production') {
-  try {
-    const p = globalForPrisma.prisma as any;
-    if (p && (!p.twoFactorToken || !p.task)) {
-      console.log('[prisma.ts] In-memory PrismaClient instance is stale. Clearing require.cache and re-instantiating...');
-      globalForPrisma.prisma = undefined;
-      if (typeof require !== 'undefined' && require.cache) {
-        Object.keys(require.cache).forEach((key) => {
-          if (key.includes('.prisma') || key.includes('@prisma')) {
-            delete require.cache[key];
-          }
-        });
-      }
+function getPrismaClient(): PrismaClient {
+  if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
+    if (!(globalForPrisma.prisma as any).twoFactorToken) {
+      console.log('[prisma.ts] Overwriting stale PrismaClient instance missing twoFactorToken...');
+      globalForPrisma.prisma = createPrismaClient();
     }
-  } catch {
-    globalForPrisma.prisma = undefined;
   }
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = createPrismaClient();
+  }
+  return globalForPrisma.prisma;
 }
 
-export const prisma = globalForPrisma.prisma || createPrismaClient();
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+export const prisma = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    const client = getPrismaClient();
+    const value = (client as any)[prop];
+    return typeof value === 'function' ? value.bind(client) : value;
+  },
+});
 
 export default prisma;
 
