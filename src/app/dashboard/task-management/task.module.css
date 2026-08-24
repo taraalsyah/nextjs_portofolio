@@ -440,13 +440,30 @@
   text-overflow: ellipsis;
 }
 
-.table th:nth-child(1) { width: 110px; }
+.table th:nth-child(1) { width: 95px; }
 .table th:nth-child(3) { width: 110px; }
 .table th:nth-child(4) { width: 100px; }
 .table th:nth-child(5) { width: 110px; }
 .table th:nth-child(6) { width: 130px; }
 .table th:nth-child(7) { width: 110px; }
 .table th:nth-child(8) { width: 110px; }
+
+.taskNumberTh {
+  width: 95px !important;
+  max-width: 95px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: normal !important;
+  line-height: 1.25 !important;
+  padding: 0.5rem 0.4rem !important;
+}
+
+.taskNumberTd {
+  width: 95px !important;
+  max-width: 95px !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+}
 
 .table td {
   padding: 0.65rem 0.85rem;

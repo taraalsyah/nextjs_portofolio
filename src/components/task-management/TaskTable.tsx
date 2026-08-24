@@ -145,7 +145,9 @@ export function TaskTable({
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Task Number</th>
+              <th className={styles.taskNumberTh}>
+                TASK<br />NUMBER
+              </th>
               <th className={styles.taskTitleTd}>Title</th>
               <th>Status</th>
               <th>Priority</th>
@@ -196,7 +198,7 @@ export function TaskTable({
 
                 return (
                   <tr key={task.id}>
-                    <td>
+                    <td className={styles.taskNumberTd}>
                       <span className={styles.taskNumber}>{task.taskNumber}</span>
                     </td>
                     <td className={styles.taskTitleTd}>
