@@ -129,7 +129,7 @@ export function TaskTable({
   const isInitialLoading = isLoading && tasks.length === 0;
 
   return (
-    <div className={styles.tableWrapper}>
+    <div className={styles.tableContainerWrapper}>
       {/* Subtle overlay during pagination/filter background fetching while tasks stay visible */}
       {isFetching && tasks.length > 0 && (
         <div className={styles.tableLoadingOverlay}>
@@ -140,138 +140,116 @@ export function TaskTable({
         </div>
       )}
 
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th>Task Number</th>
-            <th className={styles.taskTitleTd}>Title</th>
-            <th>Status</th>
-            <th>Priority</th>
-            <th>Category</th>
-            <th>Assignee</th>
-            <th>Due Date</th>
-            <th>Updated At</th>
-            <th style={{ textAlign: 'right' }}>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {isInitialLoading ? (
+      {/* Scrollable Table Content Body (Vertical + Horizontal Scroll) */}
+      <div className={styles.tableScrollBody}>
+        <table className={styles.table}>
+          <thead>
             <tr>
-              <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
-                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', color: 'var(--foreground)', fontWeight: 600, fontSize: '0.85rem' }}>
-                  <InlineSpinner size={18} color="var(--primary)" />
-                  <span>Memuat data task...</span>
-                </div>
-              </td>
+              <th>Task Number</th>
+              <th className={styles.taskTitleTd}>Title</th>
+              <th>Status</th>
+              <th>Priority</th>
+              <th>Category</th>
+              <th>Assignee</th>
+              <th>Due Date</th>
+              <th>Updated At</th>
+              <th className={styles.actionColTd} style={{ textAlign: 'right' }}>Action</th>
             </tr>
-          ) : tasks.length === 0 ? (
-            <tr>
-              <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
-                <div style={{ color: 'var(--muted-foreground)' }}>
-                  <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)', margin: 0 }}>
-                    Tidak ada task ditemukan
-                  </p>
-                  <p style={{ fontSize: '0.78rem', marginTop: '0.2rem', color: 'var(--muted-foreground)' }}>
-                    Coba sesuaikan kata kunci pencarian atau filter Anda.
-                  </p>
-                </div>
-              </td>
-            </tr>
-          ) : (
-            tasks.map((task) => {
-              const completedCount = task.checklists?.filter((c) => c.isCompleted).length || 0;
-              const totalChecklists = task.checklists?.length || 0;
+          </thead>
+          <tbody>
+            {isInitialLoading ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.6rem', color: 'var(--foreground)', fontWeight: 600, fontSize: '0.85rem' }}>
+                    <InlineSpinner size={18} color="var(--primary)" />
+                    <span>Memuat data task...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : tasks.length === 0 ? (
+              <tr>
+                <td colSpan={9} style={{ textAlign: 'center', padding: '2.5rem' }}>
+                  <div style={{ color: 'var(--muted-foreground)' }}>
+                    <p style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)', margin: 0 }}>
+                      Tidak ada task ditemukan
+                    </p>
+                    <p style={{ fontSize: '0.78rem', marginTop: '0.2rem', color: 'var(--muted-foreground)' }}>
+                      Coba sesuaikan kata kunci pencarian atau filter Anda.
+                    </p>
+                  </div>
+                </td>
+              </tr>
+            ) : (
+              tasks.map((task) => {
+                const completedCount = task.checklists?.filter((c) => c.isCompleted).length || 0;
+                const totalChecklists = task.checklists?.length || 0;
 
-              const isDone = task.status === 'DONE' || task.status === 'CLOSED' || task.isLocked === true;
-              const isActionDisabled = isDone;
+                const isDone = task.status === 'DONE' || task.status === 'CLOSED' || task.isLocked === true;
+                const isActionDisabled = isDone;
 
-              const editTooltip = isDone
-                ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
-                : 'Edit Task';
+                const editTooltip = isDone
+                  ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
+                  : 'Edit Task';
 
-              const deleteTooltip = isDone
-                ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
-                : 'Hapus Task';
+                const deleteTooltip = isDone
+                  ? 'Task yang telah selesai tidak dapat diedit atau dihapus.'
+                  : 'Hapus Task';
 
-              return (
-                <tr key={task.id}>
-                  <td>
-                    <span className={styles.taskNumber}>{task.taskNumber}</span>
-                  </td>
-                  <td className={styles.taskTitleTd}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0, width: '100%' }}>
-                      <span
-                        onClick={() => onView(task)}
-                        className={styles.taskTitleCell}
-                      >
-                        {task.title}
-                      </span>
-                      {totalChecklists > 0 && (
-                        <span style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 500 }}>
-                          Checklist: {completedCount}/{totalChecklists} Selesai
+                return (
+                  <tr key={task.id}>
+                    <td>
+                      <span className={styles.taskNumber}>{task.taskNumber}</span>
+                    </td>
+                    <td className={styles.taskTitleTd}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0, width: '100%' }}>
+                        <span
+                          onClick={() => onView(task)}
+                          className={styles.taskTitleCell}
+                        >
+                          {task.title}
                         </span>
-                      )}
-                    </div>
-                  </td>
-                  <td>{getStatusBadge(task.status)}</td>
-                  <td>{getPriorityBadge(task.priority)}</td>
-                  <td>
-                    <span style={{ color: 'var(--foreground)', fontSize: '0.8rem', fontWeight: 500 }}>
-                      {task.category?.name || '-'}
-                    </span>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                      <User size={13} style={{ color: 'var(--muted-foreground)' }} />
-                      <span style={{ fontSize: '0.8rem' }}>
-                        {task.assignee?.name || 'Unassigned'}
+                        {totalChecklists > 0 && (
+                          <span style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 500 }}>
+                            Checklist: {completedCount}/{totalChecklists} Selesai
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td>{getStatusBadge(task.status)}</td>
+                    <td>{getPriorityBadge(task.priority)}</td>
+                    <td>
+                      <span style={{ color: 'var(--foreground)', fontSize: '0.8rem', fontWeight: 500 }}>
+                        {task.category?.name || '-'}
                       </span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Calendar size={13} style={{ color: 'var(--muted-foreground)' }} />
-                      <span style={{ fontSize: '0.78rem' }}>{formatDate(task.dueDate)}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--secondary-text)', fontWeight: 500 }}>
-                      {formatDate(task.updatedAt)}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    <div
-                      style={{
-                        display: 'inline-flex',
-                        gap: '0.35rem',
-                        justifyContent: 'flex-end',
-                      }}
-                    >
-                      <button
-                        onClick={() => onView(task)}
-                        className={styles.actionBtn}
-                        title="Lihat Detail"
-                      >
-                        <Eye size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        disabled={isActionDisabled}
-                        onClick={(e) => {
-                          if (isActionDisabled) {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            return;
-                          }
-                          onEdit(task);
-                        }}
-                        className={`${styles.actionBtn} ${isActionDisabled ? styles.lockedOrDoneBtn : ''}`}
-                        style={{ cursor: isActionDisabled ? 'not-allowed' : 'pointer' }}
-                        title={editTooltip}
-                      >
-                        <Edit3 size={14} />
-                      </button>
-                      {isAdmin && (
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <User size={13} style={{ color: 'var(--muted-foreground)' }} />
+                        <span style={{ fontSize: '0.8rem' }}>
+                          {task.assignee?.name || 'Unassigned'}
+                        </span>
+                      </div>
+                    </td>
+                    <td>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <Calendar size={13} style={{ color: 'var(--muted-foreground)' }} />
+                        <span style={{ fontSize: '0.78rem' }}>{formatDate(task.dueDate)}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--secondary-text)', fontWeight: 500 }}>
+                        {formatDate(task.updatedAt)}
+                      </span>
+                    </td>
+                    <td className={styles.actionColTd} style={{ textAlign: 'right' }}>
+                      <div className={styles.actionBtnGroup}>
+                        <button
+                          onClick={() => onView(task)}
+                          className={styles.actionBtn}
+                          title="Lihat Detail"
+                        >
+                          <Eye size={14} />
+                        </button>
                         <button
                           type="button"
                           disabled={isActionDisabled}
@@ -281,43 +259,50 @@ export function TaskTable({
                               e.stopPropagation();
                               return;
                             }
-                            onDelete(task);
+                            onEdit(task);
                           }}
-                          className={`${styles.actionBtn} ${styles.deleteBtn} ${isActionDisabled ? styles.lockedOrDoneBtn : ''}`}
+                          className={`${styles.actionBtn} ${isActionDisabled ? styles.lockedOrDoneBtn : ''}`}
                           style={{ cursor: isActionDisabled ? 'not-allowed' : 'pointer' }}
-                          title={deleteTooltip}
+                          title={editTooltip}
                         >
-                          <Trash2 size={14} />
+                          <Edit3 size={14} />
                         </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })
-          )}
-        </tbody>
-      </table>
+                        {isAdmin && (
+                          <button
+                            type="button"
+                            disabled={isActionDisabled}
+                            onClick={(e) => {
+                              if (isActionDisabled) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                return;
+                              }
+                              onDelete(task);
+                            }}
+                            className={`${styles.actionBtn} ${styles.deleteBtn} ${isActionDisabled ? styles.lockedOrDoneBtn : ''}`}
+                            style={{ cursor: isActionDisabled ? 'not-allowed' : 'pointer' }}
+                            title={deleteTooltip}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
+            )}
+          </tbody>
+        </table>
+      </div>
 
-      {/* Pagination Bar */}
+      {/* Pinned Pagination Bar at the Bottom */}
       {totalPages > 1 && (
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0.75rem 1rem',
-            borderTop: '1px solid var(--border)',
-            fontSize: '0.78rem',
-            color: 'var(--muted-foreground)',
-            flexWrap: 'wrap',
-            gap: '0.5rem',
-          }}
-        >
+        <div className={styles.tablePaginationBar}>
           <span>
             Menampilkan halaman {currentPage} dari {totalPages} ({totalItems} total task)
           </span>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <div className={styles.paginationBtnGroup}>
             <button
               disabled={currentPage <= 1 || isFetching}
               onClick={() => onPageChange(currentPage - 1)}

@@ -268,7 +268,21 @@
   border-color: var(--secondary-text);
 }
 
-/* Table View */
+/* Table View Layout & Pinned Pagination */
+.tableContainerWrapper {
+  position: relative;
+  width: 100%;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  max-height: calc(100vh - 240px);
+  min-height: 350px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
 .tableWrapper {
   position: relative;
   width: 100%;
@@ -277,6 +291,30 @@
   border: 1px solid var(--border);
   background: var(--surface);
   min-height: 180px;
+}
+
+.tableScrollBody {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  width: 100%;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tableScrollBody::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.tableScrollBody::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tableScrollBody::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
 }
 
 .tableLoadingOverlay {
@@ -289,7 +327,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  z-index: 15;
   border-radius: var(--radius-lg);
 }
 
@@ -388,13 +426,16 @@
 }
 
 .table th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   background: var(--background);
   color: var(--muted-foreground);
   font-weight: 600;
   font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  padding: 0.65rem 0.85rem;
+  padding: 0.75rem 0.85rem;
   border-bottom: 1px solid var(--border);
   white-space: nowrap;
   overflow: hidden;
@@ -408,7 +449,7 @@
 .table th:nth-child(6) { width: 130px; }
 .table th:nth-child(7) { width: 110px; }
 .table th:nth-child(8) { width: 110px; }
-.table th:nth-child(9) { width: 100px; }
+.table th:nth-child(9) { width: 110px; }
 
 .table td {
   padding: 0.65rem 0.85rem;
@@ -448,6 +489,40 @@
   width: 100%;
   max-width: 220px;
   transition: color 0.15s ease;
+}
+
+.actionColTd {
+  width: 110px !important;
+  max-width: 110px !important;
+  white-space: nowrap !important;
+}
+
+.actionBtnGroup {
+  display: inline-flex;
+  gap: 0.35rem;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.tablePaginationBar {
+  flex-shrink: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--muted-foreground);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.paginationBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
 }
 
 .taskTitleCell:hover {
