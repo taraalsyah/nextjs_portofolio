@@ -15,6 +15,9 @@
   background: var(--surface);
   border: 1px solid var(--border);
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Submenu Bar Navigation — Clean Underline Indicator */
@@ -577,6 +580,7 @@
   flex-direction: column;
   gap: 0.85rem;
   min-height: 500px;
+  max-height: 75vh;
 }
 
 .kanbanHeader {
@@ -612,6 +616,24 @@
   flex-direction: column;
   gap: 0.75rem;
   min-height: 400px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 0.2rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.kanbanCardList::-webkit-scrollbar {
+  width: 4px;
+}
+
+.kanbanCardList::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.kanbanCardList::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
 }
 
 .kanbanCard {
@@ -991,7 +1013,42 @@
 /* Responsive Rules */
 @media (max-width: 1023px) {
   .kanbanGrid {
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    gap: 1rem;
+    padding-bottom: 0.85rem;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .kanbanGrid::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .kanbanGrid::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .kanbanGrid::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+  }
+
+  .kanbanColumn {
+    flex: 0 0 85vw;
+    min-width: 275px;
+    max-width: 320px;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    max-height: 70vh;
   }
 }
 
@@ -1002,10 +1059,6 @@
 
   .tableCard {
     padding: 1rem;
-  }
-
-  .kanbanGrid {
-    grid-template-columns: 1fr;
   }
 
   .formGrid,
