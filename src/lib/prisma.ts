@@ -8,14 +8,12 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
-// In development, check if cached global instance is missing newly generated fields (like isLocked)
+// In development, check if cached global instance is missing newly generated models (like twoFactorToken)
 if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
   try {
-    const dmmf = (globalForPrisma.prisma as any)?._dMMF;
-    const taskModel = dmmf?.modelMap?.Task || dmmf?.datamodel?.models?.find((m: any) => m.name === 'Task');
-    const hasIsLocked = taskModel?.fields?.some((f: any) => f.name === 'isLocked');
-    if (!hasIsLocked) {
-      console.log('[prisma.ts] In-memory PrismaClient instance is stale (missing isLocked). Re-instantiating PrismaClient...');
+    const p = globalForPrisma.prisma as any;
+    if (!p.twoFactorToken || !p.task) {
+      console.log('[prisma.ts] In-memory PrismaClient instance is stale. Re-instantiating PrismaClient...');
       globalForPrisma.prisma = undefined;
     }
   } catch {
