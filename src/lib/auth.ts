@@ -11,12 +11,16 @@ export const authOptions: AuthOptions = {
       credentials: {
         email: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
+        preAuthToken: { label: 'PreAuthToken', type: 'text' },
+        is2FAVerified: { label: 'Is2FAVerified', type: 'text' },
       },
       async authorize(credentials, req) {
+        const creds = credentials as Record<string, string> | undefined;
+
         // Mode 1: Login via verified 2FA token
-        if (credentials?.preAuthToken && credentials?.is2FAVerified === 'true') {
+        if (creds?.preAuthToken && creds?.is2FAVerified === 'true') {
           const tokenRecord = await prisma.twoFactorToken.findUnique({
-            where: { preAuthToken: credentials.preAuthToken },
+            where: { preAuthToken: creds.preAuthToken },
             include: { user: true },
           });
 
@@ -69,15 +73,15 @@ export const authOptions: AuthOptions = {
         }
 
         // Mode 2: Legacy / Direct Credential Login -> Trigger 2FA Step 1
-        if (!credentials?.email || !credentials?.password) {
+        if (!creds?.email || !creds?.password) {
           throw new Error('Email dan password wajib diisi');
         }
 
         const user = await prisma.user.findFirst({
           where: {
             OR: [
-              { email: credentials.email },
-              { username: credentials.email },
+              { email: creds.email },
+              { username: creds.email },
             ],
           },
         });
@@ -87,7 +91,7 @@ export const authOptions: AuthOptions = {
         }
 
         const isPasswordValid = await bcrypt.compare(
-          credentials.password,
+          creds.password,
           user.password
         );
 
