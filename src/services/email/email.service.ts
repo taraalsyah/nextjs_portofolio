@@ -243,6 +243,29 @@ export class EmailService {
 
     return sendEmail({ to: params.to, subject, html: baseTemplate(subject, body) });
   }
+
+  /**
+   * Kirim OTP untuk Two-Step Verification saat login.
+   */
+  async sendTwoFactorOtpEmail(email: string, name: string, otp: string): Promise<EmailResult> {
+    const subject = '[Kode Keamanan 2FA] Verifikasi Login Akun Anda';
+
+    const body = `
+      <h2 style="margin:0 0 16px;font-size:22px;color:#111827;">Verifikasi Login (Two-Step Verification)</h2>
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 16px;">
+        Halo <strong>${name}</strong>,
+      </p>
+      <p style="font-size:15px;color:#374151;line-height:1.6;margin:0 0 24px;">
+        Gunakan kode keamanan OTP 6 digit berikut untuk menyelesaikan proses login Anda:
+      </p>
+      ${otpBlock(otp)}
+      <hr style="border:0;border-top:1px solid #e5e7eb;margin:28px 0;" />
+      <p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0;">
+        Kode ini berlaku selama <strong>5 menit</strong>. Jangan pernah memberitahukan kode ini kepada siapa pun. Jika Anda tidak merasa melakukan percobaan login, segera perbarui password akun Anda.
+      </p>`;
+
+    return sendEmail({ to: email, subject, html: baseTemplate(subject, body) });
+  }
 }
 
 export const emailService = new EmailService();

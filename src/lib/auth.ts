@@ -13,18 +13,77 @@ export const authOptions: AuthOptions = {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, req) {
+        // Mode 1: Login via verified 2FA token
+        if (credentials?.preAuthToken && credentials?.is2FAVerified === 'true') {
+          const tokenRecord = await prisma.twoFactorToken.findUnique({
+            where: { preAuthToken: credentials.preAuthToken },
+            include: { user: true },
+          });
+
+          if (!tokenRecord || !tokenRecord.usedAt || !tokenRecord.user) {
+            throw new Error('Verifikasi 2FA belum selesai atau token tidak valid');
+          }
+
+          // Pastikan token baru saja diverifikasi (dalam 5 menit terakhir)
+          const fiveMinsAgo = new Date(Date.now() - 5 * 60 * 1000);
+          if (tokenRecord.usedAt < fiveMinsAgo) {
+            throw new Error('Sesi verifikasi 2FA telah kadaluarsa');
+          }
+
+          const user = tokenRecord.user;
+
+          if (user.status !== 'ACTIVE') {
+            throw new Error('PENDING_VERIFICATION');
+          }
+
+          // Update lastLoginAt
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastLoginAt: new Date() },
+          });
+
+          // Log activity
+          try {
+            const userAgent = req?.headers?.['user-agent'] || 'Unknown';
+            const ipAddress = req?.headers?.['x-forwarded-for']?.split(',')[0].trim() || req?.headers?.['x-real-ip'] || '127.0.0.1';
+            await createActivityLog({
+              userId: user.id,
+              action: 'LOGIN',
+              description: 'Login (Two-Step Verification Success)',
+              ipAddress,
+              userAgent,
+            });
+          } catch (logError) {
+            console.warn('Gagal mencatat log aktivitas login:', logError);
+          }
+
+          return {
+            id: user.id.toString(),
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            password: user.password,
+            username: user.username || undefined,
+            image: user.image || undefined,
+          };
+        }
+
+        // Mode 2: Legacy / Direct Credential Login -> Trigger 2FA Step 1
         if (!credentials?.email || !credentials?.password) {
           throw new Error('Email dan password wajib diisi');
         }
 
-        const user = await prisma.user.findUnique({
+        const user = await prisma.user.findFirst({
           where: {
-            email: credentials.email,
+            OR: [
+              { email: credentials.email },
+              { username: credentials.email },
+            ],
           },
         });
 
         if (!user) {
-          throw new Error('Email atau password salah');
+          throw new Error('Email/Username atau password salah');
         }
 
         const isPasswordValid = await bcrypt.compare(
@@ -33,44 +92,15 @@ export const authOptions: AuthOptions = {
         );
 
         if (!isPasswordValid) {
-          throw new Error('Email atau password salah');
+          throw new Error('Email/Username atau password salah');
         }
 
-        // Cek status verifikasi email user
         if (user.status !== 'ACTIVE') {
           throw new Error('PENDING_VERIFICATION');
         }
 
-        // Simpan log waktu terakhir login ke database
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastLoginAt: new Date() }
-        });
-
-        // Catat aktivitas login
-        try {
-          const userAgent = req?.headers?.['user-agent'] || 'Unknown';
-          const ipAddress = req?.headers?.['x-forwarded-for']?.split(',')[0].trim() || req?.headers?.['x-real-ip'] || '127.0.0.1';
-          await createActivityLog({
-            userId: user.id,
-            action: 'LOGIN',
-            description: 'Login',
-            ipAddress,
-            userAgent,
-          });
-        } catch (logError) {
-          console.warn('Gagal mencatat log aktivitas login:', logError);
-        }
-
-        return {
-          id: user.id.toString(),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          password: user.password,
-          username: user.username || undefined,
-          image: user.image || undefined,
-        };
+        // Must complete 2FA OTP verification first
+        throw new Error('TWO_FACTOR_REQUIRED');
       },
     }),
   ],

@@ -41,9 +41,28 @@ model User {
   doneRequestedTasks  Task[]               @relation("DoneRequester")
   doneReviewedTasks   Task[]               @relation("DoneReviewer")
   roleRel             Role?                @relation("UserRole", fields: [roleId], references: [id])
+  twoFactorTokens     TwoFactorToken[]
 
   @@index([roleId], map: "users_role_id_fkey")
   @@map("users")
+}
+
+model TwoFactorToken {
+  id           Int       @id @default(autoincrement())
+  userId       Int       @map("user_id")
+  otpHash      String    @map("otp_hash")
+  preAuthToken String    @unique @map("pre_auth_token")
+  expiresAt    DateTime  @map("expires_at")
+  usedAt       DateTime? @map("used_at")
+  attempts     Int       @default(0)
+  ipAddress    String?   @map("ip_address")
+  userAgent    String?   @map("user_agent")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([preAuthToken])
+  @@map("two_factor_tokens")
 }
 
 model EmailVerification {
