@@ -25,8 +25,8 @@ const PROJECTS: Project[] = [
     title: "Task Management",
     description: "An enterprise-grade task management system featuring multi-role RBAC permissions, interactive Request-to-Done & Request-to-Close approval workflows, real-time activity logging, automated email notifications, and detailed project tracking.",
     tags: ["Next.js", "TypeScript", "Prisma", "MySQL", "NextAuth"],
-    image: "/project2.png",
-    images: ["/project2.png", "/project1.png", "/project3.png"],
+    image: "/task_management.png",
+    images: ["/task_management.png", "/task_management_2.png", "/task_management_3.png"],
     github: "#",
     link: "/dashboard"
   },
