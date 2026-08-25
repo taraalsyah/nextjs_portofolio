@@ -32,7 +32,10 @@ export interface WorkflowTransitionKey {
 
 export const ALL_WORKFLOW_TRANSITIONS: WorkflowTransitionKey[] = [
   { fromStatus: 'BACKLOG', toStatus: 'OPEN', label: 'Backlog → Open' },
+  { fromStatus: 'OPEN', toStatus: 'BACKLOG', label: 'Open → Backlog' },
   { fromStatus: 'OPEN', toStatus: 'IN_PROGRESS', label: 'Open → In Progress' },
+  { fromStatus: 'IN_PROGRESS', toStatus: 'OPEN', label: 'In Progress → Open' },
+  { fromStatus: 'IN_PROGRESS', toStatus: 'BACKLOG', label: 'In Progress → Backlog' },
   { fromStatus: 'IN_PROGRESS', toStatus: 'DONE', label: 'In Progress → Done' },
   { fromStatus: 'DONE', toStatus: 'OPEN', label: 'Done → Reopen' },
 ];
@@ -164,25 +167,37 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<ProjectRole, Record<ProjectPermiss
 export const DEFAULT_WORKFLOW_PERMISSIONS: Record<ProjectRole, Record<string, boolean>> = {
   OWNER: {
     'BACKLOG->OPEN': true,
+    'OPEN->BACKLOG': true,
     'OPEN->IN_PROGRESS': true,
+    'IN_PROGRESS->OPEN': true,
+    'IN_PROGRESS->BACKLOG': true,
     'IN_PROGRESS->DONE': true,
     'DONE->OPEN': true,
   },
   ADMIN: {
     'BACKLOG->OPEN': true,
+    'OPEN->BACKLOG': true,
     'OPEN->IN_PROGRESS': true,
+    'IN_PROGRESS->OPEN': true,
+    'IN_PROGRESS->BACKLOG': true,
     'IN_PROGRESS->DONE': true,
     'DONE->OPEN': true,
   },
   MEMBER: {
     'BACKLOG->OPEN': true,
+    'OPEN->BACKLOG': true,
     'OPEN->IN_PROGRESS': true,
+    'IN_PROGRESS->OPEN': true,
+    'IN_PROGRESS->BACKLOG': true,
     'IN_PROGRESS->DONE': false,
     'DONE->OPEN': false,
   },
   VIEWER: {
     'BACKLOG->OPEN': false,
+    'OPEN->BACKLOG': false,
     'OPEN->IN_PROGRESS': false,
+    'IN_PROGRESS->OPEN': false,
+    'IN_PROGRESS->BACKLOG': false,
     'IN_PROGRESS->DONE': false,
     'DONE->OPEN': false,
   },

@@ -18,9 +18,11 @@ function createPrismaClient(): PrismaClient {
 
 function getPrismaClient(): PrismaClient {
   if (process.env.NODE_ENV !== 'production' && globalForPrisma.prisma) {
-    if (!(globalForPrisma.prisma as any).projectJoinRequest || !(globalForPrisma.prisma as any).twoFactorToken) {
-      console.log('[prisma.ts] Overwriting stale PrismaClient instance missing projectJoinRequest...');
+    if (!(globalForPrisma.prisma as any).projectJoinRequest) {
+      console.log('[prisma.ts] Disconnecting stale PrismaClient instance...');
+      const oldInstance = globalForPrisma.prisma;
       globalForPrisma.prisma = createPrismaClient();
+      oldInstance.$disconnect().catch(() => {});
     }
   }
   if (!globalForPrisma.prisma) {
