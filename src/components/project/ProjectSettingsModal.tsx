@@ -28,6 +28,7 @@ import {
 import { format } from 'date-fns';
 import styles from './project.module.css';
 import InlineSpinner from '@/components/ui/loading/InlineSpinner';
+import { useSafeToast } from '@/components/ui/Toast';
 import { notifyProjectMembersUpdated } from '@/hooks/useProjectMembers';
 import {
   ALL_PERMISSIONS_LIST,
@@ -107,6 +108,7 @@ export function ProjectSettingsModal({
   activeProjectId,
   onProjectUpdated,
 }: ProjectSettingsModalProps) {
+  const toast = useSafeToast();
   const [activeTab, setActiveTab] = useState<'general' | 'members' | 'requests' | 'roles' | 'danger'>('general');
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
   const [currentRole, setCurrentRole] = useState<string>('VIEWER');
@@ -114,6 +116,8 @@ export function ProjectSettingsModal({
   const [joinRequests, setJoinRequests] = useState<JoinRequestItem[]>([]);
   const [confirmingApproveReq, setConfirmingApproveReq] = useState<JoinRequestItem | null>(null);
   const [confirmingRejectReq, setConfirmingRejectReq] = useState<JoinRequestItem | null>(null);
+  const [confirmingRemoveMember, setConfirmingRemoveMember] = useState<ProjectMemberItem | null>(null);
+  const [isRemovingMember, setIsRemovingMember] = useState(false);
   const [rejectReasonInput, setRejectReasonInput] = useState('');
   const [isProcessingReq, setIsProcessingReq] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -379,16 +383,14 @@ export function ProjectSettingsModal({
     if (updatingMemberUserId) return;
 
     if (newRole === 'OWNER') {
-      alert('Peran Owner hanya dapat dialihkan melalui fitur Transfer Ownership.');
+      const errorMsg = 'Peran Owner hanya dapat dialihkan melalui fitur Transfer Ownership.';
+      setError(errorMsg);
+      toast?.showToast(errorMsg, 'error');
       return;
     }
 
     const targetMember = members.find((m) => m.userId === targetUserId);
     const memberName = targetMember?.user?.name || 'anggota ini';
-
-    if (!confirm(`Apakah Anda yakin ingin mengubah role anggota ini (${memberName}) menjadi ${newRole}?`)) {
-      return;
-    }
 
     setUpdatingMemberUserId(targetUserId);
     setError(null);
@@ -409,28 +411,38 @@ export function ProjectSettingsModal({
       setMembers((prev) =>
         prev.map((m) => (m.userId === targetUserId ? { ...m, role: newRole } : m))
       );
-      setSuccessMsg(`Role "${memberName}" berhasil diubah menjadi ${newRole}.`);
+      const msg = `Role "${memberName}" berhasil diubah menjadi ${newRole}.`;
+      setSuccessMsg(msg);
+      toast?.showToast(msg, 'success');
       notifyProjectMembersUpdated(activeProjectId);
       fetchProjectDetails();
     } catch (err: any) {
-      setError(err.message || 'Gagal mengubah peran anggota.');
+      const errorMsg = err.message || 'Gagal mengubah peran anggota.';
+      setError(errorMsg);
+      toast?.showToast(errorMsg, 'error');
     } finally {
       setUpdatingMemberUserId(null);
     }
   };
 
-  const handleRemoveMember = async (member: ProjectMemberItem) => {
+  const handleOpenRemoveMemberModal = (member: ProjectMemberItem) => {
     if (!isOwner) return;
-    if (updatingMemberUserId) return;
+    if (updatingMemberUserId || isRemovingMember) return;
 
     if (member.userId === projectData?.ownerUserId) {
-      alert('Pemilik utama proyek tidak dapat dihapus.');
+      const errorMsg = 'Pemilik utama proyek tidak dapat dihapus.';
+      setError(errorMsg);
+      toast?.showToast(errorMsg, 'error');
       return;
     }
 
-    if (!confirm(`Apakah Anda yakin ingin menghapus anggota ini (${member.user.name}) dari project?`)) return;
+    setConfirmingRemoveMember(member);
+  };
 
-    setUpdatingMemberUserId(member.userId);
+  const handleConfirmRemoveMember = async (member: ProjectMemberItem) => {
+    if (!isOwner || isRemovingMember) return;
+
+    setIsRemovingMember(true);
     setError(null);
     setSuccessMsg(null);
 
@@ -446,13 +458,18 @@ export function ProjectSettingsModal({
       }
 
       setMembers((prev) => prev.filter((m) => m.userId !== member.userId));
-      setSuccessMsg(`Anggota "${member.user.name}" berhasil dihapus dari project.`);
+      const msg = `Anggota "${member.user.name}" berhasil dihapus dari project.`;
+      setSuccessMsg(msg);
+      toast?.showToast(msg, 'success');
+      setConfirmingRemoveMember(null);
       notifyProjectMembersUpdated(activeProjectId);
       fetchProjectDetails();
     } catch (err: any) {
-      setError(err.message || 'Gagal menghapus anggota.');
+      const errorMsg = err.message || 'Gagal menghapus anggota.';
+      setError(errorMsg);
+      toast?.showToast(errorMsg, 'error');
     } finally {
-      setUpdatingMemberUserId(null);
+      setIsRemovingMember(false);
     }
   };
 
@@ -1035,8 +1052,8 @@ export function ProjectSettingsModal({
                                       </button>
 
                                       <button
-                                        onClick={() => handleRemoveMember(m)}
-                                        disabled={updatingMemberUserId === m.userId}
+                                        onClick={() => handleOpenRemoveMemberModal(m)}
+                                        disabled={updatingMemberUserId === m.userId || isRemovingMember}
                                         className={styles.iconBtn}
                                         title="Hapus dari proyek"
                                         style={{
@@ -1800,6 +1817,85 @@ export function ProjectSettingsModal({
               >
                 {isProcessingReq ? <InlineSpinner size={14} /> : <X size={16} />}
                 {isProcessingReq ? 'Memproses...' : 'Tolak Permintaan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── REMOVE MEMBER CONFIRMATION DIALOG ─── */}
+      {confirmingRemoveMember && (
+        <div
+          className={styles.modalOverlay}
+          style={{ zIndex: 1100 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmingRemoveMember(null);
+          }}
+        >
+          <div
+            className={styles.modalCard}
+            style={{ maxWidth: '480px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle} style={{ color: 'var(--error)' }}>
+                <AlertTriangle size={20} />
+                Hapus Anggota Proyek
+              </div>
+              <button
+                onClick={() => setConfirmingRemoveMember(null)}
+                className={styles.closeBtn}
+                disabled={isRemovingMember}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--foreground)', lineHeight: 1.5 }}>
+                Apakah Anda yakin ingin menghapus anggota berikut dari proyek ini?
+              </p>
+              <div
+                style={{
+                  padding: '0.75rem 0.9rem',
+                  background: 'var(--surface-muted)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.25rem',
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                  {confirmingRemoveMember.user.name}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+                  {confirmingRemoveMember.user.email}
+                  {confirmingRemoveMember.user.username ? ` (@${confirmingRemoveMember.user.username})` : ''}
+                </div>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', margin: 0 }}>
+                Pengguna yang dihapus tidak lagi memiliki akses ke tugas dan data di proyek ini.
+              </p>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                onClick={() => setConfirmingRemoveMember(null)}
+                className={styles.cancelBtn}
+                disabled={isRemovingMember}
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => handleConfirmRemoveMember(confirmingRemoveMember)}
+                className={styles.submitBtn}
+                style={{ background: 'var(--error)', border: 'none' }}
+                disabled={isRemovingMember}
+              >
+                {isRemovingMember ? <InlineSpinner size={14} /> : <Trash2 size={15} />}
+                {isRemovingMember ? 'Menghapus...' : 'Hapus Anggota'}
               </button>
             </div>
           </div>
