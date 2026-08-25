@@ -51,19 +51,19 @@ export function JoinProjectModal({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Gagal bergabung ke proyek.');
+        throw new Error(data.error || data.message || 'Gagal bergabung ke proyek.');
       }
 
-      setSuccessMsg(data.message || 'Berhasil bergabung ke proyek!');
+      setSuccessMsg(data.message || 'Permintaan bergabung berhasil dikirim (Pending Approval)!');
       setInviteCode('');
       
       setTimeout(() => {
         onProjectJoined?.();
         onClose();
         setSuccessMsg(null);
-      }, 1200);
+      }, 2500);
     } catch (err: any) {
-      setError(err.message || 'Gagal bergabung ke proyek.');
+      setError(err.message || 'Gagal mengirim permintaan bergabung ke proyek.');
     } finally {
       setIsSubmitting(false);
     }
@@ -164,7 +164,7 @@ export function JoinProjectModal({
                 disabled={isSubmitting}
               />
               <p style={{ margin: '0.4rem 0 0', fontSize: '0.72rem', color: 'hsla(0,0%,100%,0.45)', lineHeight: 1.4 }}>
-                Minta kode akses ini kepada Owner atau Admin proyek yang ingin Anda ikuti.
+                Memasukkan Invite Code akan mengirimkan permintaan bergabung (Pending Approval) yang perlu disetujui oleh Owner proyek.
               </p>
             </div>
           </div>

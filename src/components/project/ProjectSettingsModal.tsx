@@ -79,16 +79,43 @@ interface SearchUserItem {
   image?: string | null;
 }
 
+interface JoinRequestItem {
+  id: number;
+  projectId: number;
+  userId: number;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  requestedAt: string;
+  reviewedAt?: string | null;
+  reviewedById?: number | null;
+  rejectReason?: string | null;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    username?: string | null;
+    image?: string | null;
+  };
+  reviewedBy?: {
+    id: number;
+    name: string;
+  } | null;
+}
+
 export function ProjectSettingsModal({
   isOpen,
   onClose,
   activeProjectId,
   onProjectUpdated,
 }: ProjectSettingsModalProps) {
-  const [activeTab, setActiveTab] = useState<'general' | 'members' | 'roles' | 'danger'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'members' | 'requests' | 'roles' | 'danger'>('general');
   const [projectData, setProjectData] = useState<ProjectData | null>(null);
   const [currentRole, setCurrentRole] = useState<string>('VIEWER');
   const [members, setMembers] = useState<ProjectMemberItem[]>([]);
+  const [joinRequests, setJoinRequests] = useState<JoinRequestItem[]>([]);
+  const [confirmingApproveReq, setConfirmingApproveReq] = useState<JoinRequestItem | null>(null);
+  const [confirmingRejectReq, setConfirmingRejectReq] = useState<JoinRequestItem | null>(null);
+  const [rejectReasonInput, setRejectReasonInput] = useState('');
+  const [isProcessingReq, setIsProcessingReq] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -149,6 +176,12 @@ export function ProjectSettingsModal({
       if (memRes.ok) {
         const memData = await memRes.json();
         setMembers(memData.members || []);
+      }
+
+      const reqRes = await fetch(`/api/projects/${activeProjectId}/join-requests`);
+      if (reqRes.ok) {
+        const reqData = await reqRes.json();
+        setJoinRequests(reqData.joinRequests || []);
       }
 
       const matrixRes = await fetch(`/api/projects/${activeProjectId}/roles/permissions`);
@@ -501,6 +534,64 @@ export function ProjectSettingsModal({
     });
   };
 
+  const handleApproveRequest = async (reqItem: JoinRequestItem) => {
+    if (!isOwner || isProcessingReq) return;
+    setIsProcessingReq(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/projects/${activeProjectId}/join-requests/${reqItem.id}/approve`, {
+        method: 'POST',
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal menyetujui join request.');
+
+      setSuccessMsg(`Permintaan bergabung dari "${reqItem.user.name}" berhasil disetujui.`);
+      setConfirmingApproveReq(null);
+
+      setJoinRequests((prev) =>
+        prev.map((r) => (r.id === reqItem.id ? { ...r, status: 'APPROVED', reviewedAt: new Date().toISOString() } : r))
+      );
+
+      notifyProjectMembersUpdated(activeProjectId);
+      fetchProjectDetails();
+    } catch (err: any) {
+      setError(err.message || 'Gagal menyetujui join request.');
+    } finally {
+      setIsProcessingReq(false);
+    }
+  };
+
+  const handleRejectRequest = async (reqItem: JoinRequestItem) => {
+    if (!isOwner || isProcessingReq) return;
+    setIsProcessingReq(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      const res = await fetch(`/api/projects/${activeProjectId}/join-requests/${reqItem.id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rejectReason: rejectReasonInput }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Gagal menolak join request.');
+
+      setSuccessMsg(`Permintaan bergabung dari "${reqItem.user.name}" berhasil ditolak.`);
+      setConfirmingRejectReq(null);
+      setRejectReasonInput('');
+
+      setJoinRequests((prev) =>
+        prev.map((r) => (r.id === reqItem.id ? { ...r, status: 'REJECTED', reviewedAt: new Date().toISOString(), rejectReason: rejectReasonInput } : r))
+      );
+    } catch (err: any) {
+      setError(err.message || 'Gagal menolak join request.');
+    } finally {
+      setIsProcessingReq(false);
+    }
+  };
+
   const handleDeleteProject = async () => {
     if (!isOwner) return;
     const confirmName = prompt(
@@ -724,6 +815,14 @@ export function ProjectSettingsModal({
           >
             <Users size={14} /> Anggota ({members.length})
           </button>
+          {isOwner && (
+            <button
+              className={`${styles.tabBtn} ${activeTab === 'requests' ? styles.tabBtnActive : ''}`}
+              onClick={() => setActiveTab('requests')}
+            >
+              <UserPlus size={14} /> Join Requests ({joinRequests.filter((r) => r.status === 'PENDING').length})
+            </button>
+          )}
           <button
             className={`${styles.tabBtn} ${activeTab === 'roles' ? styles.tabBtnActive : ''}`}
             onClick={() => setActiveTab('roles')}
@@ -976,6 +1075,112 @@ export function ProjectSettingsModal({
                       </tbody>
                     </table>
                   </div>
+                </div>
+              )}
+
+              {/* JOIN REQUESTS TAB */}
+              {activeTab === 'requests' && isOwner && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--foreground)' }}>
+                        Daftar Permintaan Bergabung (Join Requests)
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', marginTop: '0.1rem' }}>
+                        Setujui (Approve) atau Tolak (Reject) pengguna yang ingin bergabung ke proyek ini via Invite Code.
+                      </div>
+                    </div>
+                  </div>
+
+                  {joinRequests.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '2.5rem 1rem', background: 'var(--surface-muted)', borderRadius: '10px', color: 'var(--muted-foreground)', fontSize: '0.85rem' }}>
+                      Belum ada permintaan bergabung untuk proyek ini.
+                    </div>
+                  ) : (
+                    <div className={styles.tableContainer}>
+                      <table className={styles.membersTable}>
+                        <thead>
+                          <tr>
+                            <th>User</th>
+                            <th>Waktu Permintaan</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {joinRequests.map((req) => (
+                            <tr key={req.id}>
+                              <td>
+                                <div className={styles.userCell}>
+                                  <div className={styles.userAvatar}>
+                                    {req.user.image ? (
+                                      <img src={req.user.image} alt={req.user.name} className={styles.avatarImg} />
+                                    ) : req.user.name ? (
+                                      req.user.name[0].toUpperCase()
+                                    ) : (
+                                      'U'
+                                    )}
+                                  </div>
+                                  <div className={styles.userInfo}>
+                                    <span className={styles.userName}>{req.user.name}</span>
+                                    <span className={styles.userHandle}>{req.user.email}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+                                {req.requestedAt ? format(new Date(req.requestedAt), 'dd MMM yyyy, HH:mm') : '-'}
+                              </td>
+                              <td>
+                                {req.status === 'PENDING' && (
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: '12px', background: '#FFFBEB', color: '#D97706', border: '1px solid #FDE68A' }}>
+                                    Pending Approval
+                                  </span>
+                                )}
+                                {req.status === 'APPROVED' && (
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: '12px', background: '#F0FDF4', color: '#16A34A', border: '1px solid #BBF7D0' }}>
+                                    Approved
+                                  </span>
+                                )}
+                                {req.status === 'REJECTED' && (
+                                  <span style={{ fontSize: '0.72rem', fontWeight: 600, padding: '0.2rem 0.6rem', borderRadius: '12px', background: '#FEF2F2', color: '#DC2626', border: '1px solid #FCA5A5' }}>
+                                    Rejected
+                                  </span>
+                                )}
+                              </td>
+                              <td>
+                                {req.status === 'PENDING' ? (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <button
+                                      type="button"
+                                      onClick={() => setConfirmingApproveReq(req)}
+                                      disabled={isProcessingReq}
+                                      className={styles.submitBtn}
+                                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', background: '#16A34A', border: 'none' }}
+                                    >
+                                      <Check size={13} /> Approve
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => setConfirmingRejectReq(req)}
+                                      disabled={isProcessingReq}
+                                      className={styles.iconBtn}
+                                      style={{ padding: '0.35rem 0.75rem', fontSize: '0.75rem', background: 'var(--error-subtle)', border: '1px solid #FCA5A5', color: 'var(--error)', borderRadius: '6px' }}
+                                    >
+                                      <X size={13} /> Reject
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <span style={{ fontSize: '0.75rem', color: 'var(--muted-foreground)', fontStyle: 'italic' }}>
+                                    Selesai ({req.status})
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -1428,6 +1633,173 @@ export function ProjectSettingsModal({
               >
                 <ArrowRightLeft size={16} />
                 {isTransferring ? 'Mentransfer...' : 'Transfer Kepemilikan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── APPROVE JOIN REQUEST CONFIRMATION DIALOG ─── */}
+      {confirmingApproveReq && (
+        <div
+          className={styles.modalOverlay}
+          style={{ zIndex: 1100 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmingApproveReq(null);
+          }}
+        >
+          <div
+            className={styles.modalCard}
+            style={{ maxWidth: '480px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle} style={{ color: '#16A34A' }}>
+                <CheckCircle2 size={20} />
+                Setujui Permintaan Bergabung
+              </div>
+              <button
+                onClick={() => setConfirmingApproveReq(null)}
+                className={styles.closeBtn}
+                disabled={isProcessingReq}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--foreground)', lineHeight: 1.5 }}>
+                Apakah Anda yakin ingin menyetujui (Approve) permintaan bergabung dari:
+              </p>
+              <div
+                style={{
+                  padding: '0.75rem 0.9rem',
+                  background: 'var(--surface-muted)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.2rem',
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                  {confirmingApproveReq.user.name}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+                  {confirmingApproveReq.user.email}
+                </div>
+              </div>
+              <p style={{ fontSize: '0.78rem', color: 'var(--muted-foreground)', margin: 0 }}>
+                Pengguna akan resmi menjadi anggota (Member) proyek <strong>"{projectData?.projectName}"</strong> dan mendapatkan hak akses sesuai konfigurasi role.
+              </p>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                onClick={() => setConfirmingApproveReq(null)}
+                className={styles.cancelBtn}
+                disabled={isProcessingReq}
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => handleApproveRequest(confirmingApproveReq)}
+                className={styles.submitBtn}
+                style={{ background: '#16A34A', border: 'none' }}
+                disabled={isProcessingReq}
+              >
+                {isProcessingReq ? <InlineSpinner size={14} /> : <Check size={16} />}
+                {isProcessingReq ? 'Memproses...' : 'Setujui & Tambahkan Anggota'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ─── REJECT JOIN REQUEST CONFIRMATION DIALOG ─── */}
+      {confirmingRejectReq && (
+        <div
+          className={styles.modalOverlay}
+          style={{ zIndex: 1100 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmingRejectReq(null);
+          }}
+        >
+          <div
+            className={styles.modalCard}
+            style={{ maxWidth: '480px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <div className={styles.modalTitle} style={{ color: 'var(--error)' }}>
+                <AlertTriangle size={20} />
+                Tolak Permintaan Bergabung
+              </div>
+              <button
+                onClick={() => setConfirmingRejectReq(null)}
+                className={styles.closeBtn}
+                disabled={isProcessingReq}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.modalBody}>
+              <p style={{ fontSize: '0.85rem', color: 'var(--foreground)', lineHeight: 1.5 }}>
+                Apakah Anda yakin ingin menolak (Reject) permintaan bergabung dari:
+              </p>
+              <div
+                style={{
+                  padding: '0.75rem 0.9rem',
+                  background: 'var(--surface-muted)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.2rem',
+                }}
+              >
+                <div style={{ fontWeight: 600, fontSize: '0.9rem', color: 'var(--foreground)' }}>
+                  {confirmingRejectReq.user.name}
+                </div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--muted-foreground)' }}>
+                  {confirmingRejectReq.user.email}
+                </div>
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Alasan Penolakan (Opsional)</label>
+                <input
+                  type="text"
+                  placeholder="Contoh: Tim sudah penuh..."
+                  value={rejectReasonInput}
+                  onChange={(e) => setRejectReasonInput(e.target.value)}
+                  className={styles.input}
+                  disabled={isProcessingReq}
+                />
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button
+                onClick={() => {
+                  setConfirmingRejectReq(null);
+                  setRejectReasonInput('');
+                }}
+                className={styles.cancelBtn}
+                disabled={isProcessingReq}
+              >
+                Batal
+              </button>
+              <button
+                onClick={() => handleRejectRequest(confirmingRejectReq)}
+                className={styles.submitBtn}
+                style={{ background: 'var(--error)', border: 'none' }}
+                disabled={isProcessingReq}
+              >
+                {isProcessingReq ? <InlineSpinner size={14} /> : <X size={16} />}
+                {isProcessingReq ? 'Memproses...' : 'Tolak Permintaan'}
               </button>
             </div>
           </div>

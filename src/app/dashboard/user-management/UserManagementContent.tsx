@@ -92,7 +92,9 @@ export default function UserManagementContent({
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [deletingUserId, setDeletingUserId] = useState<number | null>(null);
+  const [deletingUser, setDeletingUser] = useState<UserData | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [unblockingUserId, setUnblockingUserId] = useState<number | null>(null);
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -280,34 +282,45 @@ export default function UserManagementContent({
     }
   };
 
-  const handleDeleteUser = async (userId: number, name: string) => {
-    if (userId === sessionUserId) {
-      alert('Tidak dapat menghapus akun Anda sendiri.');
-      return;
-    }
+  const openDeleteModal = (user: UserData) => {
+    if (user.id === sessionUserId) return;
+    setDeletingUser(user);
+    setDeleteError(null);
+  };
 
-    const confirmed = window.confirm(`Apakah Anda yakin ingin menghapus user "${name}"?`);
-    if (!confirmed) return;
+  const closeDeleteModal = () => {
+    setDeletingUser(null);
+    setDeleteError(null);
+  };
 
-    setDeletingUserId(userId);
+  const confirmDeleteUser = async () => {
+    if (!deletingUser) return;
+
+    setIsDeleting(true);
+    setDeleteError(null);
+
     try {
-      const res = await fetch(`/api/users/${userId}`, {
+      const res = await fetch(`/api/users/${deletingUser.id}`, {
         method: 'DELETE',
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.message || 'Gagal menghapus user.');
+        throw new Error(data.message || 'Gagal menghapus pengguna.');
       }
 
       // Update local users list
-      setUsers((prev) => prev.filter((u) => u.id !== userId));
-      alert(`User "${name}" berhasil dihapus.`);
+      setUsers((prev) => prev.filter((u) => u.id !== deletingUser.id));
+      setStatus({
+        type: 'success',
+        message: `Pengguna "${deletingUser.name}" (${deletingUser.email}) berhasil dihapus.`,
+      });
+      closeDeleteModal();
     } catch (err: any) {
-      alert(err.message || 'Terjadi kesalahan saat menghapus user.');
+      setDeleteError(err.message || 'Terjadi kesalahan saat menghapus pengguna.');
     } finally {
-      setDeletingUserId(null);
+      setIsDeleting(false);
     }
   };
 
@@ -569,16 +582,12 @@ export default function UserManagementContent({
                             </button>
                             {u.id !== sessionUserId && (
                               <button
-                                onClick={() => handleDeleteUser(u.id, u.name)}
-                                disabled={deletingUserId === u.id}
+                                type="button"
+                                onClick={() => openDeleteModal(u)}
                                 className={`${styles.actionBtn} ${styles.deleteBtn}`}
                                 title="Hapus Pengguna"
                               >
-                                {deletingUserId === u.id ? (
-                                  <InlineSpinner size={13} color="var(--error)" />
-                                ) : (
-                                  <Trash2 size={13} />
-                                )}
+                                <Trash2 size={13} />
                               </button>
                             )}
                           </div>
@@ -713,6 +722,65 @@ export default function UserManagementContent({
               </ButtonLoading>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Delete User Confirmation Modal */}
+      {deletingUser && (
+        <div className={styles.modalOverlay}>
+          <div className={`${styles.modalContent} glass`}>
+            <div className={styles.modalHeader}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertTriangle size={18} color="var(--error)" />
+                <h3 className={styles.modalTitle}>Hapus Pengguna</h3>
+              </div>
+              <button type="button" onClick={closeDeleteModal} disabled={isDeleting} className={styles.closeModalBtn}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {deleteError && (
+              <div className={`${styles.alert} ${styles.alertError}`}>
+                <AlertTriangle size={16} />
+                <span>{deleteError}</span>
+              </div>
+            )}
+
+            <p className={styles.deleteWarningText}>
+              Apakah Anda yakin ingin menghapus akun pengguna berikut dari sistem? Tindakan ini tidak dapat dibatalkan.
+            </p>
+
+            <div className={styles.deleteUserCard}>
+              <div className={styles.deleteUserItem}>
+                <span className={styles.deleteUserLabel}>Nama Pengguna</span>
+                <span className={styles.deleteUserValue}>{deletingUser.name}</span>
+              </div>
+              <div className={styles.deleteUserItem}>
+                <span className={styles.deleteUserLabel}>Alamat Email</span>
+                <span className={styles.deleteUserValue}>{deletingUser.email}</span>
+              </div>
+              <div className={styles.deleteUserItem}>
+                <span className={styles.deleteUserLabel}>Hak Akses (Role)</span>
+                <span className={styles.deleteUserValue}>{deletingUser.roleRel?.name || deletingUser.role || 'Staff'}</span>
+              </div>
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button type="button" onClick={closeDeleteModal} disabled={isDeleting} className={styles.btn}>
+                Batal
+              </button>
+              <ButtonLoading
+                type="button"
+                onClick={confirmDeleteUser}
+                isLoading={isDeleting}
+                loadingText="Menghapus..."
+                className={`${styles.btn} ${styles.deleteConfirmBtn}`}
+              >
+                <Trash2 size={14} />
+                <span>Hapus Pengguna</span>
+              </ButtonLoading>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -1,3 +1,4 @@
+// Force Next.js HMR recompilation to pick up newly generated PrismaClient model
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
@@ -43,7 +44,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // 2. Check if user is already a member or owner
+    // 2. Check if user is owner
+    if (project.ownerUserId === currentUserId) {
+      return NextResponse.json(
+        { error: 'Anda adalah Owner (Pemilik Utama) dari proyek ini.' },
+        { status: 409 }
+      );
+    }
+
+    // 3. Check if user is already an approved member
     const existingMembership = await prisma.projectMember.findUnique({
       where: {
         projectId_userId: {
@@ -53,27 +62,51 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (existingMembership || project.ownerUserId === currentUserId) {
+    if (existingMembership) {
       return NextResponse.json(
-        { error: 'Anda sudah menjadi anggota proyek ini.' },
+        { error: 'Anda sudah menjadi anggota resmi dari proyek ini.' },
         { status: 409 }
       );
     }
 
-    // 3. Add user as MEMBER via transaction
-    const newMember = await prisma.$transaction(async (tx) => {
-      const created = await tx.projectMember.create({
-        data: {
+    // 4. Check existing join request
+    const existingRequest = await prisma.projectJoinRequest.findUnique({
+      where: {
+        projectId_userId: {
           projectId: project.id,
           userId: currentUserId,
-          role: 'MEMBER',
         },
-        select: {
-          id: true,
-          projectId: true,
-          userId: true,
-          role: true,
-          joinedAt: true,
+      },
+    });
+
+    if (existingRequest && existingRequest.status === 'PENDING') {
+      return NextResponse.json(
+        { error: 'Permintaan bergabung Anda sedang menunggu persetujuan (Pending Approval) dari Owner proyek.' },
+        { status: 409 }
+      );
+    }
+
+    // 5. Create or re-open Join Request via transaction
+    const joinRequest = await prisma.$transaction(async (tx) => {
+      const request = await tx.projectJoinRequest.upsert({
+        where: {
+          projectId_userId: {
+            projectId: project.id,
+            userId: currentUserId,
+          },
+        },
+        create: {
+          projectId: project.id,
+          userId: currentUserId,
+          status: 'PENDING',
+          requestedAt: new Date(),
+        },
+        update: {
+          status: 'PENDING',
+          requestedAt: new Date(),
+          reviewedAt: null,
+          reviewedById: null,
+          rejectReason: null,
         },
       });
 
@@ -81,23 +114,23 @@ export async function POST(req: NextRequest) {
         data: {
           userId: currentUserId,
           projectId: project.id,
-          action: 'PROJECT_JOINED',
-          description: `User Joined Project: Bergabung ke dalam proyek "${project.projectName}" menggunakan Invite Code.`,
+          action: 'PROJECT_JOIN_REQUESTED',
+          description: `Permintaan bergabung dikirim oleh "${session.user.name || 'User'}" ke proyek "${project.projectName}" via Invite Code. Menunggu persetujuan Owner.`,
         },
       });
 
-      return created;
+      return request;
     });
 
     return NextResponse.json({
       success: true,
-      message: `Berhasil bergabung ke proyek "${project.projectName}".`,
+      message: `Permintaan bergabung ke proyek "${project.projectName}" berhasil dikirim. Saat ini sedang menunggu persetujuan dari Owner proyek.`,
       project: {
         id: project.id,
         projectName: project.projectName,
         description: project.description,
       },
-      member: newMember,
+      request: joinRequest,
     }, { status: 201 });
   } catch (err: any) {
     console.error('POST /api/projects/join error:', err);

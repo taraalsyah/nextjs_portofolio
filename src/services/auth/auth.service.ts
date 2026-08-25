@@ -18,14 +18,27 @@ export class AuthService {
       throw error;
     }
 
-    // 2. Hash password
+    // 2. Cari role "Operation" dari database (Role Management)
+    const operationRole = await prisma.role.findFirst({
+      where: {
+        name: 'Operation',
+      },
+    });
+
+    if (!operationRole) {
+      const error = new Error('Role "Operation" tidak ditemukan pada Role Management. Registrasi tidak dapat diproses.');
+      (error as any).status = 400;
+      throw error;
+    }
+
+    // 3. Hash password
     const hashedPassword = await hashPassword(passwordText);
 
-    // 3. Generate OTP & Expired time (10 menit)
+    // 4. Generate OTP & Expired time (10 menit)
     const otpCode = generateOTP();
     const expiredAt = addMinutesUTC(10);
 
-    // 4. Prisma Transaction untuk membuat User dan EmailVerification secara atomik
+    // 5. Prisma Transaction untuk membuat User dan EmailVerification secara atomik
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({
         data: {
@@ -33,6 +46,8 @@ export class AuthService {
           email,
           password: hashedPassword,
           status: 'PENDING',
+          roleId: operationRole.id,
+          role: operationRole.name,
         },
       });
 
