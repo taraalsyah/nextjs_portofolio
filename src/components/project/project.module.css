@@ -633,10 +633,251 @@
   }
 }
 
-@media (max-width: 480px) {
-  .modalCard {
-    border-radius: 0 !important;
-  }
+/* Payment UI Styles */
+
+.paymentFeeBanner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.2rem;
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.12), rgba(129, 140, 248, 0.12));
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: var(--radius-md);
+  margin-bottom: 1rem;
 }
+
+.feeLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.feeTitle {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.feeAmount {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.paymentMethodList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-bottom: 1.25rem;
+}
+
+.paymentMethodCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.paymentMethodCard:hover {
+  background: var(--surface-hover);
+  border-color: var(--primary-glow);
+  transform: translateY(-1px);
+}
+
+.paymentMethodCardSelected {
+  background: rgba(56, 189, 248, 0.08);
+  border-color: #38bdf8;
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.15);
+}
+
+.methodLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.methodIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: var(--surface-muted);
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.methodMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.methodTitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.methodSub {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.qrWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  gap: 0.85rem;
+}
+
+.qrImage {
+  width: 220px;
+  height: 220px;
+  border-radius: 12px;
+  background: #fff;
+  padding: 8px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+}
+
+.vaBox {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem 1.1rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.vaHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.vaBankName {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--foreground);
+}
+
+.vaNumberRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.85rem;
+  background: var(--surface);
+  border: 1px dashed var(--primary-glow);
+  border-radius: 8px;
+}
+
+.vaNumberText {
+  font-family: monospace;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--primary);
+}
+
+.copyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.copyBtn:hover {
+  opacity: 0.9;
+}
+
+.paymentStatusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.statusPending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.statusPaid {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.statusFailed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.stepWizardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.stepItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.stepItemActive {
+  color: var(--primary);
+}
+
+.stepNumber {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface-muted);
+  font-size: 0.72rem;
+}
+
+.stepNumberActive {
+  background: var(--primary);
+  color: #fff;
+}
+
 
 

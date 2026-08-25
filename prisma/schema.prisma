@@ -44,6 +44,7 @@ model User {
   doneReviewedTasks   Task[]               @relation("DoneReviewer")
   roleRel             Role?                @relation("UserRole", fields: [roleId], references: [id])
   twoFactorTokens     TwoFactorToken[]
+  payments            ProjectPayment[]     @relation("UserPayments")
 
   @@index([roleId], map: "users_role_id_fkey")
   @@map("users")
@@ -176,6 +177,7 @@ model Project {
   workflowPermissions ProjectWorkflowPermission[]
   owner               User                        @relation("ProjectOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
   tasks               Task[]
+  payment             ProjectPayment?             @relation("ProjectPayment")
 
   @@index([ownerUserId])
   @@map("projects")
@@ -376,4 +378,44 @@ model ProjectWorkflowPermission {
   @@unique([projectId, role, fromStatus, toStatus])
   @@index([projectId, role])
   @@map("project_workflow_permissions")
+}
+
+model ProjectPayment {
+  id                String        @id @default(cuid())
+  userId            Int           @map("user_id")
+  amount            Int           @default(30000)
+  currency          String        @default("IDR")
+  status            PaymentStatus @default(PENDING)
+  paymentMethod     String        @map("payment_method")
+  paymentProvider   String        @default("MIDTRANS") @map("payment_provider")
+  transactionId     String        @unique @map("transaction_id")
+  externalReference String?       @map("external_reference")
+  paymentUrl        String?       @map("payment_url") @db.Text
+  qrUrl             String?       @map("qr_url") @db.Text
+  vaNumber          String?       @map("va_number")
+  bank              String?       @map("bank")
+  projectName       String?       @map("project_name")
+  description       String?       @db.Text
+  visibility        String?       @default("PRIVATE")
+  isUsed            Boolean       @default(false) @map("is_used")
+  usedForProjectId  Int?          @unique @map("used_for_project_id")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  paidAt            DateTime?     @map("paid_at")
+  expiredAt         DateTime?     @map("expired_at")
+
+  user              User          @relation("UserPayments", fields: [userId], references: [id], onDelete: Cascade)
+  project           Project?      @relation("ProjectPayment", fields: [usedForProjectId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([transactionId])
+  @@map("project_payments")
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+  EXPIRED
 }
