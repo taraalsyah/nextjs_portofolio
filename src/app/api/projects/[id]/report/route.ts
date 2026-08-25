@@ -82,7 +82,7 @@ export async function GET(
       const excelBuffer = await generateExcelReport(reportData);
       const filename = `Project_${safeProjectName}_Report_${dateStamp}.xlsx`;
 
-      return new NextResponse(excelBuffer, {
+      return new NextResponse(new Uint8Array(excelBuffer), {
         status: 200,
         headers: {
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -95,7 +95,7 @@ export async function GET(
       const pdfBuffer = await generatePdfReport(reportData);
       const filename = `Project_${safeProjectName}_Report_${dateStamp}.pdf`;
 
-      return new NextResponse(pdfBuffer, {
+      return new NextResponse(new Uint8Array(pdfBuffer), {
         status: 200,
         headers: {
           'Content-Type': 'application/pdf',
