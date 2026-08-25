@@ -22,13 +22,13 @@ interface Project {
 
 const PROJECTS: Project[] = [
   {
-    title: "EcoSmart Dashboard",
-    description: "An AI-powered environmental monitoring platform with real-time data visualization and predictive analytics. It aggregates air quality indices, carbon emissions metrics, water pollution stats, and renewable energy usage in a glassmorphic user dashboard featuring geographic mapping and interactive trends.",
-    tags: ["Next.js", "TypeScript", "Three.js", "PostgreSQL"],
+    title: "Task Management",
+    description: "An enterprise-grade task management system featuring multi-role RBAC permissions, interactive Request-to-Done & Request-to-Close approval workflows, real-time activity logging, automated email notifications, and detailed project tracking.",
+    tags: ["Next.js", "TypeScript", "Prisma", "MySQL", "NextAuth"],
     image: "/project2.png",
     images: ["/project2.png", "/project1.png", "/project3.png"],
     github: "#",
-    link: "#"
+    link: "/dashboard"
   },
   {
     title: "Nova Stream",
