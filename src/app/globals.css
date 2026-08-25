@@ -151,7 +151,10 @@ button {
 }
 
 .text-gradient {
-  color: var(--foreground);
+  background: linear-gradient(135deg, var(--primary) 0%, #1D4ED8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline;
 }
 
 .section-container {

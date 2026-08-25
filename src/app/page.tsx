@@ -64,15 +64,35 @@ export default function Home() {
       <Navbar />
       <HeroSection />
       
-      <section id="projects" style={{ padding: '100px 0' }}>
+      <section id="projects" style={{ padding: '90px 0' }}>
         <div className="section-container">
-          <h2 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '3rem' }}>
-            Featured <span className="text-gradient">Projects</span>
-          </h2>
+          <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 3.25rem' }}>
+            <div style={{
+              display: 'inline-block',
+              padding: '0.4rem 1rem',
+              borderRadius: '100px',
+              background: 'var(--primary-soft)',
+              border: '1px solid var(--primary-border)',
+              color: 'var(--primary)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '1rem'
+            }}>
+              Selected Work
+            </div>
+            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
+              Featured <span className="text-gradient">Projects</span>
+            </h2>
+            <p style={{ fontSize: '1.05rem', color: 'var(--secondary-text)', lineHeight: 1.6 }}>
+              Explore key software applications and engineering projects built with modern technologies.
+            </p>
+          </div>
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-            gap: '2.5rem' 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+            gap: '2rem' 
           }}>
             {PROJECTS.map((project, index) => (
               <ProjectCard 
@@ -85,11 +105,31 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="skills" style={{ padding: '100px 0', background: 'hsla(230, 20%, 8%, 0.5)' }}>
+      <section id="skills" style={{ padding: '90px 0', background: 'var(--surface-hover)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
         <div className="section-container">
-          <h2 style={{ fontSize: '3.5rem', fontWeight: 800, marginBottom: '3rem' }}>
-            Mastered <span className="text-gradient">Tech Stack</span>
-          </h2>
+          <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 3.25rem' }}>
+            <div style={{
+              display: 'inline-block',
+              padding: '0.4rem 1rem',
+              borderRadius: '100px',
+              background: 'var(--primary-soft)',
+              border: '1px solid var(--primary-border)',
+              color: 'var(--primary)',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              marginBottom: '1rem'
+            }}>
+              Technical Proficiency
+            </div>
+            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
+              Mastered <span className="text-gradient">Tech Stack</span>
+            </h2>
+            <p style={{ fontSize: '1.05rem', color: 'var(--secondary-text)', lineHeight: 1.6 }}>
+              Technologies and tools I work with to build robust, scalable applications.
+            </p>
+          </div>
           <SkillsGrid />
         </div>
       </section>
@@ -98,7 +138,7 @@ export default function Home() {
 
       <ContactSection />
 
-      <footer style={{ padding: '4rem 0 3rem', textAlign: 'center', opacity: 0.5, fontSize: '0.9rem', borderTop: '1px solid var(--surface-border)', width: '100%' }}>
+      <footer style={{ padding: '3.5rem 0', textAlign: 'center', fontSize: '0.9rem', color: 'var(--secondary-text)', borderTop: '1px solid var(--border)', width: '100%', background: 'var(--surface)' }}>
         <div className="section-container">
           © 2026 Creative Developer. Built with Next.js and Passion.
         </div>

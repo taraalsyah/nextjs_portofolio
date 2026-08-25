@@ -1,5 +1,5 @@
 .contactSection {
-  padding: 120px 0 100px;
+  padding: 90px 0;
   position: relative;
   overflow: hidden;
 }
@@ -7,40 +7,42 @@
 .headerContainer {
   text-align: center;
   max-width: 700px;
-  margin: 0 auto 4.5rem;
+  margin: 0 auto 3.25rem;
 }
 
 .badge {
   display: inline-block;
-  padding: 0.5rem 1.25rem;
+  padding: 0.4rem 1rem;
   border-radius: 100px;
-  background: var(--info-subtle);
+  background: var(--primary-soft);
   color: var(--primary);
-  border: 1px solid rgba(59, 130, 246, 0.25);
-  font-size: 0.85rem;
+  border: 1px solid var(--primary-border);
+  font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  margin-bottom: 1.5rem;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
 }
 
 .title {
-  font-size: 3.5rem;
+  font-size: clamp(2rem, 4vw, 2.75rem);
   font-weight: 800;
   line-height: 1.2;
-  margin-bottom: 1.5rem;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
 }
 
 .subtitle {
-  font-size: 1.15rem;
-  color: hsla(0, 0%, 100%, 0.6);
-  line-height: 1.7;
+  font-size: 1.05rem;
+  color: var(--secondary-text);
+  line-height: 1.6;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.75rem;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -50,13 +52,22 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 2.25rem;
-  border-radius: 24px;
-  min-height: 250px;
+  padding: 1.75rem;
+  border-radius: var(--radius-lg);
+  min-height: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   text-decoration: none;
   cursor: pointer;
   overflow: hidden;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: var(--transition);
+}
+
+.card:hover {
+  border-color: var(--primary);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
 }
 
 /* Background glow base styling */
@@ -66,15 +77,15 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: radial-gradient(circle at 50% 50%, var(--glow-color, transparent) 0%, transparent 70%);
+  background: radial-gradient(circle at 50% 50%, var(--glow-color, rgba(37, 99, 235, 0.08)) 0%, transparent 70%);
   opacity: 0;
-  transition: opacity 0.4s ease;
+  transition: opacity 0.3s ease;
   pointer-events: none;
   z-index: 1;
 }
 
 .card:hover .glow {
-  opacity: 0.3;
+  opacity: 0.5;
 }
 
 .cardHeader {
@@ -83,23 +94,23 @@
   align-items: center;
   position: relative;
   z-index: 2;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .iconWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: 16px;
-  background: hsla(0, 0%, 100%, 0.05);
-  border: 1px solid hsla(0, 0%, 100%, 0.08);
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-border);
   transition: var(--transition);
 }
 
 .icon {
-  color: hsla(0, 0%, 100%, 0.7);
+  color: var(--primary);
   transition: var(--transition);
 }
 
@@ -110,47 +121,48 @@
   justify-content: center;
   width: 36px;
   height: 36px;
-  border-radius: 10px;
-  background: hsla(0, 0%, 100%, 0.05);
-  border: 1px solid hsla(0, 0%, 100%, 0.08);
-  color: hsla(0, 0%, 100%, 0.6);
+  border-radius: var(--radius-md);
+  background: var(--surface-hover);
+  border: 1px solid var(--border);
+  color: var(--secondary-text);
   transition: var(--transition);
   z-index: 3;
 }
 
 .copyButton:hover {
-  background: hsla(0, 0%, 100%, 0.15);
-  color: white;
+  background: var(--primary-soft);
+  border-color: var(--primary-border);
+  color: var(--primary);
 }
 
 .copySuccess {
-  background: hsla(140, 70%, 50%, 0.2) !important;
-  border-color: hsla(140, 70%, 50%, 0.4) !important;
-  color: hsl(140, 70%, 60%) !important;
+  background: var(--success-subtle) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
 }
 
 .cardBody {
   position: relative;
   z-index: 2;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .methodName {
   display: block;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--muted-foreground);
   font-weight: 600;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
 }
 
 .methodValue {
   display: block;
-  font-size: 1.4rem;
+  font-size: 1.25rem;
   font-family: var(--font-heading);
   font-weight: 700;
-  color: white;
+  color: var(--foreground);
   word-break: break-all;
 }
 
@@ -164,123 +176,64 @@
 }
 
 .actionText {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
-  color: hsla(0, 0%, 100%, 0.6);
+  color: var(--primary);
   transition: var(--transition);
 }
 
 .arrowIcon {
-  color: hsla(0, 0%, 100%, 0.4);
+  color: var(--primary);
   transform: translate(0, 0);
   transition: var(--transition);
 }
 
 .card:hover .actionText {
-  color: white;
+  color: var(--primary-hover);
 }
 
 .card:hover .arrowIcon {
-  color: white;
+  color: var(--primary-hover);
   transform: translate(3px, -3px);
 }
 
-/* Individual card thematic styles & glow configurations */
-
 /* 1. Email Card */
 .emailCard {
-  --glow-color: var(--primary);
-}
-.emailCard:hover {
-  border-color: rgba(59, 130, 246, 0.4);
-  box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.2);
-}
-.emailCard:hover .iconWrapper {
-  background: var(--info-subtle);
-  border-color: rgba(59, 130, 246, 0.4);
-}
-.emailCard:hover .icon {
-  color: var(--primary);
+  --glow-color: rgba(37, 99, 235, 0.15);
 }
 
 /* 2. LinkedIn Card */
 .linkedinCard {
-  --glow-color: hsl(201, 100%, 35%);
-}
-.linkedinCard:hover {
-  border-color: hsla(201, 100%, 35%, 0.5);
-  box-shadow: 0 10px 40px -10px hsla(201, 100%, 35%, 0.25);
-}
-.linkedinCard:hover .iconWrapper {
-  background: hsla(201, 100%, 35%, 0.25);
-  border-color: hsla(201, 100%, 35%, 0.5);
-}
-.linkedinCard:hover .icon {
-  color: hsl(201, 100%, 45%);
+  --glow-color: rgba(10, 102, 194, 0.15);
 }
 
 /* 3. Instagram Card */
 .instagramCard {
-  --glow-color: hsl(335, 75%, 45%);
-}
-.instagramCard:hover {
-  border-color: hsla(335, 75%, 45%, 0.5);
-  box-shadow: 0 10px 40px -10px hsla(335, 75%, 45%, 0.25);
-}
-.instagramCard:hover .iconWrapper {
-  background: linear-gradient(45deg, hsla(37, 90%, 60%, 0.15) 0%, hsla(340, 80%, 55%, 0.15) 50%, hsla(290, 80%, 50%, 0.15) 100%);
-  border-color: hsla(335, 75%, 45%, 0.5);
-}
-.instagramCard:hover .icon {
-  color: hsl(335, 85%, 65%);
+  --glow-color: rgba(225, 48, 108, 0.15);
 }
 
 /* 4. Twitter Card */
 .twitterCard {
-  --glow-color: hsl(0, 0%, 100%);
-}
-.twitterCard:hover {
-  border-color: hsla(0, 0%, 100%, 0.3);
-  box-shadow: 0 10px 40px -10px hsla(0, 0%, 100%, 0.1);
-}
-.twitterCard:hover .iconWrapper {
-  background: hsla(0, 0%, 100%, 0.1);
-  border-color: hsla(0, 0%, 100%, 0.3);
-}
-.twitterCard:hover .icon {
-  color: white;
+  --glow-color: rgba(15, 23, 42, 0.1);
 }
 
 /* Mobile & Tablet responsiveness */
 @media (max-width: 768px) {
   .contactSection {
-    padding: 80px 0 60px;
+    padding: 70px 0;
   }
-  
-  .title {
-    font-size: 2.5rem;
-  }
-  
+
   .grid {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
-    padding: 0 1rem;
+    gap: 1.25rem;
   }
-  
+
   .card {
     min-height: auto;
-    padding: 1.75rem;
+    padding: 1.5rem;
   }
-  
-  .cardHeader {
-    margin-bottom: 1.5rem;
-  }
-  
-  .cardBody {
-    margin-bottom: 1.5rem;
-  }
-  
+
   .methodValue {
-    font-size: 1.2rem;
+    font-size: 1.15rem;
   }
 }

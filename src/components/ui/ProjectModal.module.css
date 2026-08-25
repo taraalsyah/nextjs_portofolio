@@ -311,23 +311,21 @@
 }
 
 .bottomCancelButton {
-  background: hsla(0, 0%, 100%, 0.05);
-  border: 1px solid var(--glass-border);
-  color: hsla(0, 0%, 100%, 0.6);
-  padding: 0.75rem 3rem;
+  background: #FFFFFF;
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  padding: 0.65rem 2.5rem;
   border-radius: 100px;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: 600;
   transition: var(--transition);
   cursor: pointer;
   z-index: 2;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .bottomCancelButton:hover {
-  background: hsla(0, 0%, 100%, 0.15);
-  color: white;
-  transform: translateY(-2px);
-  border-color: hsla(0, 0%, 100%, 0.25);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+  background: var(--surface-hover);
+  color: var(--primary);
+  border-color: #CBD5E1;
 }
