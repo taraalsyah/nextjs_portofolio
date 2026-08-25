@@ -10,6 +10,7 @@ import { TaskFilterBar } from '@/components/task-management/TaskFilterBar';
 import { TaskTable, TaskItem } from '@/components/task-management/TaskTable';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
+import { DownloadReportButton } from '@/components/task-management/DownloadReportButton';
 import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
@@ -247,10 +248,13 @@ export default function AllTasksPage() {
             </div>
           </div>
 
-          <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
-            <Plus size={16} />
-            Buat Task Baru
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <DownloadReportButton filterParams={filterParams} />
+            <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
+              <Plus size={16} />
+              Buat Task Baru
+            </button>
+          </div>
         </div>
 
         <TaskFilterBar

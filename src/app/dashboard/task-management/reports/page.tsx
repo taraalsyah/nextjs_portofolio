@@ -7,6 +7,7 @@ import { BarChart3 } from 'lucide-react';
 import styles from '../task.module.css';
 import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { TaskReportDashboard } from '@/components/task-management/TaskReportDashboard';
+import { DownloadReportButton } from '@/components/task-management/DownloadReportButton';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
 
 export default function ReportsPage() {
@@ -99,6 +100,7 @@ export default function ReportsPage() {
               <p>Analisis metrik produktivitas, beban kerja pengguna, dan status penyelesaian task.</p>
             </div>
           </div>
+          <DownloadReportButton />
         </div>
 
         <TaskReportDashboard data={reportData} isLoading={isLoading} />

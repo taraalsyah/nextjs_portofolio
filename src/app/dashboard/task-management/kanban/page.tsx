@@ -8,6 +8,7 @@ import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { TaskKanbanBoard } from '@/components/task-management/TaskKanbanBoard';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
+import { DownloadReportButton } from '@/components/task-management/DownloadReportButton';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectContext, ACTIVE_PROJECT_CHANGED_EVENT } from '@/context/ProjectContext';
@@ -187,10 +188,13 @@ export default function KanbanPage() {
             </div>
           </div>
 
-          <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
-            <Plus size={16} />
-            Buat Task Baru
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <DownloadReportButton />
+            <button onClick={() => setIsCreateModalOpen(true)} className={styles.createBtn}>
+              <Plus size={16} />
+              Buat Task Baru
+            </button>
+          </div>
         </div>
 
         {isLoading ? (
