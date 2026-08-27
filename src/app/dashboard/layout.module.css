@@ -105,12 +105,14 @@
   transition: opacity 0.2s ease-in-out;
 }
 
-/* Sidebar Footer (Collapse Toggle) */
+/* Sidebar Footer (Notifications & Collapse Toggle) */
 .sidebarFooter {
   padding: 0.5rem;
   border-top: 1px solid var(--border);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  gap: 0.35rem;
+  align-items: center;
 }
 
 .collapseBtn {
@@ -356,9 +358,11 @@
   .sidebarExpanded {
     width: 56px;
   }
+
   .marginExpanded {
     margin-left: 56px;
   }
+
   .marginExpanded .topbar {
     left: 56px;
   }
@@ -479,8 +483,13 @@
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .switchingTitle {

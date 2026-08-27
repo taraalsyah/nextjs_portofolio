@@ -26,6 +26,7 @@ import { ProjectSwitcher } from '@/components/project/ProjectSwitcher';
 import { ToastProvider } from '@/components/ui/Toast';
 import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
 import AuthenticatedNavbar from '@/components/layout/AuthenticatedNavbar';
+import NotificationBell from '@/components/layout/NotificationBell';
 
 interface MenuItem {
   name: string;
@@ -119,9 +120,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* ─── COLLAPSIBLE SIDEBAR ─── */}
       <aside
-        className={`${styles.sidebar} ${
-          isCollapsed ? styles.sidebarCollapsed : styles.sidebarExpanded
-        } ${isMobileOpen ? styles.sidebarActive : ''}`}
+        className={`${styles.sidebar} ${isCollapsed ? styles.sidebarCollapsed : styles.sidebarExpanded
+          } ${isMobileOpen ? styles.sidebarActive : ''}`}
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.logoArea}>
@@ -192,8 +192,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           })()}
         </nav>
 
-        {/* Sidebar footer collapse trigger */}
+        {/* Sidebar footer: Notification bell & collapse trigger */}
         <div className={styles.sidebarFooter}>
+          <NotificationBell isCollapsed={isCollapsed} isMobileOpen={isMobileOpen} />
+
           {isCollapsed ? (
             <button
               onClick={toggleCollapse}
@@ -216,9 +218,8 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* ─── RIGHT HAND CONTENT CONTAINER ─── */}
       <div
-        className={`${styles.mainWrapper} ${
-          isCollapsed ? styles.marginCollapsed : styles.marginExpanded
-        }`}
+        className={`${styles.mainWrapper} ${isCollapsed ? styles.marginCollapsed : styles.marginExpanded
+          }`}
       >
         {/* Global Authenticated Navbar for all authenticated pages */}
         <AuthenticatedNavbar

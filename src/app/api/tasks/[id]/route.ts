@@ -6,6 +6,7 @@ import { logTaskActivity, isTaskLocked, getTaskLockedResponse } from '@/lib/task
 import { getActiveProjectContext } from '@/lib/active-project';
 import { validateWorkflowTransition, getProjectMember, getProjectPermissions, ProjectRole } from '@/lib/project';
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
+import { createAssignmentNotification } from '@/services/notification/notification.service';
 
 // Updated route with Done Request Approval Workflow & Stale-Client Purging
 export async function GET(
@@ -334,6 +335,17 @@ export async function PUT(
 
       return taskRes;
     }, { maxWait: 5000, timeout: 15000 });
+
+    // Dispatch assignment notification if assignee changed and is set
+    if (updatedTask.assigneeId && oldTask.assigneeId !== updatedTask.assigneeId) {
+      createAssignmentNotification({
+        assigneeId: updatedTask.assigneeId,
+        taskId: updatedTask.id,
+        taskNumber: updatedTask.taskNumber,
+        taskTitle: updatedTask.title,
+        assignedByName: session.user.name || 'User',
+      }).catch((err) => console.error('Assignment notification dispatch error:', err));
+    }
 
     return NextResponse.json({ task: updatedTask });
   } catch (err: unknown) {

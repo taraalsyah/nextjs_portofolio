@@ -45,6 +45,7 @@ model User {
   roleRel             Role?                @relation("UserRole", fields: [roleId], references: [id])
   twoFactorTokens     TwoFactorToken[]
   payments            ProjectPayment[]     @relation("UserPayments")
+  notifications       UserNotification[]   @relation("UserNotifications")
 
   @@index([roleId], map: "users_role_id_fkey")
   @@map("users")
@@ -418,4 +419,21 @@ enum PaymentStatus {
   FAILED
   CANCELLED
   EXPIRED
+}
+
+model UserNotification {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  title      String
+  message    String   @db.Text
+  assignedBy String?  @map("assigned_by")
+  taskId     Int?     @map("task_id")
+  isRead     Boolean  @default(false) @map("is_read")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user       User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, isRead])
+  @@map("user_notifications")
 }

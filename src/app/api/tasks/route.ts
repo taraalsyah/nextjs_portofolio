@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { generateNextTaskNumber, logTaskActivity } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
+import { createAssignmentNotification } from '@/services/notification/notification.service';
 
 export async function GET(req: NextRequest) {
   try {
@@ -256,6 +257,17 @@ export async function POST(req: NextRequest) {
 
       return createdTask;
     }, { maxWait: 5000, timeout: 15000 });
+
+    // Dispatch assignment notification for the target assignee if assigned
+    if (task.assigneeId) {
+      createAssignmentNotification({
+        assigneeId: task.assigneeId,
+        taskId: task.id,
+        taskNumber: task.taskNumber,
+        taskTitle: task.title,
+        assignedByName: session.user.name || 'User',
+      }).catch((err) => console.error('Assignment notification dispatch error:', err));
+    }
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (err: any) {
