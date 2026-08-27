@@ -1,5 +1,16 @@
 import { prisma } from '@/lib/prisma';
 
+export interface UserNotificationItem {
+  id: number;
+  userId: number;
+  title: string;
+  message: string;
+  assignedBy?: string | null;
+  taskId?: number | null;
+  isRead: boolean;
+  createdAt: Date;
+}
+
 export interface CreateAssignmentParams {
   assigneeId: number;
   taskId: number;
@@ -75,7 +86,7 @@ export async function createAssignmentNotification({
 /**
  * Fetch notifications belonging strictly to the specified logged-in userId.
  */
-export async function getUserNotifications(userId: number) {
+export async function getUserNotifications(userId: number): Promise<UserNotificationItem[]> {
   if (!userId) return [];
 
   const userNotif = (prisma as any).userNotification;
