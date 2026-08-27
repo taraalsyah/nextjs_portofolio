@@ -82,7 +82,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     markAsRead(item.id);
     setIsOpen(false);
     if (item.taskId) {
-      router.push('/dashboard/task-management');
+      router.push(`/dashboard/task-management/${item.taskId}`);
     }
   };
 

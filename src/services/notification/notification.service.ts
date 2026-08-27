@@ -162,3 +162,52 @@ export async function markNotificationsAsRead(userId: number, notificationId?: n
     console.error('Failed to mark notifications as read:', err);
   }
 }
+
+export interface CreateDoneRequestNotificationParams {
+  recipientUserId: number;
+  taskId: number;
+  taskTitle: string;
+  requesterName: string;
+}
+
+/**
+ * Creates an in-app notification for Owner/Admin when a task completion request is submitted.
+ */
+export async function createTaskDoneRequestNotification({
+  recipientUserId,
+  taskId,
+  taskTitle,
+  requesterName,
+}: CreateDoneRequestNotificationParams) {
+  if (!recipientUserId) return null;
+
+  const title = 'Task Completion Request';
+  const message = `${requesterName} requested to mark task "${taskTitle}" as Done.`;
+  const userNotif = (prisma as any).userNotification;
+
+  try {
+    if (userNotif) {
+      return await userNotif.create({
+        data: {
+          userId: recipientUserId,
+          title,
+          message,
+          assignedBy: requesterName,
+          taskId: taskId,
+          isRead: false,
+        },
+      });
+    }
+
+    // Raw SQL Fallback if Prisma model is not yet dynamically bound
+    await prisma.$executeRaw`
+      INSERT INTO user_notifications (user_id, title, message, assigned_by, task_id, is_read, created_at)
+      VALUES (${recipientUserId}, ${title}, ${message}, ${requesterName}, ${taskId}, false, NOW())
+    `;
+    return true;
+  } catch (err) {
+    console.error('Failed to create task done request notification:', err);
+    return null;
+  }
+}
+

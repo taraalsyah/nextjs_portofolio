@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { sendEmail } from '@/lib/mail';
 import { formatActivityWIB } from '@/lib/date';
+import { createTaskDoneRequestNotification } from '@/services/notification/notification.service';
 
 interface TaskNotificationParams {
   taskId: number;
@@ -204,6 +205,14 @@ export async function sendTaskDoneNotification({
       `;
 
       for (const member of ownerAndAdmins) {
+        // Send In-App Notification to Notification Bell
+        createTaskDoneRequestNotification({
+          recipientUserId: member.userId,
+          taskId,
+          taskTitle,
+          requesterName: userTitle,
+        }).catch((err) => console.error(`Failed creating done request in-app notification for user ${member.userId}:`, err));
+
         if (member.user?.email) {
           sendEmail({
             to: member.user.email,

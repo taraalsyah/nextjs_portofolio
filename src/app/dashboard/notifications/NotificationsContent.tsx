@@ -49,7 +49,7 @@ export default function NotificationsContent() {
       markAsRead(item.id);
     }
     if (item.taskId) {
-      router.push('/dashboard/task-management');
+      router.push(`/dashboard/task-management/${item.taskId}`);
     }
   };
 
