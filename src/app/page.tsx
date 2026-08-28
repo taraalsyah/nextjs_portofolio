@@ -3,10 +3,14 @@
 import { useState } from 'react';
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/layout/HeroSection";
+import LandingCapabilities from "@/components/landing/LandingCapabilities";
+import LandingFeatures from "@/components/landing/LandingFeatures";
+import LandingPreview from "@/components/landing/LandingPreview";
+import LandingWorkflow from "@/components/landing/LandingWorkflow";
+import LandingValue from "@/components/landing/LandingValue";
+import LandingCTA from "@/components/landing/LandingCTA";
+import LandingFooter from "@/components/landing/LandingFooter";
 import ProjectCard from "@/components/ui/ProjectCard";
-import SkillsGrid from "@/components/ui/SkillsGrid";
-import CertificatesSection from "@/components/layout/CertificatesSection";
-import ContactSection from "@/components/layout/ContactSection";
 import ProjectModal from "@/components/ui/ProjectModal";
 import styles from "./page.module.css";
 
@@ -22,7 +26,7 @@ interface Project {
 
 const PROJECTS: Project[] = [
   {
-    title: "Task Management",
+    title: "Task Management SaaS",
     description: "An enterprise-grade task management system featuring multi-role RBAC permissions, interactive Request-to-Done & Request-to-Close approval workflows, real-time activity logging, automated email notifications, and detailed project tracking.",
     tags: ["Next.js", "TypeScript", "Prisma", "MySQL", "NextAuth"],
     image: "/task_management.png",
@@ -31,8 +35,8 @@ const PROJECTS: Project[] = [
     link: "/dashboard"
   },
   {
-    title: "Nova Stream",
-    description: "High-performance video streaming SaaS platform featuring low-latency playback delivery, customized algorithmic content recommendation systems, interactive library management, user watchlists, and robust analytics controls built into a sleek glassmorphic navigation layout.",
+    title: "Nova Stream SaaS",
+    description: "High-performance video streaming SaaS platform featuring low-latency playback delivery, customized algorithmic content recommendation systems, interactive library management, user watchlists, and robust analytics controls.",
     tags: ["React", "Node.js", "Redis", "AWS"],
     image: "/project3.png",
     images: ["/project3.png", "/project2.png", "/project1.png"],
@@ -41,7 +45,7 @@ const PROJECTS: Project[] = [
   },
   {
     title: "Quantum Ledger",
-    description: "A secure, decentralized finance application focusing on asset management and automated trading strategies. It includes cryptographic ledger integrations, multi-token wallets, interactive balance graphs, and historical transaction tracking layouts.",
+    description: "A secure, decentralized finance application focusing on asset management and automated trading strategies with cryptographic ledger integrations and interactive balance graphs.",
     tags: ["Next.js", "Solidity", "Ether.js", "Tailwind"],
     image: "/project1.png",
     images: ["/project1.png", "/project3.png", "/project2.png"],
@@ -61,12 +65,31 @@ export default function Home() {
 
   return (
     <main className={styles.main}>
+      {/* 1. Navbar */}
       <Navbar />
+
+      {/* 2 & 3. Hero Section & Hero Visual Mockup */}
       <HeroSection />
-      
-      <section id="projects" style={{ padding: '90px 0' }}>
+
+      {/* 4. Social Proof & Core Capabilities */}
+      <LandingCapabilities />
+
+      {/* 5. Features Section */}
+      <LandingFeatures />
+
+      {/* 6. Product Preview Section */}
+      <LandingPreview />
+
+      {/* 7. Workflow Section */}
+      <LandingWorkflow />
+
+      {/* 8. Project Management Value Section */}
+      <LandingValue />
+
+      {/* Featured Projects Showcase (Preserved Functionality) */}
+      <section id="projects" style={{ padding: '90px 0', background: 'var(--background)', borderBottom: '1px solid var(--border)' }}>
         <div className="section-container">
-          <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 3.25rem' }}>
+          <div style={{ textAlign: 'center', maxWidth: '720px', margin: '0 auto 3.25rem' }}>
             <div style={{
               display: 'inline-block',
               padding: '0.4rem 1rem',
@@ -75,23 +98,24 @@ export default function Home() {
               border: '1px solid var(--primary-border)',
               color: 'var(--primary)',
               fontSize: '0.8rem',
-              fontWeight: 600,
+              fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
               marginBottom: '1rem'
             }}>
-              Selected Work
+              FEATURED APPLICATIONS
             </div>
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              Featured <span className="text-gradient">Projects</span>
+            <h2 style={{ fontSize: 'clamp(2rem, 3.5vw, 2.75rem)', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
+              Built for <span className="text-gradient">Real Workplaces</span>
             </h2>
             <p style={{ fontSize: '1.05rem', color: 'var(--secondary-text)', lineHeight: 1.6 }}>
-              Explore key software applications and engineering projects built with modern technologies.
+              Explore our production-ready software systems, SaaS web applications, and project management integrations.
             </p>
           </div>
+
           <div style={{ 
             display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
             gap: '2rem' 
           }}>
             {PROJECTS.map((project, index) => (
@@ -105,44 +129,11 @@ export default function Home() {
         </div>
       </section>
 
-      <section id="skills" style={{ padding: '90px 0', background: 'var(--surface-hover)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)' }}>
-        <div className="section-container">
-          <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 3.25rem' }}>
-            <div style={{
-              display: 'inline-block',
-              padding: '0.4rem 1rem',
-              borderRadius: '100px',
-              background: 'var(--primary-soft)',
-              border: '1px solid var(--primary-border)',
-              color: 'var(--primary)',
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              marginBottom: '1rem'
-            }}>
-              Technical Proficiency
-            </div>
-            <h2 style={{ fontSize: 'clamp(2rem, 4vw, 2.75rem)', fontWeight: 800, color: 'var(--foreground)', letterSpacing: '-0.02em', marginBottom: '1rem' }}>
-              Mastered <span className="text-gradient">Tech Stack</span>
-            </h2>
-            <p style={{ fontSize: '1.05rem', color: 'var(--secondary-text)', lineHeight: 1.6 }}>
-              Technologies and tools I work with to build robust, scalable applications.
-            </p>
-          </div>
-          <SkillsGrid />
-        </div>
-      </section>
+      {/* 9. CTA Section */}
+      <LandingCTA />
 
-      <CertificatesSection />
-
-      <ContactSection />
-
-      <footer style={{ padding: '3.5rem 0', textAlign: 'center', fontSize: '0.9rem', color: 'var(--secondary-text)', borderTop: '1px solid var(--border)', width: '100%', background: 'var(--surface)' }}>
-        <div className="section-container">
-          © 2026 Creative Developer. Built with Next.js and Passion.
-        </div>
-      </footer>
+      {/* 10. Footer */}
+      <LandingFooter />
 
       {/* Project Details Modal */}
       <ProjectModal 

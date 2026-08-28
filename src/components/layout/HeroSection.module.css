@@ -1,107 +1,436 @@
 .hero {
-  min-height: calc(100vh - 60px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 120px 1.5rem 60px;
   position: relative;
+  padding: 140px 0 90px;
+  background: radial-gradient(circle at 75% 20%, rgba(37, 99, 235, 0.06) 0%, transparent 50%),
+              radial-gradient(circle at 10% 80%, rgba(37, 99, 235, 0.04) 0%, transparent 40%),
+              var(--background);
   overflow: hidden;
+  border-bottom: 1px solid var(--border);
 }
 
+.heroGrid {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+/* Left Content Column */
 .content {
-  text-align: center;
-  max-width: 780px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
-.welcome {
-  color: var(--primary);
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.8rem;
-  margin-bottom: 1.25rem;
-  display: inline-block;
-  padding: 0.4rem 1.1rem;
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.9rem;
+  border-radius: 100px;
   background: var(--primary-soft);
   border: 1px solid var(--primary-border);
-  border-radius: 100px;
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.badgeDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
 }
 
 .title {
-  font-size: clamp(2.25rem, 5vw, 3.5rem);
-  line-height: 1.2;
+  font-size: clamp(2.5rem, 4.5vw, 3.75rem);
   font-weight: 800;
-  margin-bottom: 1.5rem;
-  letter-spacing: -0.02em;
+  line-height: 1.12;
+  letter-spacing: -0.03em;
   color: var(--foreground);
+  margin-bottom: 1.25rem;
 }
 
 .description {
-  font-size: 1.05rem;
+  font-size: clamp(1.05rem, 1.8vw, 1.2rem);
+  line-height: 1.6;
   color: var(--secondary-text);
-  max-width: 640px;
-  margin: 0 auto 2.25rem;
-  line-height: 1.65;
+  margin-bottom: 2rem;
+  max-width: 540px;
 }
 
 .actions {
   display: flex;
-  gap: 1rem;
-  justify-content: center;
   align-items: center;
+  gap: 1rem;
+  margin-bottom: 2.25rem;
+  width: 100%;
 }
 
 .primaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.75rem;
   background: var(--primary);
-  border: 1px solid var(--primary-hover);
-  color: #FFFFFF;
-  padding: 0.75rem 1.75rem;
-  border-radius: var(--radius-md);
+  color: #FFFFFF !important;
+  font-size: 1rem;
   font-weight: 600;
-  font-size: 0.92rem;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--primary-hover);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
   transition: var(--transition);
+  text-decoration: none;
 }
 
 .primaryBtn:hover {
   background: var(--primary-hover);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
 }
 
 .secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.85rem 1.6rem;
   background: var(--surface);
-  color: var(--foreground);
-  padding: 0.75rem 1.75rem;
-  border-radius: var(--radius-md);
-  font-size: 0.92rem;
+  color: var(--foreground) !important;
+  font-size: 1rem;
   font-weight: 600;
+  border-radius: var(--radius-md);
   border: 1px solid var(--border);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
   transition: var(--transition);
+  text-decoration: none;
 }
 
 .secondaryBtn:hover {
   background: var(--surface-hover);
   border-color: #CBD5E1;
-  transform: translateY(-1px);
+  color: var(--primary) !important;
 }
 
-@media (max-width: 768px) {
+/* Value & Trust Indicators */
+.trustItems {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  width: 100%;
+}
+
+.trustItem {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.trustCheck {
+  color: var(--success);
+}
+
+/* Right SaaS UI Mockup Frame */
+.mockupContainer {
+  position: relative;
+  width: 100%;
+}
+
+.mockupCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
+  box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.12), 
+              0 0 0 1px rgba(37, 99, 235, 0.05);
+  overflow: hidden;
+  transition: var(--transition);
+}
+
+.mockupHeader {
+  height: 42px;
+  background: #F1F5F9;
+  border-bottom: 1px solid var(--border);
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.dotRed { background: #EF4444; }
+.dotYellow { background: #F59E0B; }
+.dotGreen { background: #10B981; }
+
+.mockupTitle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--secondary-text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mockupBody {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  min-height: 380px;
+}
+
+/* Mockup Sidebar */
+.mockupSidebar {
+  background: #F8FAFC;
+  border-right: 1px solid var(--border);
+  padding: 1rem 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sidebarHeading {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 0.5rem 0.35rem;
+}
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--secondary-text);
+  cursor: pointer;
+}
+
+.sidebarActive {
+  background: #EFF6FF;
+  color: #2563EB;
+  font-weight: 600;
+}
+
+/* Mockup Main View */
+.mockupContent {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.projectOverviewBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #F8FAFC;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+}
+
+.progressLabel {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.progressBarTrack {
+  width: 140px;
+  height: 8px;
+  background: #E2E8F0;
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  width: 72%;
+  background: linear-gradient(90deg, #2563EB 0%, #3B82F6 100%);
+  border-radius: 100px;
+}
+
+/* Task Table Mockup */
+.taskTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.taskTable th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--secondary-text);
+  text-transform: uppercase;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.taskTable td {
+  padding: 0.65rem 0;
+  font-size: 0.82rem;
+  border-bottom: 1px dashed var(--border);
+}
+
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.55rem;
+  border-radius: 100px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.statusBadgeDone {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
+.statusBadgeProgress {
+  background: #EFF6FF;
+  color: #1D4ED8;
+}
+
+.statusBadgeReview {
+  background: #FEF3C7;
+  color: #B45309;
+}
+
+/* Floating Overlay Cards */
+.floatingCard1 {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.floatingCard2 {
+  position: absolute;
+  bottom: -25px;
+  left: -20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  z-index: 10;
+}
+
+.iconBox {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iconBoxSuccess {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.cardVal {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--foreground);
+  line-height: 1.2;
+}
+
+.cardSub {
+  font-size: 0.75rem;
+  color: var(--secondary-text);
+}
+
+@media (max-width: 992px) {
+  .heroGrid {
+    grid-template-columns: 1fr;
+    gap: 3rem;
+  }
+
+  .content {
+    align-items: center;
+    text-align: center;
+  }
+
+  .description {
+    max-width: 100%;
+  }
+
+  .actions {
+    justify-content: center;
+  }
+
+  .trustItems {
+    justify-content: center;
+  }
+
+  .floatingCard1 {
+    right: 10px;
+  }
+
+  .floatingCard2 {
+    left: 10px;
+  }
+}
+
+@media (max-width: 640px) {
   .hero {
-    padding: 100px 1rem 40px;
+    padding: 110px 0 60px;
   }
 
   .actions {
     flex-direction: column;
     width: 100%;
-    max-width: 300px;
-    margin: 0 auto;
-    gap: 0.75rem;
   }
 
   .primaryBtn, .secondaryBtn {
     width: 100%;
-    text-align: center;
+  }
+
+  .mockupBody {
+    grid-template-columns: 1fr;
+  }
+
+  .mockupSidebar {
+    display: none;
+  }
+
+  .floatingCard1, .floatingCard2 {
+    display: none;
   }
 }

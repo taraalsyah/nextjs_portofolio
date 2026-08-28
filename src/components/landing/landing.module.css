@@ -1,0 +1,533 @@
+/* ─── GENERAL LANDING SECTIONS STYLING ─────────────────────────────────────── */
+
+.sectionHeader {
+  text-align: center;
+  max-width: 720px;
+  margin: 0 auto 3.5rem;
+}
+
+.pillBadge {
+  display: inline-block;
+  padding: 0.4rem 1rem;
+  border-radius: 100px;
+  background: var(--primary-soft);
+  border: 1px solid var(--primary-border);
+  color: var(--primary);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: clamp(2rem, 3.5vw, 2.75rem);
+  font-weight: 800;
+  color: var(--foreground);
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  margin-bottom: 1rem;
+}
+
+.sectionSubtitle {
+  font-size: 1.1rem;
+  color: var(--secondary-text);
+  line-height: 1.6;
+}
+
+/* ─── 4. CAPABILITIES / TRUST BAR ─────────────────────────────────────────── */
+.capabilitiesSection {
+  padding: 3rem 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.capabilitiesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5rem;
+}
+
+.capabilityItem {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--secondary-text);
+  transition: var(--transition);
+}
+
+.capabilityItem:hover {
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+.capabilityIcon {
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+}
+
+/* ─── 5. FEATURES SECTION ─────────────────────────────────────────────────── */
+.featuresSection {
+  padding: 100px 0;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.featuresGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+}
+
+.featureCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
+  padding: 2rem;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
+}
+
+.featureCard:hover {
+  border-color: var(--primary-border);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px rgba(37, 99, 235, 0.12);
+}
+
+.featureIconWrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.25rem;
+}
+
+.featureTitle {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.75rem;
+}
+
+.featureDesc {
+  font-size: 0.95rem;
+  color: var(--secondary-text);
+  line-height: 1.6;
+  margin-bottom: 1.25rem;
+}
+
+.featureBullets {
+  list-style: none;
+  padding: 0;
+  margin: auto 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.featureBullet {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+.bulletCheck {
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* ─── 6. PRODUCT PREVIEW SECTION ─────────────────────────────────────────── */
+.previewSection {
+  padding: 100px 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.tabControls {
+  display: flex;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.tabBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: 100px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--secondary-text);
+  background: var(--background);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.tabBtnActive {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary-hover);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
+
+.previewFrame {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  padding: 1.75rem;
+}
+
+/* Kanban Board Preview Grid */
+.kanbanGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.kanbanCol {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.kanbanHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--foreground);
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.kanbanCount {
+  padding: 0.15rem 0.5rem;
+  border-radius: 100px;
+  background: var(--secondary);
+  font-size: 0.72rem;
+}
+
+.kanbanCard {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.kanbanCardTitle {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.kanbanCardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: var(--secondary-text);
+  margin-top: 0.25rem;
+}
+
+/* ─── 7. WORKFLOW SECTION ─────────────────────────────────────────────────── */
+.workflowSection {
+  padding: 100px 0;
+  background: var(--background);
+  border-bottom: 1px solid var(--border);
+}
+
+.workflowGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  position: relative;
+}
+
+.workflowStepCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  position: relative;
+  transition: var(--transition);
+}
+
+.workflowStepCard:hover {
+  border-color: var(--primary-border);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px -6px rgba(37, 99, 235, 0.1);
+}
+
+.stepNumber {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-weight: 800;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1rem;
+  border: 1px solid var(--primary-border);
+}
+
+.stepTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.5rem;
+}
+
+.stepDesc {
+  font-size: 0.88rem;
+  color: var(--secondary-text);
+  line-height: 1.5;
+}
+
+/* ─── 8. VALUE SECTION ────────────────────────────────────────────────────── */
+.valueSection {
+  padding: 100px 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.valueGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+  align-items: center;
+}
+
+.valuePoints {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-top: 2rem;
+}
+
+.valuePoint {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.85rem;
+}
+
+.pointIcon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-soft);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+}
+
+.pointTitle {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin-bottom: 0.25rem;
+}
+
+.pointText {
+  font-size: 0.92rem;
+  color: var(--secondary-text);
+  line-height: 1.5;
+}
+
+/* ─── 9. CTA SECTION ──────────────────────────────────────────────────────── */
+.ctaSection {
+  padding: 90px 0;
+  background: linear-gradient(135deg, #1E40AF 0%, #2563EB 50%, #1D4ED8 100%);
+  color: #FFFFFF;
+  text-align: center;
+}
+
+.ctaBox {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.ctaTitle {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+  font-weight: 800;
+  color: #FFFFFF;
+  letter-spacing: -0.02em;
+  margin-bottom: 1.25rem;
+}
+
+.ctaDesc {
+  font-size: 1.15rem;
+  color: #DBEAFE;
+  margin-bottom: 2.25rem;
+  line-height: 1.6;
+}
+
+.ctaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.95rem 2.25rem;
+  background: #FFFFFF;
+  color: #1E40AF !important;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.ctaBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  background: #F8FAFC;
+}
+
+/* ─── 10. FOOTER ──────────────────────────────────────────────────────────── */
+.footer {
+  background: #0F172A;
+  color: #94A3B8;
+  padding: 80px 0 40px;
+  border-top: 1px solid #1E293B;
+}
+
+.footerGrid {
+  display: grid;
+  grid-template-columns: 2fr repeat(4, 1fr);
+  gap: 2.5rem;
+  margin-bottom: 4rem;
+}
+
+.footerBrand {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.footerLogo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #FFFFFF;
+  text-decoration: none;
+}
+
+.footerLogoText span {
+  color: #3B82F6;
+}
+
+.footerTagline {
+  font-size: 0.92rem;
+  color: #94A3B8;
+  line-height: 1.6;
+  max-width: 300px;
+}
+
+.footerColTitle {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #FFFFFF;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 1.25rem;
+}
+
+.footerLinks {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.footerLinks a {
+  font-size: 0.9rem;
+  color: #94A3B8;
+  transition: var(--transition);
+  text-decoration: none;
+}
+
+.footerLinks a:hover {
+  color: #FFFFFF;
+}
+
+.footerBottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 2rem;
+  border-top: 1px solid #1E293B;
+  font-size: 0.88rem;
+  color: #64748B;
+}
+
+/* ─── RESPONSIVE BREAKPOINTS ──────────────────────────────────────────────── */
+@media (max-width: 992px) {
+  .previewFrame {
+    overflow-x: auto;
+  }
+  .kanbanGrid {
+    min-width: 800px;
+  }
+  .valueGrid {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .footerGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .featuresGrid {
+    grid-template-columns: 1fr;
+  }
+  .workflowGrid {
+    grid-template-columns: 1fr;
+  }
+  .footerGrid {
+    grid-template-columns: 1fr;
+  }
+  .footerBottom {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+}
