@@ -128,7 +128,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <div className={styles.sidebarHeader}>
           <div className={styles.logoArea}>
             <LayoutDashboard className={styles.logoIcon} size={18} />
-            {!isCollapsed && <span className={styles.logoText}>SIGAP-IT</span>}
+            {!isCollapsed && <span className={styles.logoText}>TaskTuntas</span>}
           </div>
           {!isCollapsed && (
             <button
