@@ -30,8 +30,26 @@ const ProjectCard = ({ title, description, tags, image, link, github, onClick }:
       <div className={styles.imageContainer}>
         <img src={image} alt={title} className={styles.image} />
         <div className={styles.overlay} onClick={(e) => e.stopPropagation()}>
-          {link && <a href={link} target="_blank" rel="noopener noreferrer"><ExternalLink size={20} /></a>}
-          {github && <a href={github} target="_blank" rel="noopener noreferrer"><Code size={20} /></a>}
+          {link && (
+            <a
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={link === '/dashboard' ? 'Buka Dashboard Task Management' : `Buka proyek ${title}`}
+            >
+              <ExternalLink size={20} />
+            </a>
+          )}
+          {github && (
+            <a
+              href={github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Buka GitHub Repository ${title}`}
+            >
+              <Code size={20} />
+            </a>
+          )}
         </div>
       </div>
       <div className={styles.content}>

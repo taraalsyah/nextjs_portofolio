@@ -190,6 +190,7 @@ const ContactSection = () => {
               href={method.url}
               target={method.isEmail ? undefined : "_blank"}
               rel={method.isEmail ? undefined : "noopener noreferrer"}
+              aria-label={`${method.name}: ${method.actionText}`}
               variants={itemVariants}
               className={`${styles.card} ${method.colorClass} glass`}
               whileHover={{ 
@@ -205,8 +206,15 @@ const ContactSection = () => {
                   {method.icon}
                 </div>
                 {method.isEmail && (
-                  <button 
+                  <span 
+                    role="button"
+                    tabIndex={0}
                     onClick={handleCopyEmail}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        handleCopyEmail(e as any);
+                      }
+                    }}
                     className={`${styles.copyButton} ${copied ? styles.copySuccess : ''}`}
                     aria-label="Copy email address"
                     title="Copy to clipboard"
@@ -236,7 +244,7 @@ const ContactSection = () => {
                         </motion.span>
                       )}
                     </AnimatePresence>
-                  </button>
+                  </span>
                 )}
               </div>
 
