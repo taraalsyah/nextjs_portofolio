@@ -77,6 +77,9 @@ export const metadata: Metadata = {
   icons: {
     icon: "/favicon.ico",
   },
+  verification: {
+    google: "wiaHX8vBhCWno2ywoH-uBYcqjG6YgAxyzdokOdsOoA4",
+  },
 };
 
 export const viewport: Viewport = {
@@ -111,6 +114,7 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
+        <meta name="google-site-verification" content="wiaHX8vBhCWno2ywoH-uBYcqjG6YgAxyzdokOdsOoA4" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdData) }}
