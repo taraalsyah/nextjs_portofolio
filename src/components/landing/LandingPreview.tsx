@@ -116,14 +116,14 @@ const LandingPreview = () => {
                     Request-to-Done approval flow
                   </div>
                   <div className={styles.kanbanCardFooter}>
-                    <span style={{ color: '#DC2626', fontWeight: 600 }}>High</span>
+                    <span style={{ color: '#B91C1C', fontWeight: 600 }}>High</span>
                     <span>Today</span>
                   </div>
                 </div>
                 <div className={styles.kanbanCard}>
                   <div className={styles.kanbanCardTitle}>Capacitor native safe areas</div>
                   <div className={styles.kanbanCardFooter}>
-                    <span style={{ color: '#2563EB', fontWeight: 600 }}>Medium</span>
+                    <span style={{ color: '#1D4ED8', fontWeight: 600 }}>Medium</span>
                     <span>Tomorrow</span>
                   </div>
                 </div>
@@ -135,21 +135,21 @@ const LandingPreview = () => {
                   <span>DONE</span>
                   <span className={styles.kanbanCount}>3</span>
                 </div>
-                <div className={styles.kanbanCard} style={{ opacity: 0.85 }}>
-                  <div className={styles.kanbanCardTitle} style={{ textDecoration: 'line-through' }}>
+                <div className={styles.kanbanCard}>
+                  <div className={styles.kanbanCardTitle} style={{ textDecoration: 'line-through', opacity: 0.85 }}>
                     NextAuth authentication setup
                   </div>
                   <div className={styles.kanbanCardFooter}>
-                    <span style={{ color: '#16A34A', fontWeight: 600 }}>Completed</span>
+                    <span style={{ color: '#15803D', fontWeight: 600 }}>Completed</span>
                     <span>Aug 25</span>
                   </div>
                 </div>
-                <div className={styles.kanbanCard} style={{ opacity: 0.85 }}>
-                  <div className={styles.kanbanCardTitle} style={{ textDecoration: 'line-through' }}>
+                <div className={styles.kanbanCard}>
+                  <div className={styles.kanbanCardTitle} style={{ textDecoration: 'line-through', opacity: 0.85 }}>
                     Glassmorphism card layout
                   </div>
                   <div className={styles.kanbanCardFooter}>
-                    <span style={{ color: '#16A34A', fontWeight: 600 }}>Completed</span>
+                    <span style={{ color: '#15803D', fontWeight: 600 }}>Completed</span>
                     <span>Aug 26</span>
                   </div>
                 </div>

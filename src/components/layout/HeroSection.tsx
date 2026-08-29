@@ -196,7 +196,7 @@ const HeroSection = () => {
                             Review
                           </span>
                         </td>
-                        <td style={{ color: '#D97706', fontWeight: 600 }}>Medium</td>
+                        <td style={{ color: '#B45309', fontWeight: 600 }}>Medium</td>
                       </tr>
                     </tbody>
                   </table>
