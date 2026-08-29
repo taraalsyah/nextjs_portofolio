@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/layout/HeroSection";
 import LandingCapabilities from "@/components/landing/LandingCapabilities";
@@ -11,8 +12,11 @@ import LandingValue from "@/components/landing/LandingValue";
 import LandingCTA from "@/components/landing/LandingCTA";
 import LandingFooter from "@/components/landing/LandingFooter";
 import ProjectCard from "@/components/ui/ProjectCard";
-import ProjectModal from "@/components/ui/ProjectModal";
 import styles from "./page.module.css";
+
+const ProjectModal = dynamic(() => import('@/components/ui/ProjectModal'), {
+  ssr: false,
+});
 
 interface Project {
   title: string;
