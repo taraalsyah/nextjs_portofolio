@@ -25,7 +25,7 @@ const LandingFooter = () => {
 
           {/* Product Column */}
           <div>
-            <h4 className={styles.footerColTitle}>Product</h4>
+            <h3 className={styles.footerColTitle}>Product</h3>
             <ul className={styles.footerLinks}>
               <li><Link href="/#features">Features</Link></li>
               <li><Link href="/#projects">Projects</Link></li>
@@ -36,7 +36,7 @@ const LandingFooter = () => {
 
           {/* Resources Column */}
           <div>
-            <h4 className={styles.footerColTitle}>Resources</h4>
+            <h3 className={styles.footerColTitle}>Resources</h3>
             <ul className={styles.footerLinks}>
               <li><Link href="/blog">Blog & Guides</Link></li>
               <li><Link href="/dashboard">Dashboard</Link></li>
@@ -47,7 +47,7 @@ const LandingFooter = () => {
 
           {/* Company Column */}
           <div>
-            <h4 className={styles.footerColTitle}>Company</h4>
+            <h3 className={styles.footerColTitle}>Company</h3>
             <ul className={styles.footerLinks}>
               <li><Link href="/#about">About Us</Link></li>
               <li><Link href="/#contact">Contact</Link></li>
@@ -58,7 +58,7 @@ const LandingFooter = () => {
 
           {/* Legal Column */}
           <div>
-            <h4 className={styles.footerColTitle}>Legal</h4>
+            <h3 className={styles.footerColTitle}>Legal</h3>
             <ul className={styles.footerLinks}>
               <li><Link href="/#privacy">Privacy Policy</Link></li>
               <li><Link href="/#terms">Terms of Service</Link></li>

@@ -85,7 +85,7 @@ const LandingValue = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--border)' }}>
               <div>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground)' }}>Core Project Metrics</h4>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--foreground)', margin: 0 }}>Core Project Metrics</h3>
                 <p style={{ fontSize: '0.82rem', color: 'var(--secondary-text)' }}>Active Sprint & Completion Rate</p>
               </div>
               <span style={{ padding: '0.3rem 0.75rem', borderRadius: '100px', background: '#DCFCE7', color: '#15803D', fontSize: '0.78rem', fontWeight: 700 }}>
