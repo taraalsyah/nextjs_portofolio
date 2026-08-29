@@ -12,6 +12,11 @@ import {
   AlertCircle
 } from 'lucide-react';
 
+export const metadata = {
+  title: 'Overview Dashboard',
+  description: 'Ringkasan aktivitas, statistik task, dan status proyek terpusat.',
+};
+
 export default async function DashboardPage() {
   // 1. Verifikasi otorisasi session di backend & ambil ID user terverifikasi
   const sessionUser = await requirePermission('Dashboard', 'View');

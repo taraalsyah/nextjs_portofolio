@@ -3,6 +3,11 @@ import { requirePermission } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import { Settings, Shield, Bell, Database, Mail } from 'lucide-react';
 
+export const metadata = {
+  title: 'Pengaturan Sistem',
+  description: 'Pengaturan konfigurasi sistem dan parameter keamanan.',
+};
+
 export default async function SettingsPage() {
   // 1. Verifikasi otorisasi session di backend & ambil ID user terverifikasi
   const sessionUser = await requirePermission('Settings', 'View');
