@@ -24,10 +24,11 @@ export async function ensureDoneRequestColumns() {
     try {
       await prisma.$executeRawUnsafe(sql);
     } catch (err: any) {
-      // Ignore if column already exists or duplicate column error
+      // Ignore if column already exists or duplicate column error (MySQL 1060 / P2010)
       if (
         err?.message?.includes('Duplicate column') ||
         err?.message?.includes('already exists') ||
+        err?.message?.includes('1060') ||
         err?.code === 'P2010'
       ) {
         // Expected if column already exists
