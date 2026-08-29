@@ -233,7 +233,7 @@ export default function MyTasksPage() {
               <UserCheck size={20} />
             </div>
             <div className={styles.headerTitle}>
-              My Tasks (Task Saya)
+              My Tasks
               <p>Daftar seluruh tugas yang ditugaskan khusus kepada Anda.</p>
             </div>
           </div>

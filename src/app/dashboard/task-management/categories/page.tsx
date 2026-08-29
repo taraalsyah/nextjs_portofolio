@@ -186,7 +186,7 @@ export default function CategoriesPage() {
               <FolderKanban size={20} />
             </div>
             <div className={styles.headerTitle}>
-              Task Categories (Kategori Task)
+              Task Categories
               <p>Kelola kategori tugas untuk pengelompokan pekerjaan yang rapi.</p>
             </div>
           </div>

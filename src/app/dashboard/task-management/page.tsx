@@ -243,7 +243,7 @@ export default function AllTasksPage() {
               <ListTodo size={20} />
             </div>
             <div className={styles.headerTitle}>
-              All Tasks (Manajemen Seluruh Task)
+              All Tasks
               <p>Kelola seluruh daftar task, penugasan, status workflow, dan prioritas.</p>
             </div>
           </div>

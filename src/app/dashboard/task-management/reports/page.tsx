@@ -96,7 +96,7 @@ export default function ReportsPage() {
               <BarChart3 size={20} />
             </div>
             <div className={styles.headerTitle}>
-              Laporan & Statistik Task (Reports & Analytics)
+              Laporan & Statistik Task
               <p>Analisis metrik produktivitas, beban kerja pengguna, dan status penyelesaian task.</p>
             </div>
           </div>
