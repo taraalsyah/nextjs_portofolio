@@ -75,7 +75,14 @@ export const metadata: Metadata = {
     images: ["https://tasktuntas.com/task_management.png"],
   },
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/favicon.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+    ],
+    shortcut: "/favicon.png",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
   verification: {
     google: "wiaHX8vBhCWno2ywoH-uBYcqjG6YgAxyzdokOdsOoA4",
@@ -93,15 +100,17 @@ const jsonLdData = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "TaskTuntas",
-  "operatingSystem": "Web",
+  "operatingSystem": "Web, Android, iOS",
   "applicationCategory": "BusinessApplication",
   "url": "https://tasktuntas.com",
+  "image": "https://tasktuntas.com/favicon.png",
+  "logo": "https://tasktuntas.com/favicon.png",
   "description":
-    "Aplikasi manajemen proyek dan task modern yang dilengkapi dengan fitur RBAC, workflow approval (Request to Done & Request to Close), analisis produktivitas, dan AI Assistant.",
+    "TaskTuntas adalah aplikasi manajemen proyek dan task modern yang dilengkapi dengan fitur RBAC, workflow approval, dan AI Assistant.",
   "offers": {
     "@type": "Offer",
-    "price": "30000",
-    "priceCurrency": "IDR",
+    "price": "0",
+    "priceCurrency": "USD",
   },
 };
 
