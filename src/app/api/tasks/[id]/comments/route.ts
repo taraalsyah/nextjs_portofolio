@@ -4,6 +4,96 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { logTaskActivity, isTaskLocked, getTaskLockedResponse } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
+import { createMentionNotification } from '@/services/notification/notification.service';
+
+/**
+ * Extracts mentions from text and dispatches notifications to valid project members.
+ */
+async function processCommentMentions({
+  taskId,
+  content,
+  actorUserId,
+  actorName,
+}: {
+  taskId: number;
+  content: string;
+  actorUserId: number;
+  actorName: string;
+}) {
+  const mentionMatches = content.match(/@([a-zA-Z0-9_.-]+)/g);
+  if (!mentionMatches || mentionMatches.length === 0) return;
+
+  const rawHandles = Array.from(
+    new Set(mentionMatches.map((m) => m.slice(1).toLowerCase()))
+  );
+
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+    select: {
+      id: true,
+      taskNumber: true,
+      title: true,
+      projectId: true,
+      project: {
+        select: {
+          id: true,
+          projectName: true,
+          members: {
+            select: {
+              userId: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  username: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!task || !task.project) return;
+
+  const members = task.project.members;
+  const matchedUserIds = new Set<number>();
+
+  for (const handle of rawHandles) {
+    for (const member of members) {
+      const user = member.user;
+      if (!user) continue;
+
+      const userUsername = user.username?.toLowerCase();
+      const normalizedName = user.name.toLowerCase().replace(/\s+/g, '');
+      const nameWithUnderscores = user.name.toLowerCase().replace(/\s+/g, '_');
+
+      if (
+        userUsername === handle ||
+        normalizedName === handle ||
+        nameWithUnderscores === handle
+      ) {
+        if (user.id !== actorUserId) {
+          matchedUserIds.add(user.id);
+        }
+      }
+    }
+  }
+
+  const recipientIds = Array.from(matchedUserIds);
+
+  for (const recipientUserId of recipientIds) {
+    await createMentionNotification({
+      recipientUserId,
+      taskId: task.id,
+      taskNumber: task.taskNumber,
+      taskTitle: task.title,
+      commentSnippet: content,
+      actorName,
+    });
+  }
+}
 
 /**
  * Resolves whether the current user can interact with task comments.
@@ -108,6 +198,14 @@ export async function POST(
       newValue: comment.content,
     });
 
+    // 🔔 Process @mentions and notify tagged project members
+    processCommentMentions({
+      taskId: perm.taskId,
+      content: comment.content,
+      actorUserId: perm.sessionUserId,
+      actorName: comment.user.name,
+    }).catch((err) => console.error('Failed to process mentions:', err));
+
     return NextResponse.json({ comment }, { status: 201 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error';
@@ -166,6 +264,14 @@ export async function PUT(
       previousValue: oldComment.content,
       newValue: updatedComment.content,
     });
+
+    // 🔔 Process @mentions on updated comments
+    processCommentMentions({
+      taskId: perm.taskId,
+      content: updatedComment.content,
+      actorUserId: perm.sessionUserId,
+      actorName: updatedComment.user.name,
+    }).catch((err) => console.error('Failed to process mentions on edit:', err));
 
     return NextResponse.json({ comment: updatedComment });
   } catch (err: unknown) {

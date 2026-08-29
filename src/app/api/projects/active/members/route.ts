@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
           select: {
             id: true,
             name: true,
+            username: true,
             email: true,
             image: true,
           },
@@ -40,7 +41,9 @@ export async function GET(req: NextRequest) {
     const users = members.map((m) => ({
       id: m.user.id,
       name: m.user.name,
+      username: m.user.username || m.user.name.toLowerCase().replace(/\s+/g, ''),
       email: m.user.email,
+      image: m.user.image,
       role: m.role,
     }));
 

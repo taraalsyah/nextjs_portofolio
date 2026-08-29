@@ -7,9 +7,11 @@ export interface UserNotificationItem {
   message: string;
   assignedBy?: string | null;
   taskId?: number | null;
+  projectId?: number | null;
   isRead: boolean;
   createdAt: Date;
 }
+
 
 export interface CreateAssignmentParams {
   assigneeId: number;
@@ -93,19 +95,56 @@ export async function getUserNotifications(userId: number): Promise<UserNotifica
 
   try {
     if (userNotif) {
-      return await userNotif.findMany({
+      const items = await userNotif.findMany({
         where: { userId },
         orderBy: { createdAt: 'desc' },
         take: 50,
       });
+
+      const taskIds = items
+        .map((i: any) => i.taskId)
+        .filter((id: any): id is number => typeof id === 'number' && !isNaN(id));
+
+      const taskProjectMap: Record<number, number> = {};
+      if (taskIds.length > 0) {
+        const tasks = await prisma.task.findMany({
+          where: { id: { in: taskIds }, deletedAt: null },
+          select: { id: true, projectId: true },
+        });
+        tasks.forEach((t) => {
+          taskProjectMap[t.id] = t.projectId;
+        });
+      }
+
+      return items.map((i: any) => ({
+        id: i.id,
+        userId: i.userId,
+        title: i.title,
+        message: i.message,
+        assignedBy: i.assignedBy,
+        taskId: i.taskId,
+        projectId: i.taskId ? taskProjectMap[i.taskId] || null : null,
+        isRead: Boolean(i.isRead),
+        createdAt: i.createdAt,
+      }));
     }
 
     // Raw SQL Fallback if Prisma model is not yet dynamically bound
     const rows: any[] = await prisma.$queryRaw`
-      SELECT id, user_id as userId, title, message, assigned_by as assignedBy, task_id as taskId, is_read as isRead, created_at as createdAt
-      FROM user_notifications
-      WHERE user_id = ${userId}
-      ORDER BY created_at DESC
+      SELECT 
+        n.id, 
+        n.user_id as userId, 
+        n.title, 
+        n.message, 
+        n.assigned_by as assignedBy, 
+        n.task_id as taskId, 
+        t.project_id as projectId,
+        n.is_read as isRead, 
+        n.created_at as createdAt
+      FROM user_notifications n
+      LEFT JOIN tasks t ON n.task_id = t.id
+      WHERE n.user_id = ${userId}
+      ORDER BY n.created_at DESC
       LIMIT 50
     `;
     return rows.map((r) => ({
@@ -115,6 +154,7 @@ export async function getUserNotifications(userId: number): Promise<UserNotifica
       message: r.message,
       assignedBy: r.assignedBy,
       taskId: r.taskId,
+      projectId: r.projectId ? Number(r.projectId) : null,
       isRead: Boolean(r.isRead),
       createdAt: r.createdAt,
     }));
@@ -210,4 +250,58 @@ export async function createTaskDoneRequestNotification({
     return null;
   }
 }
+
+export interface CreateMentionNotificationParams {
+  recipientUserId: number;
+  taskId: number;
+  taskNumber: string;
+  taskTitle: string;
+  commentSnippet: string;
+  actorName: string;
+}
+
+/**
+ * Creates an in-app notification when a user is mentioned (@tagged) in a task comment.
+ */
+export async function createMentionNotification({
+  recipientUserId,
+  taskId,
+  taskNumber,
+  taskTitle,
+  commentSnippet,
+  actorName,
+}: CreateMentionNotificationParams) {
+  if (!recipientUserId) return null;
+
+  const title = `${actorName} mentioned you in a comment`;
+  const cleanSnippet = commentSnippet.length > 100 ? commentSnippet.slice(0, 100) + '...' : commentSnippet;
+  const message = `Task ${taskNumber}: "${taskTitle}"\nComment: ${cleanSnippet}`;
+  const userNotif = (prisma as any).userNotification;
+
+  try {
+    if (userNotif) {
+      return await userNotif.create({
+        data: {
+          userId: recipientUserId,
+          title,
+          message,
+          assignedBy: actorName,
+          taskId: taskId,
+          isRead: false,
+        },
+      });
+    }
+
+    // Raw SQL Fallback if Prisma model is not yet dynamically bound
+    await prisma.$executeRaw`
+      INSERT INTO user_notifications (user_id, title, message, assigned_by, task_id, is_read, created_at)
+      VALUES (${recipientUserId}, ${title}, ${message}, ${actorName}, ${taskId}, false, NOW())
+    `;
+    return true;
+  } catch (err) {
+    console.error('Failed to create mention notification:', err);
+    return null;
+  }
+}
+
 

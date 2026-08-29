@@ -8,6 +8,7 @@ export interface NotificationItem {
   message: string;
   assignedBy?: string | null;
   taskId?: number | null;
+  projectId?: number | null;
   createdAt: Date | string;
   isRead: boolean;
   type?: 'info' | 'success' | 'warning' | 'alert' | 'assignment';
@@ -31,6 +32,7 @@ export function useNotifications() {
             message: n.message,
             assignedBy: n.assignedBy,
             taskId: n.taskId,
+            projectId: n.projectId,
             createdAt: n.createdAt,
             isRead: Boolean(n.isRead),
             type: 'assignment',
@@ -65,8 +67,15 @@ export function useNotifications() {
     };
 
     window.addEventListener('notifications_updated', handleUpdate);
+
+    // Periodic real-time sync every 6 seconds
+    const pollInterval = setInterval(() => {
+      fetchServerNotifications();
+    }, 6000);
+
     return () => {
       window.removeEventListener('notifications_updated', handleUpdate);
+      clearInterval(pollInterval);
     };
   }, [fetchServerNotifications]);
 

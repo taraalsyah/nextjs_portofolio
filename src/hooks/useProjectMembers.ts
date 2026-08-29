@@ -18,7 +18,9 @@ export function notifyProjectMembersUpdated(projectId?: number) {
 export interface ProjectUser {
   id: number;
   name: string;
+  username?: string;
   email?: string;
+  image?: string;
   role?: string;
 }
 

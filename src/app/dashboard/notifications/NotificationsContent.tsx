@@ -6,6 +6,9 @@ import { Bell, CheckCheck, Inbox, ArrowUpRight } from 'lucide-react';
 import styles from './notifications.module.css';
 import { useNotifications, NotificationItem } from '@/hooks/useNotifications';
 
+import { useProjectContext } from '@/context/ProjectContext';
+import { useSafeToast } from '@/components/ui/Toast';
+
 function formatRelativeTime(dateInput: Date | string): string {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   const now = new Date();
@@ -34,6 +37,8 @@ function formatRelativeTime(dateInput: Date | string): string {
 
 export default function NotificationsContent() {
   const router = useRouter();
+  const { activeProject, switchProject } = useProjectContext();
+  const toastCtx = useSafeToast();
   const [activeTab, setActiveTab] = useState<'all' | 'unread' | 'read'>('all');
   const { notifications, unreadCount, markAllAsRead, markAsRead, deleteNotification } =
     useNotifications();
@@ -44,13 +49,40 @@ export default function NotificationsContent() {
     return true;
   });
 
-  const handleCardClick = (item: NotificationItem) => {
+  const handleCardClick = async (item: NotificationItem) => {
     if (!item.isRead) {
       markAsRead(item.id);
     }
-    if (item.taskId) {
-      router.push(`/dashboard/task-management/${item.taskId}`);
+    if (!item.taskId) return;
+
+    // Resolve target projectId
+    let targetProjectId = item.projectId;
+    if (!targetProjectId) {
+      try {
+        const res = await fetch(`/api/tasks/${item.taskId}`);
+        if (res.ok) {
+          const data = await res.json();
+          targetProjectId = data.task?.projectId;
+        }
+      } catch (e) {
+        console.error('Failed to resolve task project context:', e);
+      }
     }
+
+    const currentActiveId = activeProject?.projectId;
+
+    // If notification belongs to a different project, switch project first
+    if (targetProjectId && currentActiveId !== targetProjectId) {
+      const success = await switchProject(targetProjectId);
+      if (!success) {
+        if (toastCtx?.showToast) {
+          toastCtx.showToast('Anda tidak memiliki akses ke proyek task ini.', 'error');
+        }
+        return;
+      }
+    }
+
+    router.push(`/dashboard/task-management/${item.taskId}`);
   };
 
   return (

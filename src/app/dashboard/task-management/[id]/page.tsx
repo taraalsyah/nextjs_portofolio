@@ -14,6 +14,7 @@ import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
+import { useProjectContext } from '@/context/ProjectContext';
 import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 import type { ProjectPermissions } from '@/lib/project';
 import type { TaskStatus, TaskPriority } from '@/lib/task';
@@ -131,6 +132,7 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   const { data: session, status } = useSession();
   const router = useRouter();
   const toastCtx = useSafeToast();
+  const { activeProject, switchProject } = useProjectContext();
 
   const [task, setTask] = useState<TaskDetail | null>(null);
   const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
@@ -208,6 +210,11 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
         const data = await res.json();
         setTask(data.task);
         setUserPermissions(data.userPermissions);
+
+        // Auto sync active project if task belongs to a different project
+        if (data.task?.projectId && activeProject?.projectId !== data.task.projectId) {
+          switchProject(data.task.projectId).catch(() => {});
+        }
       }
     } finally {
       setIsLoading(false);

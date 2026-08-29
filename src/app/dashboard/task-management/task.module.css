@@ -155,6 +155,71 @@
   user-select: none;
 }
 
+.mentionContainer {
+  position: relative;
+  width: 100%;
+}
+
+.mentionDropdown {
+  position: fixed;
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.22);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  padding: 0.35rem;
+  box-sizing: border-box;
+}
+
+.mentionItem {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.45rem 0.65rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: var(--transition);
+  font-size: 0.82rem;
+  color: var(--foreground);
+}
+
+.mentionItem:hover,
+.mentionItemActive {
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.mentionAvatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.mentionBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.45rem;
+  border-radius: 100px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  color: #1D4ED8;
+  font-weight: 600;
+  font-size: 0.82rem;
+  margin: 0 0.15rem;
+}
+
+
 .searchWrapper {
   position: relative;
   width: 100%;

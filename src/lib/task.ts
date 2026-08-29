@@ -170,13 +170,29 @@ export async function logTaskActivity({
     },
   });
 
-  await db.activityLog.create({
-    data: {
-      userId,
-      action: globalAction,
-      description: `Task Activity: ${description}`,
-      ipAddress,
-      userAgent,
-    },
-  });
+  try {
+    await db.activityLog.create({
+      data: {
+        userId,
+        action: globalAction,
+        description: `Task Activity: ${description}`,
+        ipAddress,
+        userAgent,
+      },
+    });
+  } catch (err) {
+    try {
+      await prisma.activityLog.create({
+        data: {
+          userId,
+          action: globalAction,
+          description: `Task Activity: ${description}`,
+          ipAddress,
+          userAgent,
+        },
+      });
+    } catch {
+      // Safe fallback: non-critical audit log failure should not crash main transaction
+    }
+  }
 }
