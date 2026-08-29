@@ -46,9 +46,31 @@ model User {
   twoFactorTokens     TwoFactorToken[]
   payments            ProjectPayment[]     @relation("UserPayments")
   notifications       UserNotification[]   @relation("UserNotifications")
+  accounts            Account[]            @relation("UserAccounts")
 
   @@index([roleId], map: "users_role_id_fkey")
   @@map("users")
+}
+
+model Account {
+  id                Int      @id @default(autoincrement())
+  userId            Int      @map("user_id")
+  type              String   @default("oauth")
+  provider          String
+  providerAccountId String   @map("provider_account_id")
+  email             String?
+  accessToken       String?  @map("access_token") @db.Text
+  refreshToken      String?  @map("refresh_token") @db.Text
+  expiresAt         Int?     @map("expires_at")
+  idToken           String?  @map("id_token") @db.Text
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  user              User     @relation("UserAccounts", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
 }
 
 model TwoFactorToken {

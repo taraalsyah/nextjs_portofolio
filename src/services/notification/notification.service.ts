@@ -105,7 +105,7 @@ export async function getUserNotifications(userId: number): Promise<UserNotifica
         .map((i: any) => i.taskId)
         .filter((id: any): id is number => typeof id === 'number' && !isNaN(id));
 
-      const taskProjectMap: Record<number, number> = {};
+      const taskProjectMap: Record<number, number | null> = {};
       if (taskIds.length > 0) {
         const tasks = await prisma.task.findMany({
           where: { id: { in: taskIds }, deletedAt: null },
@@ -116,17 +116,18 @@ export async function getUserNotifications(userId: number): Promise<UserNotifica
         });
       }
 
-      return items.map((i: any) => ({
-        id: i.id,
-        userId: i.userId,
-        title: i.title,
-        message: i.message,
-        assignedBy: i.assignedBy,
-        taskId: i.taskId,
-        projectId: i.taskId ? taskProjectMap[i.taskId] || null : null,
+      const mappedItems: UserNotificationItem[] = items.map((i: any) => ({
+        id: Number(i.id),
+        userId: Number(i.userId),
+        title: String(i.title || ''),
+        message: String(i.message || ''),
+        assignedBy: i.assignedBy || null,
+        taskId: i.taskId ? Number(i.taskId) : null,
+        projectId: i.taskId ? (taskProjectMap[i.taskId] ?? null) : null,
         isRead: Boolean(i.isRead),
-        createdAt: i.createdAt,
+        createdAt: new Date(i.createdAt),
       }));
+      return mappedItems;
     }
 
     // Raw SQL Fallback if Prisma model is not yet dynamically bound
@@ -147,17 +148,18 @@ export async function getUserNotifications(userId: number): Promise<UserNotifica
       ORDER BY n.created_at DESC
       LIMIT 50
     `;
-    return rows.map((r) => ({
-      id: r.id,
-      userId: r.userId,
-      title: r.title,
-      message: r.message,
-      assignedBy: r.assignedBy,
-      taskId: r.taskId,
+    const sqlItems: UserNotificationItem[] = rows.map((r: any) => ({
+      id: Number(r.id),
+      userId: Number(r.userId),
+      title: String(r.title || ''),
+      message: String(r.message || ''),
+      assignedBy: r.assignedBy || null,
+      taskId: r.taskId ? Number(r.taskId) : null,
       projectId: r.projectId ? Number(r.projectId) : null,
       isRead: Boolean(r.isRead),
-      createdAt: r.createdAt,
+      createdAt: new Date(r.createdAt),
     }));
+    return sqlItems;
   } catch (err) {
     console.error('Failed to fetch user notifications:', err);
     return [];

@@ -18,7 +18,8 @@ import {
   Shield,
   ListTodo,
   FolderSync,
-  Bot
+  Bot,
+  Link2
 } from 'lucide-react';
 import styles from './layout.module.css';
 import { FullPageLoader } from '@/components/ui/loading';
@@ -42,6 +43,7 @@ const MENU_ITEMS: MenuItem[] = [
   { name: 'Role Management', href: '/dashboard/role-management', icon: Shield },
   { name: 'Activity History', href: '/dashboard/activity-history', icon: History },
   { name: 'Profile', href: '/dashboard/profile', icon: User },
+  { name: 'Account Linked', href: '/dashboard/account-linked', icon: Link2 },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
