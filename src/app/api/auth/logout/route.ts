@@ -26,9 +26,9 @@ export async function POST(request: Request) {
     // Opsi domain yang mungkin digunakan di production oleh NextAuth
     const domainOptions = [
       '', // Tanpa domain (default host)
-      '.taraalsyah.online', // Wildcard parent domain
-      'taraalsyah.online', // Parent domain
-      'blog.taraalsyah.online' // Subdomain blog
+      '.tasktuntas.com', // Wildcard parent domain
+      'tasktuntas.com', // Parent domain
+      'blog.tasktuntas.com' // Subdomain blog
     ];
 
     // Daftar semua nama cookie NextAuth (secure & non-secure)

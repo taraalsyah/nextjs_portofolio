@@ -75,7 +75,7 @@ export class PasswordResetService {
     });
 
     // 5. Buat reset URL menggunakan FRONTEND_URL env var
-    const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://taraalsyah.online';
+    const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://tasktuntas.com';
     const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
 
     // 6. Kirim email berisi link reset password (bukan OTP)

@@ -40,7 +40,7 @@ function baseTemplate(title: string, body: string): string {
               <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;line-height:1.6;">
                 ⚠️ <strong>Jangan pernah membagikan kode OTP kepada siapa pun.</strong><br/>
                 Email ini dikirim secara otomatis. Jangan membalas email ini.<br/>
-                &copy; ${new Date().getFullYear()} Tara Alsyah &mdash; taraalsyah.online
+                &copy; ${new Date().getFullYear()} Tasktuntas &mdash; tasktuntas.com
               </p>
             </td>
           </tr>

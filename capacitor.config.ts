@@ -3,7 +3,7 @@ const config = {
   appName: 'Task Management',
   webDir: 'public',
   server: {
-    url: 'https://taraalsyah.online/login',
+    url: 'https://tasktuntas.com/login',
     androidScheme: 'https',
     cleartext: true,
     allowNavigation: ['*'],

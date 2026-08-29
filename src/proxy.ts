@@ -24,11 +24,11 @@ export async function proxy(request: NextRequest) {
     }
   }
   
-  // Mendapatkan host dari header request (misal: blog.taraalsyah.online)
+  // Mendapatkan host dari header request (misal: blog.tasktuntas.com)
   const host = request.headers.get('host') || '';
 
-  // Deteksi jika request menggunakan domain subdomain blog.taraalsyah.online
-  if (host === 'blog.taraalsyah.online') {
+  // Deteksi jika request menggunakan domain subdomain blog.tasktuntas.com
+  if (host === 'blog.tasktuntas.com') {
     // Hindari double prefix jika path sudah diawali dengan /blog
     if (!url.pathname.startsWith('/blog')) {
       url.pathname = `/blog${url.pathname}`;
@@ -38,7 +38,7 @@ export async function proxy(request: NextRequest) {
     return NextResponse.rewrite(url);
   }
 
-  // Izinkan request ke domain utama taraalsyah.online atau domain lain berjalan normal
+  // Izinkan request ke domain utama tasktuntas.com atau domain lain berjalan normal
   return NextResponse.next();
 }
 

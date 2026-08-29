@@ -57,9 +57,9 @@ export async function destroySession() {
   // Opsi domain yang mungkin digunakan di production oleh NextAuth
   const domainOptions = [
     {}, // Default host
-    { domain: '.taraalsyah.online' }, // Wildcard parent domain
-    { domain: 'taraalsyah.online' }, // Parent domain
-    { domain: 'blog.taraalsyah.online' } // Subdomain blog
+    { domain: '.tasktuntas.com' }, // Wildcard parent domain
+    { domain: 'tasktuntas.com' }, // Parent domain
+    { domain: 'blog.tasktuntas.com' } // Subdomain blog
   ];
 
   // Daftar semua nama cookie NextAuth (secure & non-secure)
