@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
+import { getPusherClient } from '@/lib/pusher-client';
 
 export interface NotificationItem {
   id: string;
@@ -17,6 +19,7 @@ export interface NotificationItem {
 const STORAGE_KEY = 'user_notifications_v1';
 
 export function useNotifications() {
+  const { data: session } = useSession();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -59,6 +62,7 @@ export function useNotifications() {
     setLoading(false);
   }, []);
 
+  // Initial fetch and window event listener
   useEffect(() => {
     fetchServerNotifications();
 
@@ -68,16 +72,59 @@ export function useNotifications() {
 
     window.addEventListener('notifications_updated', handleUpdate);
 
-    // Periodic real-time sync every 6 seconds
-    const pollInterval = setInterval(() => {
-      fetchServerNotifications();
-    }, 6000);
-
     return () => {
       window.removeEventListener('notifications_updated', handleUpdate);
-      clearInterval(pollInterval);
     };
   }, [fetchServerNotifications]);
+
+  // Realtime Pusher subscription per logged-in user channel: private-user-{userId}
+  useEffect(() => {
+    const userId = (session?.user as any)?.id;
+    if (!userId) return;
+
+    const channelName = `private-user-${userId}`;
+    let client: any = null;
+
+    try {
+      client = getPusherClient();
+      const channel = client.subscribe(channelName);
+
+      channel.bind('notification:new', (data: any) => {
+        if (!data) return;
+
+        const newNotif: NotificationItem = {
+          id: String(data.id),
+          title: String(data.title || ''),
+          message: String(data.message || ''),
+          assignedBy: data.assignedBy || null,
+          taskId: data.taskId ? Number(data.taskId) : null,
+          projectId: data.projectId ? Number(data.projectId) : null,
+          createdAt: data.createdAt || new Date().toISOString(),
+          isRead: Boolean(data.isRead),
+          type: 'assignment',
+        };
+
+        setNotifications((prev) => {
+          // Idempotency check: prevent duplicate notifications
+          if (prev.some((n) => String(n.id) === String(newNotif.id))) {
+            return prev;
+          }
+          return [newNotif, ...prev];
+        });
+      });
+
+      return () => {
+        try {
+          channel.unbind('notification:new');
+          client.unsubscribe(channelName);
+        } catch {
+          // noop
+        }
+      };
+    } catch (err) {
+      console.warn('[Pusher Client Connection Warning]:', err);
+    }
+  }, [session?.user]);
 
   const markAllAsRead = async () => {
     // Optimistic update

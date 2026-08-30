@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { sendRealtimeNotification } from '@/lib/notifications/realtime';
 
 export interface UserNotificationItem {
   id: number;
@@ -52,7 +53,7 @@ export async function createAssignmentNotification({
         return existing;
       }
 
-      return await userNotif.create({
+      const created = await userNotif.create({
         data: {
           userId: assigneeId,
           title,
@@ -62,6 +63,10 @@ export async function createAssignmentNotification({
           isRead: false,
         },
       });
+
+      // Realtime Pusher Trigger
+      sendRealtimeNotification(assigneeId, created);
+      return created;
     }
 
     // Raw SQL Fallback if Prisma model is not yet dynamically bound
@@ -78,6 +83,17 @@ export async function createAssignmentNotification({
       INSERT INTO user_notifications (user_id, title, message, assigned_by, task_id, is_read, created_at)
       VALUES (${assigneeId}, ${title}, ${message}, ${assignedByName}, ${taskId}, false, NOW())
     `;
+
+    sendRealtimeNotification(assigneeId, {
+      userId: assigneeId,
+      title,
+      message,
+      assignedBy: assignedByName,
+      taskId: taskId,
+      isRead: false,
+      createdAt: new Date(),
+    });
+
     return true;
   } catch (err) {
     console.error('Failed to create assignment notification:', err);
@@ -229,7 +245,7 @@ export async function createTaskDoneRequestNotification({
 
   try {
     if (userNotif) {
-      return await userNotif.create({
+      const created = await userNotif.create({
         data: {
           userId: recipientUserId,
           title,
@@ -239,6 +255,9 @@ export async function createTaskDoneRequestNotification({
           isRead: false,
         },
       });
+
+      sendRealtimeNotification(recipientUserId, created);
+      return created;
     }
 
     // Raw SQL Fallback if Prisma model is not yet dynamically bound
@@ -246,6 +265,17 @@ export async function createTaskDoneRequestNotification({
       INSERT INTO user_notifications (user_id, title, message, assigned_by, task_id, is_read, created_at)
       VALUES (${recipientUserId}, ${title}, ${message}, ${requesterName}, ${taskId}, false, NOW())
     `;
+
+    sendRealtimeNotification(recipientUserId, {
+      userId: recipientUserId,
+      title,
+      message,
+      assignedBy: requesterName,
+      taskId: taskId,
+      isRead: false,
+      createdAt: new Date(),
+    });
+
     return true;
   } catch (err) {
     console.error('Failed to create task done request notification:', err);
@@ -282,7 +312,7 @@ export async function createMentionNotification({
 
   try {
     if (userNotif) {
-      return await userNotif.create({
+      const created = await userNotif.create({
         data: {
           userId: recipientUserId,
           title,
@@ -292,6 +322,9 @@ export async function createMentionNotification({
           isRead: false,
         },
       });
+
+      sendRealtimeNotification(recipientUserId, created);
+      return created;
     }
 
     // Raw SQL Fallback if Prisma model is not yet dynamically bound
@@ -299,11 +332,23 @@ export async function createMentionNotification({
       INSERT INTO user_notifications (user_id, title, message, assigned_by, task_id, is_read, created_at)
       VALUES (${recipientUserId}, ${title}, ${message}, ${actorName}, ${taskId}, false, NOW())
     `;
+
+    sendRealtimeNotification(recipientUserId, {
+      userId: recipientUserId,
+      title,
+      message,
+      assignedBy: actorName,
+      taskId: taskId,
+      isRead: false,
+      createdAt: new Date(),
+    });
+
     return true;
   } catch (err) {
     console.error('Failed to create mention notification:', err);
     return null;
   }
 }
+
 
 

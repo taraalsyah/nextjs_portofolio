@@ -1,0 +1,52 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/lib/auth';
+import { pusherServer } from '@/lib/pusher-server';
+
+export async function POST(req: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const userId = parseInt((session.user as any).id, 10);
+  if (isNaN(userId)) {
+    return NextResponse.json({ error: 'Unauthorized: Invalid user session' }, { status: 401 });
+  }
+
+  try {
+    let socketId = '';
+    let channelName = '';
+
+    const contentType = req.headers.get('content-type') || '';
+
+    if (contentType.includes('application/x-www-form-urlencoded')) {
+      const formData = await req.formData();
+      socketId = formData.get('socket_id') as string;
+      channelName = formData.get('channel_name') as string;
+    } else {
+      const body = await req.json().catch(() => ({}));
+      socketId = body.socket_id;
+      channelName = body.channel_name;
+    }
+
+    if (!socketId || !channelName) {
+      return NextResponse.json({ error: 'Missing socket_id or channel_name' }, { status: 400 });
+    }
+
+    // Security Check: User is strictly authorized ONLY to subscribe to their own channel private-user-{userId}
+    const expectedChannel = `private-user-${userId}`;
+    if (channelName !== expectedChannel) {
+      console.warn(
+        `[Pusher Auth Security] User #${userId} attempted unauthorized subscription to channel "${channelName}". Forbidden.`
+      );
+      return NextResponse.json({ error: 'Forbidden: Access to this channel is denied' }, { status: 403 });
+    }
+
+    const authResponse = pusherServer.authorizeChannel(socketId, channelName);
+    return NextResponse.json(authResponse);
+  } catch (err: any) {
+    console.error('[Pusher Auth API Error]:', err);
+    return NextResponse.json({ error: 'Failed to authorize Pusher channel' }, { status: 500 });
+  }
+}
