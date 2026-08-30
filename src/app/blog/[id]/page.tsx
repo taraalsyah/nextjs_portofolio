@@ -188,6 +188,39 @@ export default async function BlogPostPage({ params }: Props) {
                 return <hr key={idx} style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '2rem 0' }} />;
               }
 
+              if (text.startsWith('|')) {
+                const rows = text.split('\n').filter(row => !row.includes('---'));
+                const headers = rows[0]?.split('|').map(cell => cell.trim()).filter(Boolean) || [];
+                const bodyRows = rows.slice(1).map(row => row.split('|').map(cell => cell.trim()).filter(Boolean));
+
+                return (
+                  <div key={idx} style={{ overflowX: 'auto', margin: '1.5rem 0' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)' }}>
+                      <thead>
+                        <tr style={{ background: 'var(--primary-soft)', borderBottom: '2px solid var(--border)' }}>
+                          {headers.map((h, i) => (
+                            <th key={i} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 700, fontSize: '0.92rem' }}>
+                              {h.replace(/\*\*/g, '')}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {bodyRows.map((r, rIdx) => (
+                          <tr key={rIdx} style={{ borderBottom: '1px solid var(--border)', background: rIdx % 2 === 1 ? 'var(--background)' : 'var(--surface)' }}>
+                            {r.map((c, cIdx) => (
+                              <td key={cIdx} style={{ padding: '0.75rem 1rem', fontSize: '0.92rem' }}>
+                                {c.replace(/\*\*/g, '')}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              }
+
               if (text.startsWith('* ') || text.startsWith('- ')) {
                 const items = text.split('\n').map(item => item.replace(/^[\*\-]\s*/, ''));
                 return (
