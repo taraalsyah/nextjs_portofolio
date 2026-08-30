@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Inbox, ChevronRight, UserCheck } from 'lucide-react';
+import { Bell, Inbox, ChevronRight, UserCheck, X } from 'lucide-react';
 import styles from './NotificationBell.module.css';
 import { useNotifications, NotificationItem } from '@/hooks/useNotifications';
 import { useProjectContext } from '@/context/ProjectContext';
@@ -46,8 +46,27 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
 }) => {
   const router = useRouter();
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [activeToast, setActiveToast] = useState<NotificationItem | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { notifications, unreadCount, markAllAsRead, markAsRead } = useNotifications();
+  const { notifications, unreadCount, markAllAsRead, markAsRead, latestRealtimeToast } = useNotifications();
+
+  // Sync activeToast when a new realtime notification arrives via Pusher
+  useEffect(() => {
+    if (latestRealtimeToast) {
+      setActiveToast(latestRealtimeToast);
+    }
+  }, [latestRealtimeToast]);
+
+  // Auto-hide toast after 4 seconds (does NOT mark notification as read)
+  useEffect(() => {
+    if (!activeToast) return;
+
+    const timer = setTimeout(() => {
+      setActiveToast(null);
+    }, 4000);
+
+    return () => clearTimeout(timer);
+  }, [activeToast]);
 
   const displayBadge = () => {
     if (unreadCount === 0) return null;
@@ -85,6 +104,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
 
   const handleItemClick = async (item: NotificationItem) => {
     markAsRead(item.id);
+    setActiveToast(null);
     setIsOpen(false);
 
     if (!item.taskId) return;
@@ -123,6 +143,41 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
 
   return (
     <div className={styles.container} ref={containerRef}>
+      {/* Realtime Toast Popup (Positioned Above Notification Bell) */}
+      {activeToast && (
+        <div
+          className={styles.toastPopup}
+          onClick={() => handleItemClick(activeToast)}
+          role="alert"
+          aria-live="polite"
+        >
+          <div className={styles.toastHeader}>
+            <div className={styles.toastTitleArea}>
+              <Bell className={styles.toastIcon} size={14} />
+              <span className={styles.toastTitle}>{activeToast.title}</span>
+            </div>
+            <button
+              type="button"
+              className={styles.toastCloseBtn}
+              onClick={(e) => {
+                e.stopPropagation();
+                setActiveToast(null);
+              }}
+              aria-label="Tutup notifikasi"
+              title="Tutup"
+            >
+              <X size={14} />
+            </button>
+          </div>
+          <p className={styles.toastMessage}>{activeToast.message}</p>
+          {activeToast.assignedBy && (
+            <span className={styles.toastAssignedBy}>
+              Assigned by: {activeToast.assignedBy}
+            </span>
+          )}
+        </div>
+      )}
+
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}

@@ -350,3 +350,104 @@
     left: 0;
   }
 }
+
+/* ─── REALTIME TOAST POPUP (ABOVE BELL) ─────────────────────────────────────── */
+.toastPopup {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  width: 290px;
+  max-width: calc(100vw - 32px);
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-left: 4px solid var(--primary, #2563eb);
+  border-radius: var(--radius-lg, 8px);
+  box-shadow: 0 12px 28px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+  z-index: 1100;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  cursor: pointer;
+  animation: toastSlideUp 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: var(--transition);
+}
+
+.toastPopup:hover {
+  background: var(--surface-hover, #f8fafc);
+  transform: translateY(-2px);
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.toastHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.toastTitleArea {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.toastIcon {
+  color: var(--primary, #2563eb);
+  flex-shrink: 0;
+}
+
+.toastTitle {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--foreground, #0f172a);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.toastCloseBtn {
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground, #64748b);
+  cursor: pointer;
+  padding: 0.15rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.toastCloseBtn:hover {
+  background: var(--surface-muted, #f1f5f9);
+  color: var(--foreground, #0f172a);
+}
+
+.toastMessage {
+  font-size: 0.76rem;
+  color: var(--secondary-text, #64748b);
+  line-height: 1.35;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.toastAssignedBy {
+  font-size: 0.7rem;
+  color: var(--primary, #2563eb);
+  font-weight: 500;
+}
+

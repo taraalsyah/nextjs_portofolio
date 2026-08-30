@@ -21,6 +21,7 @@ const STORAGE_KEY = 'user_notifications_v1';
 export function useNotifications() {
   const { data: session } = useSession();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [latestRealtimeToast, setLatestRealtimeToast] = useState<NotificationItem | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   const fetchServerNotifications = useCallback(async () => {
@@ -111,6 +112,9 @@ export function useNotifications() {
           }
           return [newNotif, ...prev];
         });
+
+        // Trigger toast ONLY for newly arrived realtime events
+        setLatestRealtimeToast(newNotif);
       });
 
       return () => {
@@ -180,8 +184,10 @@ export function useNotifications() {
     notifications,
     unreadCount,
     loading,
+    latestRealtimeToast,
     markAllAsRead,
     markAsRead,
     deleteNotification,
   };
 }
+
