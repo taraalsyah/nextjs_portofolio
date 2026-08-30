@@ -8,8 +8,8 @@ self.addEventListener('push', function (event) {
     const title = data.title || 'TaskTuntas Notification';
     const options = {
       body: data.message || '',
-      icon: data.icon || '/icon-192x192.png',
-      badge: data.badge || '/badge-72x72.png',
+      icon: data.icon || '/favicon.png',
+      badge: data.badge || '/favicon.png',
       data: {
         url: data.url || '/dashboard/notifications',
         notificationId: data.notificationId || null,

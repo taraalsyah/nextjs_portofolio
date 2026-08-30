@@ -55,10 +55,26 @@ export async function subscribeUserToPush(): Promise<{
     return { success: false, error: 'Web Push tidak didukung pada browser ini.' };
   }
 
-  const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  let vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+
+  if (!vapidPublicKey || vapidPublicKey.includes('PLACEHOLDER')) {
+    try {
+      const resKey = await fetch('/api/push/vapid-public-key');
+      if (resKey.ok) {
+        const dataKey = await resKey.json();
+        if (dataKey.publicKey && !dataKey.publicKey.includes('PLACEHOLDER')) {
+          vapidPublicKey = dataKey.publicKey;
+        }
+      }
+    } catch {
+      // noop
+    }
+  }
+
   if (!vapidPublicKey || vapidPublicKey.includes('PLACEHOLDER')) {
     return { success: false, error: 'VAPID public key belum dikonfigurasi pada environment.' };
   }
+
 
   try {
     const permission = await Notification.requestPermission();

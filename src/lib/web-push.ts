@@ -52,12 +52,16 @@ export interface WebPushPayload {
 export async function sendWebPushNotification(payload: WebPushPayload): Promise<void> {
   const { userId, notification, type = 'TASK_ASSIGNED', url } = payload;
 
+  console.log(`[Web Push Log] Invoked for User #${userId}, type: ${type}`);
+
   // Filter priority: send Web Push ONLY for high priority notification types
   if (type && !HIGH_PRIORITY_PUSH_TYPES.includes(type as any)) {
+    console.log(`[Web Push Log] Notification type "${type}" is low priority. Skipping Web Push.`);
     return;
   }
 
   if (!ensureVapidConfigured()) {
+    console.warn('[Web Push Log] VAPID is not properly configured. Skipping Web Push.');
     return;
   }
 
@@ -67,7 +71,10 @@ export async function sendWebPushNotification(payload: WebPushPayload): Promise<
       where: { userId: Number(userId) },
     });
 
+    console.log(`[Web Push Log] Found ${subscriptions ? subscriptions.length : 0} device subscription(s) for User #${userId}`);
+
     if (!subscriptions || subscriptions.length === 0) {
+      console.log(`[Web Push Log] User #${userId} has 0 device subscriptions. User must click "📱 Aktifkan HP" in Notification Bell on their device.`);
       return;
     }
 
@@ -90,8 +97,8 @@ export async function sendWebPushNotification(payload: WebPushPayload): Promise<
       taskId: notification.taskId ? String(notification.taskId) : null,
       projectId: notification.projectId ? String(notification.projectId) : null,
       url: targetUrl,
-      icon: '/icon-192x192.png',
-      badge: '/badge-72x72.png',
+      icon: '/favicon.png',
+      badge: '/favicon.png',
     });
 
     // Send push notification to each subscribed device
@@ -106,6 +113,7 @@ export async function sendWebPushNotification(payload: WebPushPayload): Promise<
 
       try {
         await webpush.sendNotification(pushSubscription, pushPayload);
+        console.log(`[Web Push Log] Successfully sent push notification to subscription #${sub.id}`);
       } catch (err: any) {
         // If subscription is expired or unsubscribed (HTTP 404 / 410 Gone), remove from database
         if (err.statusCode === 404 || err.statusCode === 410) {
@@ -113,11 +121,12 @@ export async function sendWebPushNotification(payload: WebPushPayload): Promise<
             await (prisma as any).pushSubscription.delete({
               where: { id: sub.id },
             });
+            console.log(`[Web Push Log] Removed expired subscription #${sub.id} from DB`);
           } catch {
             // noop
           }
         } else {
-          console.error(`[Web Push Error] Failed to send push to sub ${sub.id}:`, err.message || err);
+          console.error(`[Web Push Error] Failed to send push to sub #${sub.id}:`, err.message || err);
         }
       }
     });
@@ -127,3 +136,4 @@ export async function sendWebPushNotification(payload: WebPushPayload): Promise<
     console.error('[Web Push Exception]:', err);
   }
 }
+
