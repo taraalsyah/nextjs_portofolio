@@ -8,6 +8,11 @@ export interface BlogPost {
   readTime: string;
   image: string;
   featured?: boolean;
+  seoTitle?: string;
+  metaDescription?: string;
+  keywords?: string[];
+  ogTitle?: string;
+  ogDescription?: string;
   content: string;
 }
 
@@ -179,14 +184,29 @@ Dengan workflow yang jelas, pembagian tanggung jawab yang terstruktur, dan infor
 `
   },
   {
-    id: "cara-memantau-progress-project-real-time",
+    id: "cara-memantau-progress-project-secara-real-time",
     title: "Cara Memantau Progress Project secara Real-Time",
-    snippet: "Pelajari cara memantau perkembangan proyek dan task secara real-time. Gunakan Kanban board, penentuan prioritas, notifikasi, dan workflow approval untuk visibilitas tim yang lebih baik.",
+    snippet: "Pelajari cara memantau progress project secara real-time, mengetahui status task, memantau pekerjaan tim, dan mengelola project lebih terstruktur.",
     category: "Productivity",
     tag: "REAL-TIME MONITORING",
     date: "August 30, 2026",
     readTime: "7 min read",
     image: "/task_management_2.png",
+    seoTitle: "Cara Memantau Progress Project secara Real-Time | TaskTuntas",
+    metaDescription: "Pelajari cara memantau progress project secara real-time, mengetahui status task, memantau pekerjaan tim, dan mengelola project lebih terstruktur.",
+    keywords: [
+      "cara memantau progress project",
+      "monitoring project secara real-time",
+      "cara monitoring project",
+      "memantau progress project",
+      "project progress tracking",
+      "software project management",
+      "aplikasi project management",
+      "monitoring pekerjaan tim",
+      "cara mengelola project"
+    ],
+    ogTitle: "Cara Memantau Progress Project secara Real-Time",
+    ogDescription: "Ketahui cara memantau task, progress tim, deadline, dan status project secara real-time dengan sistem project management yang terstruktur.",
     content: `
 Mengetahui progress project bukan hanya soal melihat apakah sebuah pekerjaan sudah selesai atau belum. Dalam project yang melibatkan banyak anggota tim, kita juga perlu mengetahui **task apa yang sedang dikerjakan, siapa yang mengerjakan, apa yang tertunda, dan pekerjaan mana yang membutuhkan perhatian segera.**
 

@@ -22,17 +22,24 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     };
   }
 
+  const title = post.seoTitle || post.title;
+  const description = post.metaDescription || post.snippet;
+  const ogTitle = post.ogTitle || post.title;
+  const ogDescription = post.ogDescription || description;
+
   return {
-    title: post.title,
-    description: post.snippet,
+    title,
+    description,
+    keywords: post.keywords,
     alternates: {
       canonical: `https://tasktuntas.com/blog/${post.id}`,
     },
     openGraph: {
-      title: post.title,
-      description: post.snippet,
+      title: ogTitle,
+      description: ogDescription,
       url: `https://tasktuntas.com/blog/${post.id}`,
       type: "article",
+      siteName: "TaskTuntas",
       images: [
         {
           url: `https://tasktuntas.com${post.image}`,
@@ -42,8 +49,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card: "summary_large_image",
-      title: post.title,
-      description: post.snippet,
+      title: ogTitle,
+      description: ogDescription,
       images: [`https://tasktuntas.com${post.image}`],
     },
   };
