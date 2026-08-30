@@ -148,6 +148,39 @@
   gap: 0.5rem;
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.pushToggleBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  color: var(--muted-foreground, #64748b);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0.2rem 0.45rem;
+  border-radius: var(--radius-sm, 4px);
+  transition: var(--transition);
+}
+
+.pushToggleBtn:hover {
+  background: var(--surface-hover, #f8fafc);
+  color: var(--foreground, #0f172a);
+}
+
+.pushActive {
+  background: var(--success-soft, #ecfdf5);
+  border-color: var(--success-border, #a7f3d0);
+  color: var(--success, #059669);
+}
+
+
 .panelTitle {
   font-size: 0.85rem;
   font-weight: 700;

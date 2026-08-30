@@ -47,6 +47,7 @@ model User {
   payments            ProjectPayment[]     @relation("UserPayments")
   notifications       UserNotification[]   @relation("UserNotifications")
   accounts            Account[]            @relation("UserAccounts")
+  pushSubscriptions   PushSubscription[]   @relation("UserPushSubscriptions")
 
   @@index([roleId], map: "users_role_id_fkey")
   @@map("users")
@@ -459,3 +460,19 @@ model UserNotification {
   @@index([userId, isRead])
   @@map("user_notifications")
 }
+
+model PushSubscription {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  endpoint  String   @unique @db.VarChar(500)
+  p256dh    String   @db.Text
+  auth      String   @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation("UserPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+

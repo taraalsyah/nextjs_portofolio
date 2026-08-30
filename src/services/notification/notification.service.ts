@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import { sendRealtimeNotification } from '@/lib/notifications/realtime';
+import { sendWebPushNotification } from '@/lib/web-push';
 
 export interface UserNotificationItem {
   id: number;
@@ -64,8 +65,16 @@ export async function createAssignmentNotification({
         },
       });
 
-      // Realtime Pusher Trigger
+      // Layer 1: Realtime Pusher Trigger (When website active)
       sendRealtimeNotification(assigneeId, created);
+
+      // Layer 2: Web Push Notification (Device/HP push when website inactive)
+      sendWebPushNotification({
+        userId: assigneeId,
+        notification: created,
+        type: 'TASK_ASSIGNED',
+      });
+
       return created;
     }
 
@@ -84,7 +93,8 @@ export async function createAssignmentNotification({
       VALUES (${assigneeId}, ${title}, ${message}, ${assignedByName}, ${taskId}, false, NOW())
     `;
 
-    sendRealtimeNotification(assigneeId, {
+    const fallbackNotif = {
+      id: Date.now(),
       userId: assigneeId,
       title,
       message,
@@ -92,6 +102,13 @@ export async function createAssignmentNotification({
       taskId: taskId,
       isRead: false,
       createdAt: new Date(),
+    };
+
+    sendRealtimeNotification(assigneeId, fallbackNotif);
+    sendWebPushNotification({
+      userId: assigneeId,
+      notification: fallbackNotif,
+      type: 'TASK_ASSIGNED',
     });
 
     return true;
@@ -257,6 +274,11 @@ export async function createTaskDoneRequestNotification({
       });
 
       sendRealtimeNotification(recipientUserId, created);
+      sendWebPushNotification({
+        userId: recipientUserId,
+        notification: created,
+        type: 'TASK_REQUEST_DONE',
+      });
       return created;
     }
 
@@ -266,7 +288,8 @@ export async function createTaskDoneRequestNotification({
       VALUES (${recipientUserId}, ${title}, ${message}, ${requesterName}, ${taskId}, false, NOW())
     `;
 
-    sendRealtimeNotification(recipientUserId, {
+    const fallbackNotif = {
+      id: Date.now(),
       userId: recipientUserId,
       title,
       message,
@@ -274,6 +297,13 @@ export async function createTaskDoneRequestNotification({
       taskId: taskId,
       isRead: false,
       createdAt: new Date(),
+    };
+
+    sendRealtimeNotification(recipientUserId, fallbackNotif);
+    sendWebPushNotification({
+      userId: recipientUserId,
+      notification: fallbackNotif,
+      type: 'TASK_REQUEST_DONE',
     });
 
     return true;
@@ -324,6 +354,11 @@ export async function createMentionNotification({
       });
 
       sendRealtimeNotification(recipientUserId, created);
+      sendWebPushNotification({
+        userId: recipientUserId,
+        notification: created,
+        type: 'MENTION',
+      });
       return created;
     }
 
@@ -333,7 +368,8 @@ export async function createMentionNotification({
       VALUES (${recipientUserId}, ${title}, ${message}, ${actorName}, ${taskId}, false, NOW())
     `;
 
-    sendRealtimeNotification(recipientUserId, {
+    const fallbackNotif = {
+      id: Date.now(),
       userId: recipientUserId,
       title,
       message,
@@ -341,6 +377,13 @@ export async function createMentionNotification({
       taskId: taskId,
       isRead: false,
       createdAt: new Date(),
+    };
+
+    sendRealtimeNotification(recipientUserId, fallbackNotif);
+    sendWebPushNotification({
+      userId: recipientUserId,
+      notification: fallbackNotif,
+      type: 'MENTION',
     });
 
     return true;
@@ -349,6 +392,7 @@ export async function createMentionNotification({
     return null;
   }
 }
+
 
 
 

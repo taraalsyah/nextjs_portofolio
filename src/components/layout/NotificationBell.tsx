@@ -3,11 +3,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Bell, Inbox, ChevronRight, UserCheck, X } from 'lucide-react';
+import { Bell, Inbox, ChevronRight, UserCheck, X, Smartphone } from 'lucide-react';
 import styles from './NotificationBell.module.css';
 import { useNotifications, NotificationItem } from '@/hooks/useNotifications';
 import { useProjectContext } from '@/context/ProjectContext';
 import { useSafeToast } from '@/components/ui/Toast';
+import {
+  getPushSubscriptionStatus,
+  subscribeUserToPush,
+  unsubscribeUserFromPush,
+} from '@/lib/push-client';
 
 function formatRelativeTime(dateInput: Date | string): string {
   const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
@@ -47,8 +52,42 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const router = useRouter();
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [activeToast, setActiveToast] = useState<NotificationItem | null>(null);
+  const [isPushSubscribed, setIsPushSubscribed] = useState<boolean>(false);
+  const [pushLoading, setPushLoading] = useState<boolean>(false);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const { notifications, unreadCount, markAllAsRead, markAsRead, latestRealtimeToast } = useNotifications();
+  const { activeProject, switchProject } = useProjectContext();
+  const toastCtx = useSafeToast();
+
+  // Check Web Push subscription status on mount
+  useEffect(() => {
+    getPushSubscriptionStatus().then((status) => {
+      setIsPushSubscribed(status.isSubscribed);
+    });
+  }, []);
+
+  const handleTogglePush = async () => {
+    setPushLoading(true);
+    if (isPushSubscribed) {
+      const res = await unsubscribeUserFromPush();
+      if (res.success) {
+        setIsPushSubscribed(false);
+        if (toastCtx?.showToast) toastCtx.showToast('Notifikasi HP dinonaktifkan.', 'info');
+      } else {
+        if (toastCtx?.showToast) toastCtx.showToast(res.error || 'Gagal menonaktifkan.', 'error');
+      }
+    } else {
+      const res = await subscribeUserToPush();
+      if (res.success) {
+        setIsPushSubscribed(true);
+        if (toastCtx?.showToast) toastCtx.showToast('Notifikasi HP berhasil diaktifkan!', 'success');
+      } else {
+        if (toastCtx?.showToast) toastCtx.showToast(res.error || 'Gagal mengaktifkan notifikasi.', 'error');
+      }
+    }
+    setPushLoading(false);
+  };
 
   // Sync activeToast when a new realtime notification arrives via Pusher
   useEffect(() => {
@@ -98,9 +137,6 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [isOpen]);
-
-  const { activeProject, switchProject } = useProjectContext();
-  const toastCtx = useSafeToast();
 
   const handleItemClick = async (item: NotificationItem) => {
     markAsRead(item.id);
@@ -216,17 +252,30 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
                 <span className={styles.headerBadge}>{unreadCount} Baru</span>
               )}
             </div>
-            {unreadCount > 0 && (
+            <div className={styles.headerActions}>
               <button
                 type="button"
-                onClick={markAllAsRead}
-                className={styles.markAllBtn}
-                title="Tandai semua telah dibaca"
+                onClick={handleTogglePush}
+                disabled={pushLoading}
+                className={`${styles.pushToggleBtn} ${isPushSubscribed ? styles.pushActive : ''}`}
+                title={isPushSubscribed ? 'Matikan Notifikasi HP' : 'Aktifkan Notifikasi HP'}
               >
-                Mark all as read
+                <Smartphone size={13} />
+                <span>{isPushSubscribed ? 'Notifikasi HP Aktif' : 'Aktifkan HP'}</span>
               </button>
-            )}
+              {unreadCount > 0 && (
+                <button
+                  type="button"
+                  onClick={markAllAsRead}
+                  className={styles.markAllBtn}
+                  title="Tandai semua telah dibaca"
+                >
+                  Mark all as read
+                </button>
+              )}
+            </div>
           </div>
+
 
           {/* Notification List */}
           <div className={styles.notificationList}>
