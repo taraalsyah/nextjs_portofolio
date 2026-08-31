@@ -13,10 +13,12 @@ export interface OverdueTaskResultItem {
 
 export interface ProcessOverdueResult {
   success: boolean;
-  checkedCount: number;
-  notifiedCount: number;
-  totalEmailsSent: number;
-  details: OverdueTaskResultItem[];
+  checked: number;
+  overdue: number;
+  emailsSent: number;
+  emailsFailed: number;
+  skipped: number;
+  details?: OverdueTaskResultItem[];
 }
 
 function formatIndonesianDate(date: Date | null): string {
@@ -28,6 +30,7 @@ function formatIndonesianDate(date: Date | null): string {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
+      timeZone: 'Asia/Jakarta',
     }).format(new Date(date));
   } catch {
     return new Date(date).toISOString().slice(0, 16).replace('T', ' ');
@@ -36,20 +39,63 @@ function formatIndonesianDate(date: Date | null): string {
 
 export class TaskOverdueService {
   /**
-   * Pengecekan otomatis dan pengiriman email notifikasi overdue task.
-   * Hanya mengirim email jika:
-   * 1. Due date sudah terlampaui (dueDate < now).
-   * 2. Status belum DONE atau CLOSED.
-   * 3. Belum pernah dikirimi email overdue (overdueNotifiedAt IS NULL).
-   * 4. Task tidak di-delete / locked.
+   * Automatic check and email notifications for overdue tasks.
+   * Only processes tasks where:
+   * 1. Has due date (dueDate IS NOT NULL).
+   * 2. Due date has passed (dueDate < now).
+   * 3. Status is not DONE (status != 'DONE').
+   * 4. overdueNotifiedAt IS NULL.
+   * 5. Task is not deleted or locked.
    *
-   * Recipient (Owner & Assignee) di-deduplikasi sehingga jika user-nya sama, hanya menerima 1 email.
+   * Recipient logic:
+   * - All Users with role Admin.
+   * - Task Assignee.
+   * - Deduplicated by normalized email.
+   * - Concurrency atomic claim lock to prevent race conditions.
    */
   async processOverdueTasks(): Promise<ProcessOverdueResult> {
     const now = new Date();
-    const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000';
+    const baseUrl = process.env.FRONTEND_URL || process.env.NEXTAUTH_URL || 'https://tasktuntas.com';
 
-    // Fetch overdue tasks eligible for notification
+    console.log('[CRON] Overdue task check started');
+
+    // 1. Fetch all Admin users
+    const adminUsers = await prisma.user.findMany({
+      where: {
+        OR: [
+          { role: { equals: 'admin' } },
+          { role: { equals: 'Admin' } },
+          { role: { equals: 'ADMIN' } },
+          { role: { equals: 'superadmin' } },
+          { role: { equals: 'Super Admin' } },
+          { roleRel: { name: { contains: 'admin' } } },
+          { roleRel: { name: { contains: 'Admin' } } },
+        ],
+        NOT: {
+          email: '',
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+    });
+
+    // 2. Count total checked tasks (non-deleted, has dueDate, status != 'DONE')
+    const checkedCount = await prisma.task.count({
+      where: {
+        dueDate: {
+          not: null,
+        },
+        deletedAt: null,
+        status: {
+          notIn: ['DONE', 'Done', 'done'],
+        },
+      },
+    });
+
+    // 3. Fetch overdue tasks eligible for notification
     const overdueTasks = await prisma.task.findMany({
       where: {
         dueDate: {
@@ -57,7 +103,7 @@ export class TaskOverdueService {
         },
         overdueNotifiedAt: null,
         status: {
-          notIn: ['DONE', 'CLOSED'],
+          notIn: ['DONE', 'Done', 'done'],
         },
         isLocked: false,
         deletedAt: null,
@@ -70,7 +116,9 @@ export class TaskOverdueService {
           select: { id: true, name: true, email: true },
         },
         project: {
-          include: {
+          select: {
+            id: true,
+            projectName: true,
             owner: {
               select: { id: true, name: true, email: true },
             },
@@ -79,83 +127,148 @@ export class TaskOverdueService {
       },
     });
 
+    const overdueCount = overdueTasks.length;
+    const skippedCount = Math.max(0, checkedCount - overdueCount);
+
+    console.log(`[CRON] Checked: ${checkedCount} tasks`);
+    console.log(`[CRON] Overdue: ${overdueCount} tasks`);
+
     const details: OverdueTaskResultItem[] = [];
-    let notifiedCount = 0;
     let totalEmailsSent = 0;
+    let totalEmailsFailed = 0;
 
     for (const task of overdueTasks) {
-      const owner = task.createdBy || task.project?.owner;
-      const assignee = task.assignee;
+      try {
+        // Collect recipient users: All Admins + Task Assignee
+        const rawRecipients: Array<{ id: number; name: string; email: string }> = [...adminUsers];
 
-      // Collect recipient email mapping to avoid duplicate emails for the same user
-      const recipientMap = new Map<string, string>(); // email -> name
-
-      if (owner?.email) {
-        recipientMap.set(owner.email.toLowerCase().trim(), owner.name || 'Owner');
-      }
-
-      if (assignee?.email) {
-        recipientMap.set(assignee.email.toLowerCase().trim(), assignee.name || 'Assignee');
-      }
-
-      const formattedDueDate = formatIndonesianDate(task.dueDate);
-      const ownerName = owner?.name || 'Owner';
-      const assigneeName = assignee?.name || 'Belum di-assign (Unassigned)';
-      const taskDetailUrl = `${baseUrl}/dashboard/task-management`;
-
-      let taskEmailsSent = 0;
-      const sentRecipients: string[] = [];
-
-      for (const [email, name] of recipientMap.entries()) {
-        try {
-          const res = await emailService.sendOverdueTaskEmail({
-            to: email,
-            recipientName: name,
-            taskNumber: task.taskNumber,
-            taskTitle: task.title,
-            assigneeName,
-            ownerName,
-            dueDate: formattedDueDate,
-            status: task.status,
-            taskDetailUrl,
+        if (task.assignee && task.assignee.email) {
+          rawRecipients.push({
+            id: task.assignee.id,
+            name: task.assignee.name || 'Assignee',
+            email: task.assignee.email,
           });
-
-          if (res.success) {
-            taskEmailsSent++;
-            sentRecipients.push(email);
-          }
-        } catch (err) {
-          console.error(`[TaskOverdueService] Gagal mengirim email overdue ke ${email} untuk task ${task.taskNumber}:`, err);
         }
+
+        // Deduplicate recipients by normalized email
+        const uniqueRecipientsMap = new Map<string, { id: number; name: string; email: string }>();
+
+        for (const recipient of rawRecipients) {
+          if (!recipient.email || typeof recipient.email !== 'string') continue;
+          const normalizedEmail = recipient.email.toLowerCase().trim();
+          if (!normalizedEmail || !normalizedEmail.includes('@')) continue;
+
+          if (!uniqueRecipientsMap.has(normalizedEmail)) {
+            uniqueRecipientsMap.set(normalizedEmail, {
+              id: recipient.id,
+              name: recipient.name || 'User',
+              email: normalizedEmail,
+            });
+          }
+        }
+
+        const uniqueRecipients = Array.from(uniqueRecipientsMap.values());
+
+        // Scenario F / No recipients case: Do NOT mark sent if no valid email recipients
+        if (uniqueRecipients.length === 0) {
+          console.log(`[CRON] Skip task ${task.taskNumber} (ID: ${task.id}): Tidak ada recipient email yang valid.`);
+          continue;
+        }
+
+        // Atomic claim lock to protect against concurrent cron executions
+        const claimResult = await prisma.task.updateMany({
+          where: {
+            id: task.id,
+            overdueNotifiedAt: null,
+          },
+          data: {
+            overdueNotifiedAt: now,
+          },
+        });
+
+        if (claimResult.count === 0) {
+          // Task was already claimed by a concurrent process
+          console.log(`[CRON] Task ${task.taskNumber} already claimed by another cron execution.`);
+          continue;
+        }
+
+        const formattedDueDate = formatIndonesianDate(task.dueDate);
+        const ownerName = task.createdBy?.name || task.project?.owner?.name || 'Owner';
+        const assigneeName = task.assignee?.name || 'Belum di-assign (Unassigned)';
+        const projectName = task.project?.projectName || 'Tidak ada project';
+        const taskDetailUrl = `${baseUrl}/dashboard/task-management`;
+
+        let taskEmailsSent = 0;
+        let taskEmailsFailed = 0;
+        const sentRecipients: string[] = [];
+
+        for (const recipient of uniqueRecipients) {
+          try {
+            const res = await emailService.sendOverdueTaskEmail({
+              to: recipient.email,
+              recipientName: recipient.name,
+              taskNumber: task.taskNumber,
+              taskTitle: task.title,
+              assigneeName,
+              ownerName,
+              projectName,
+              priority: task.priority || 'MEDIUM',
+              dueDate: formattedDueDate,
+              status: task.status,
+              taskDetailUrl,
+            });
+
+            if (res.success) {
+              taskEmailsSent++;
+              sentRecipients.push(recipient.email);
+            } else {
+              taskEmailsFailed++;
+            }
+          } catch (err: any) {
+            taskEmailsFailed++;
+            console.error(`[CRON] Failed task ID: ${task.taskNumber}`);
+            console.error(`[CRON] Error sending email to ${recipient.email}:`, err?.message || err);
+          }
+        }
+
+        totalEmailsSent += taskEmailsSent;
+        totalEmailsFailed += taskEmailsFailed;
+
+        // If no email was successfully sent, rollback overdueNotifiedAt so it can be retried
+        if (taskEmailsSent === 0) {
+          await prisma.task.update({
+            where: { id: task.id },
+            data: { overdueNotifiedAt: null },
+          });
+          console.log(`[CRON] Task ${task.taskNumber}: Semua email gagal dikirim. Resetting overdueNotifiedAt ke NULL.`);
+        }
+
+        details.push({
+          taskId: task.id,
+          taskNumber: task.taskNumber,
+          title: task.title,
+          dueDate: formattedDueDate,
+          status: task.status,
+          recipients: sentRecipients,
+          sentSuccess: taskEmailsSent > 0,
+        });
+      } catch (taskErr: any) {
+        console.error(`[CRON] Failed task ID: ${task.taskNumber}`);
+        console.error(`[CRON] Error processing task ${task.id}:`, taskErr?.message || taskErr);
       }
-
-      // Record overdue_notified_at to prevent repeated notification on future scheduler runs
-      await prisma.task.update({
-        where: { id: task.id },
-        data: {
-          overdueNotifiedAt: now,
-        },
-      });
-
-      notifiedCount++;
-      totalEmailsSent += taskEmailsSent;
-
-      details.push({
-        taskId: task.id,
-        taskNumber: task.taskNumber,
-        title: task.title,
-        dueDate: formattedDueDate,
-        status: task.status,
-        recipients: sentRecipients,
-        sentSuccess: taskEmailsSent > 0,
-      });
     }
+
+    console.log(`[CRON] Emails sent: ${totalEmailsSent}`);
+    console.log(`[CRON] Emails failed: ${totalEmailsFailed}`);
+    console.log('[CRON] Overdue task check completed');
 
     return {
       success: true,
-      checkedCount: overdueTasks.length,
-      notifiedCount,
-      totalEmailsSent,
+      checked: checkedCount,
+      overdue: overdueCount,
+      emailsSent: totalEmailsSent,
+      emailsFailed: totalEmailsFailed,
+      skipped: skippedCount,
       details,
     };
   }

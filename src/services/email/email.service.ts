@@ -180,6 +180,8 @@ export class EmailService {
     dueDate: string;
     status: string;
     taskDetailUrl: string;
+    projectName?: string;
+    priority?: string;
   }): Promise<EmailResult> {
     const subject = `[Task Overdue] Task "${params.taskTitle}" telah melewati deadline`;
 
@@ -205,12 +207,20 @@ export class EmailService {
                 <td style="padding:4px 0;font-weight:600;color:#111827;">${params.taskTitle}</td>
               </tr>
               <tr>
+                <td style="padding:4px 0;color:#6b7280;font-weight:600;">Project:</td>
+                <td style="padding:4px 0;font-weight:600;color:#111827;">${params.projectName || 'Tidak ada project'}</td>
+              </tr>
+              <tr>
                 <td style="padding:4px 0;color:#6b7280;font-weight:600;">Due Date:</td>
                 <td style="padding:4px 0;font-weight:700;color:#b91c1c;">${params.dueDate}</td>
               </tr>
               <tr>
                 <td style="padding:4px 0;color:#6b7280;font-weight:600;">Status:</td>
                 <td style="padding:4px 0;font-weight:600;color:#4b5563;">${params.status}</td>
+              </tr>
+              <tr>
+                <td style="padding:4px 0;color:#6b7280;font-weight:600;">Priority:</td>
+                <td style="padding:4px 0;font-weight:600;color:#4b5563;">${params.priority || 'MEDIUM'}</td>
               </tr>
               <tr>
                 <td style="padding:4px 0;color:#6b7280;font-weight:600;">Assignee:</td>
