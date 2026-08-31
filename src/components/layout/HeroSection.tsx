@@ -62,7 +62,7 @@ const HeroSection = () => {
               <Link href="/register" className={styles.primaryBtn}>
                 Get Started <ArrowRight size={18} />
               </Link>
-              <Link href="/login" className={styles.secondaryBtn}>
+              <Link href="/explore-demo" className={styles.secondaryBtn}>
                 <Play size={15} fill="currentColor" /> Explore Demo
               </Link>
             </motion.div>
