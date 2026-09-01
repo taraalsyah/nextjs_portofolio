@@ -5,6 +5,7 @@ import { X, Check } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
 import { DatePicker } from '@/components/ui/DatePicker';
+import { TimePicker } from '@/components/ui/TimePicker';
 
 interface TaskFormModalProps {
   isOpen: boolean;
@@ -29,6 +30,23 @@ const PRIORITY_FORM_OPTIONS: CustomDropdownOption[] = [
   { value: 'CRITICAL', label: 'Critical', dotColor: '#f43f5e', color: 'hsl(350, 95%, 82%)', bgColor: 'hsla(350, 90%, 60%, 0.2)', borderColor: 'hsla(350, 90%, 60%, 0.35)' },
 ];
 
+function parseDateParts(dateInput?: string | null): { dateStr: string; timeStr: string } {
+  if (!dateInput) return { dateStr: '', timeStr: '' };
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return { dateStr: '', timeStr: '' };
+
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  const hh = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+
+  return {
+    dateStr: `${yyyy}-${mm}-${dd}`,
+    timeStr: `${hh}:${min}`,
+  };
+}
+
 export function TaskFormModal({
   isOpen,
   onClose,
@@ -45,7 +63,9 @@ export function TaskFormModal({
   const [categoryId, setCategoryId] = useState('');
   const [tags, setTags] = useState('');
   const [startDate, setStartDate] = useState('');
+  const [startTime, setStartTime] = useState('09:00');
   const [dueDate, setDueDate] = useState('');
+  const [dueTime, setDueTime] = useState('17:00');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -58,8 +78,14 @@ export function TaskFormModal({
       setAssigneeId(initialData.assigneeId ? String(initialData.assigneeId) : '');
       setCategoryId(initialData.categoryId ? String(initialData.categoryId) : '');
       setTags(initialData.tags || '');
-      setStartDate(initialData.startDate ? initialData.startDate.split('T')[0] : '');
-      setDueDate(initialData.dueDate ? initialData.dueDate.split('T')[0] : '');
+
+      const startParts = parseDateParts(initialData.startDate);
+      setStartDate(startParts.dateStr);
+      setStartTime(startParts.timeStr || '09:00');
+
+      const dueParts = parseDateParts(initialData.dueDate);
+      setDueDate(dueParts.dateStr);
+      setDueTime(dueParts.timeStr || '17:00');
     } else {
       setTitle('');
       setDescription('');
@@ -69,7 +95,9 @@ export function TaskFormModal({
       setCategoryId('');
       setTags('');
       setStartDate('');
+      setStartTime('09:00');
       setDueDate('');
+      setDueTime('17:00');
     }
     setError(null);
   }, [initialData, isOpen]);
@@ -95,8 +123,21 @@ export function TaskFormModal({
       setError('Deskripsi task wajib diisi.');
       return;
     }
-    if (startDate && dueDate && new Date(dueDate) < new Date(startDate)) {
-      setError('Tanggal deadline (Due Date) tidak boleh lebih awal dari Start Date.');
+
+    let fullStartDate: string | null = null;
+    if (startDate) {
+      const timeComp = startTime || '09:00';
+      fullStartDate = new Date(`${startDate}T${timeComp}:00`).toISOString();
+    }
+
+    let fullDueDate: string | null = null;
+    if (dueDate) {
+      const timeComp = dueTime || '17:00';
+      fullDueDate = new Date(`${dueDate}T${timeComp}:00`).toISOString();
+    }
+
+    if (fullStartDate && fullDueDate && new Date(fullDueDate) < new Date(fullStartDate)) {
+      setError('Tanggal & jam deadline (Due Date) tidak boleh lebih awal dari Start Date.');
       return;
     }
 
@@ -112,8 +153,8 @@ export function TaskFormModal({
         assigneeId: assigneeId || null,
         categoryId: categoryId || null,
         tags: tags.trim() || null,
-        startDate: startDate || null,
-        dueDate: dueDate || null,
+        startDate: fullStartDate,
+        dueDate: fullDueDate,
       });
       onClose();
     } catch (err: any) {
@@ -252,24 +293,40 @@ export function TaskFormModal({
             </div>
 
             <div className={styles.formGroupFull}>
-              <label className={styles.label}>Start Date</label>
-              <DatePicker
-                value={startDate}
-                onChange={(val) => setStartDate(val)}
-                placeholder="Pilih Tanggal Mulai"
-                disabled={isSubmitting || isTaskDone}
-              />
+              <label className={styles.label}>Start Date & Jam Mulai</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 115px', gap: '0.5rem' }}>
+                <DatePicker
+                  value={startDate}
+                  onChange={(val) => setStartDate(val)}
+                  placeholder="Pilih Tanggal Mulai"
+                  disabled={isSubmitting || isTaskDone}
+                />
+                <TimePicker
+                  value={startTime}
+                  onChange={(val) => setStartTime(val)}
+                  placeholder="09:00"
+                  disabled={isSubmitting || isTaskDone}
+                />
+              </div>
             </div>
 
             <div className={styles.formGroupFull}>
-              <label className={styles.label}>Due Date (Deadline)</label>
-              <DatePicker
-                value={dueDate}
-                onChange={(val) => setDueDate(val)}
-                minDate={startDate || undefined}
-                placeholder="Pilih Tanggal Tenggat"
-                disabled={isSubmitting || isTaskDone}
-              />
+              <label className={styles.label}>Due Date & Jam Tenggat (Deadline)</label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 115px', gap: '0.5rem' }}>
+                <DatePicker
+                  value={dueDate}
+                  onChange={(val) => setDueDate(val)}
+                  minDate={startDate || undefined}
+                  placeholder="Pilih Tanggal Tenggat"
+                  disabled={isSubmitting || isTaskDone}
+                />
+                <TimePicker
+                  value={dueTime}
+                  onChange={(val) => setDueTime(val)}
+                  placeholder="17:00"
+                  disabled={isSubmitting || isTaskDone}
+                />
+              </div>
             </div>
 
             <div className={styles.formGroupFull}>

@@ -1717,15 +1717,7 @@ export function TaskDetailModal({
                     <label className={styles.label}>Start Date</label>
                     <div className={styles.infoValue}>
                       <Calendar size={15} className={styles.infoIcon} />
-                      <span>
-                        {task.startDate
-                          ? new Date(task.startDate).toLocaleDateString('id-ID', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                            })
-                          : '-'}
-                      </span>
+                      <span>{formatDate(task.startDate)}</span>
                     </div>
                   </div>
 
@@ -1734,15 +1726,7 @@ export function TaskDetailModal({
                     <label className={styles.label}>Due Date (Deadline)</label>
                     <div className={styles.infoValue}>
                       <Calendar size={15} className={styles.infoIcon} />
-                      <span>
-                        {task.dueDate
-                          ? new Date(task.dueDate).toLocaleDateString('id-ID', {
-                              day: '2-digit',
-                              month: 'short',
-                              year: 'numeric',
-                            })
-                          : '-'}
-                      </span>
+                      <span>{formatDate(task.dueDate)}</span>
                     </div>
                   </div>
 
