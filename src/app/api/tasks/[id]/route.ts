@@ -257,6 +257,18 @@ export async function PUT(
       newAssigneeId = parsedAssId;
     }
 
+    if (categoryId !== undefined && categoryId !== null && categoryId !== '') {
+      const parsedCatId = parseInt(String(categoryId), 10);
+      if (!isNaN(parsedCatId) && parsedCatId > 0) {
+        const validCat = await prisma.taskCategory.findFirst({
+          where: { id: parsedCatId, projectId: activeProject.projectId },
+        });
+        if (!validCat) {
+          return NextResponse.json({ error: 'Kategori tidak valid untuk project ini.' }, { status: 400 });
+        }
+      }
+    }
+
     const updatedTask = await prisma.$transaction(async (tx) => {
       const taskRes = await tx.task.update({
         where: { id: taskId },

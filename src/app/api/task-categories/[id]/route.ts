@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { createActivityLog } from '@/lib/activity';
 import { invalidateCategoriesCache } from '@/lib/category-cache';
+import { getProjectMember } from '@/lib/project';
 
 export async function PUT(
   req: NextRequest,
@@ -15,15 +16,37 @@ export async function PUT(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    if (role !== 'Admin') {
-      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
-    }
-
+    const userId = parseInt((session.user as any).id, 10);
     const { id } = await params;
     const catId = parseInt(id, 10);
     if (isNaN(catId)) {
       return NextResponse.json({ error: 'ID Kategori tidak valid.' }, { status: 400 });
+    }
+
+    const categoryToUpdate = await prisma.taskCategory.findUnique({
+      where: { id: catId },
+    });
+
+    if (!categoryToUpdate) {
+      return NextResponse.json({ error: 'Kategori tidak ditemukan.' }, { status: 404 });
+    }
+
+    // Check project permission / ownership
+    const targetProjectId = categoryToUpdate.projectId;
+    const sysRole = (session.user as any).role || '';
+    const isSysAdmin = sysRole === 'admin' || sysRole === 'Admin' || sysRole === 'ADMIN' || sysRole === 'superadmin';
+
+    if (targetProjectId) {
+      const member = await getProjectMember(targetProjectId, userId);
+      if (!member && !isSysAdmin) {
+        return NextResponse.json({ error: 'Akses ditolak. Anda tidak memiliki akses ke project ini.' }, { status: 403 });
+      }
+      const memberRole = member?.role || 'VIEWER';
+      if (!isSysAdmin && memberRole !== 'OWNER' && memberRole !== 'ADMIN' && memberRole !== 'MEMBER') {
+        return NextResponse.json({ error: 'Akses ditolak. Peran Anda di project ini tidak dapat mengubah kategori.' }, { status: 403 });
+      }
+    } else if (!isSysAdmin) {
+      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
     }
 
     const body = await req.json();
@@ -35,13 +58,14 @@ export async function PUT(
 
     const existingName = await prisma.taskCategory.findFirst({
       where: {
+        projectId: targetProjectId,
         name: name.trim(),
         NOT: { id: catId },
       },
     });
 
     if (existingName) {
-      return NextResponse.json({ error: 'Nama kategori sudah digunakan.' }, { status: 400 });
+      return NextResponse.json({ error: 'Nama kategori sudah digunakan pada project ini.' }, { status: 400 });
     }
 
     // 1. Update in MySQL (Source of Truth)
@@ -54,9 +78,8 @@ export async function PUT(
     });
 
     // 2. Invalidate Redis Cache after MySQL success
-    await invalidateCategoriesCache();
+    await invalidateCategoriesCache(targetProjectId || undefined);
 
-    const userId = parseInt((session.user as any).id, 10);
     await createActivityLog({
       userId,
       action: 'UPDATE',
@@ -79,11 +102,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const role = (session.user as any).role || 'Staff';
-    if (role !== 'Admin') {
-      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
-    }
-
+    const userId = parseInt((session.user as any).id, 10);
     const { id } = await params;
     const catId = parseInt(id, 10);
     if (isNaN(catId)) {
@@ -98,15 +117,32 @@ export async function DELETE(
       return NextResponse.json({ error: 'Kategori tidak ditemukan.' }, { status: 404 });
     }
 
+    // Check project permission / ownership
+    const targetProjectId = category.projectId;
+    const sysRole = (session.user as any).role || '';
+    const isSysAdmin = sysRole === 'admin' || sysRole === 'Admin' || sysRole === 'ADMIN' || sysRole === 'superadmin';
+
+    if (targetProjectId) {
+      const member = await getProjectMember(targetProjectId, userId);
+      if (!member && !isSysAdmin) {
+        return NextResponse.json({ error: 'Akses ditolak. Anda tidak memiliki akses ke project ini.' }, { status: 403 });
+      }
+      const memberRole = member?.role || 'VIEWER';
+      if (!isSysAdmin && memberRole !== 'OWNER' && memberRole !== 'ADMIN') {
+        return NextResponse.json({ error: 'Akses ditolak. Hanya Owner atau Admin project yang dapat menghapus kategori.' }, { status: 403 });
+      }
+    } else if (!isSysAdmin) {
+      return NextResponse.json({ error: 'Akses ditolak.' }, { status: 403 });
+    }
+
     // 1. Delete from MySQL (Source of Truth)
     await prisma.taskCategory.delete({
       where: { id: catId },
     });
 
     // 2. Invalidate Redis Cache after MySQL success
-    await invalidateCategoriesCache();
+    await invalidateCategoriesCache(targetProjectId || undefined);
 
-    const userId = parseInt((session.user as any).id, 10);
     await createActivityLog({
       userId,
       action: 'DELETE',

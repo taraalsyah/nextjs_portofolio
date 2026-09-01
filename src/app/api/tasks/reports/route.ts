@@ -85,6 +85,7 @@ export async function GET(req: NextRequest) {
     });
 
     const categories = await prisma.taskCategory.findMany({
+      where: { projectId: activeProject.projectId },
       select: { id: true, name: true },
     });
 

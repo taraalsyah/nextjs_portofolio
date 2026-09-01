@@ -176,12 +176,16 @@ model RolePermission {
 
 model TaskCategory {
   id          Int      @id @default(autoincrement())
-  name        String   @unique
+  name        String
   description String?  @db.Text
+  projectId   Int?     @map("project_id")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
   tasks       Task[]
 
+  @@unique([projectId, name])
+  @@index([projectId])
   @@map("task_categories")
 }
 
@@ -201,6 +205,7 @@ model Project {
   workflowPermissions ProjectWorkflowPermission[]
   owner               User                        @relation("ProjectOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
   tasks               Task[]
+  categories          TaskCategory[]
   payment             ProjectPayment?             @relation("ProjectPayment")
 
   @@index([ownerUserId])

@@ -49,9 +49,13 @@ export default function CalendarPage() {
   const fetchCategories = useCallback(async () => {
     if (status !== 'authenticated') return;
     const targetProjectId = activeProjectId;
+    if (!targetProjectId) {
+      setCategories([]);
+      return;
+    }
 
     try {
-      const res = await fetch('/api/task-categories');
+      const res = await fetch(`/api/task-categories?projectId=${targetProjectId}`);
       if (activeProjectRef.current !== targetProjectId) return;
 
       if (res.ok) {

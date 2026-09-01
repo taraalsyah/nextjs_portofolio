@@ -25,6 +25,7 @@ export default function CategoriesPage() {
   const { activeProject } = useProjectContext();
   const toastCtx = useSafeToast();
   const activeProjectId = activeProject?.projectId;
+  const activeProjectName = activeProject?.projectName;
 
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -37,9 +38,6 @@ export default function CategoriesPage() {
   const [description, setDescription] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const role = (session?.user as any)?.role || 'Staff';
-  const isAdmin = role === 'Admin';
 
   // Ref to track latest active project ID for race condition prevention
   const activeProjectRef = useRef<number | undefined>(activeProjectId);
@@ -54,19 +52,18 @@ export default function CategoriesPage() {
     setIsLoading(true);
   }, [activeProjectId]);
 
-  useEffect(() => {
-    if (status === 'authenticated' && !isAdmin) {
-      router.replace('/dashboard/task-management/my-tasks');
-    }
-  }, [status, isAdmin, router]);
-
   const fetchCategories = useCallback(async () => {
     if (status !== 'authenticated') return;
     const targetProjectId = activeProjectId;
+    if (!targetProjectId) {
+      setCategories([]);
+      setIsLoading(false);
+      return;
+    }
 
     setIsLoading(true);
     try {
-      const res = await fetch('/api/task-categories');
+      const res = await fetch(`/api/task-categories?projectId=${targetProjectId}`);
       if (activeProjectRef.current !== targetProjectId) return;
 
       if (res.ok) {
@@ -132,7 +129,11 @@ export default function CategoriesPage() {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), description: description.trim() }),
+        body: JSON.stringify({
+          name: name.trim(),
+          description: description.trim(),
+          projectId: activeProjectId,
+        }),
       });
 
       if (!res.ok) {
@@ -186,8 +187,8 @@ export default function CategoriesPage() {
               <FolderKanban size={20} />
             </div>
             <div className={styles.headerTitle}>
-              Task Categories
-              <p>Kelola kategori tugas untuk pengelompokan pekerjaan yang rapi.</p>
+              Task Categories {activeProjectName ? `— ${activeProjectName}` : ''}
+              <p>Kelola kategori tugas untuk pengelompokan pekerjaan dalam project ini.</p>
             </div>
           </div>
 

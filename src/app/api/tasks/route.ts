@@ -205,6 +205,19 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const parsedCategoryId = categoryId ? parseInt(String(categoryId), 10) : null;
+    if (parsedCategoryId) {
+      const validCat = await prisma.taskCategory.findFirst({
+        where: { id: parsedCategoryId, projectId: activeProject.projectId },
+      });
+      if (!validCat) {
+        return NextResponse.json(
+          { error: 'Kategori tidak valid untuk project ini.' },
+          { status: 400 }
+        );
+      }
+    }
+
     // Atomic creation
     const task = await prisma.$transaction(async (tx) => {
       const taskNumber = await generateNextTaskNumber(tx);

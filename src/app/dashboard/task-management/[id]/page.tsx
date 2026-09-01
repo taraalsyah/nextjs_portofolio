@@ -195,11 +195,14 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
   useEffect(() => {
     if (status !== 'authenticated') return;
 
-    fetch('/api/task-categories')
+    const targetProjId = activeProject?.projectId;
+    const url = targetProjId ? `/api/task-categories?projectId=${targetProjId}` : '/api/task-categories';
+
+    fetch(url)
       .then((res) => res.json())
       .then((data) => setCategories(data.categories || []))
       .catch(() => {});
-  }, [status]);
+  }, [status, activeProject?.projectId]);
 
   const fetchTaskDetails = async () => {
     if (!taskId || isNaN(taskId)) return;

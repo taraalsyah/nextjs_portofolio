@@ -163,7 +163,7 @@ export async function getProjectReportData(
   if (filters.categoryId && filters.categoryId.trim() !== '') {
     const cId = parseInt(filters.categoryId.trim(), 10);
     if (!isNaN(cId)) {
-      const cat = await prisma.taskCategory.findUnique({ where: { id: cId }, select: { name: true } });
+      const cat = await prisma.taskCategory.findFirst({ where: { id: cId, projectId }, select: { name: true } });
       categoryName = cat?.name || `Category #${cId}`;
     }
   }
