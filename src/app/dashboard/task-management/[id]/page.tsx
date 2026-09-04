@@ -12,6 +12,7 @@ import { TaskAttachmentSection } from '@/components/task-management/TaskAttachme
 import { TaskHistorySection } from '@/components/task-management/TaskHistorySection';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
+import { RichTextRenderer } from '@/components/ui/RichTextRenderer';
 import { useSafeToast } from '@/components/ui/Toast';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
 import { useProjectContext } from '@/context/ProjectContext';
@@ -551,9 +552,9 @@ export default function TaskDetailPage({ params }: { params: Promise<{ id: strin
               {/* Deskripsi Lengkap */}
               <div className={`${styles.infoCard} ${styles.infoCardFull}`}>
                 <label className={styles.label}>Deskripsi Lengkap</label>
-                <p className={styles.descriptionBox}>
-                  {task.description || 'Tidak ada deskripsi.'}
-                </p>
+                <div className={styles.descriptionBox}>
+                  <RichTextRenderer content={task.description} />
+                </div>
               </div>
             </div>
           </div>

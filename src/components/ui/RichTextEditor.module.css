@@ -1,0 +1,334 @@
+.editorContainer {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  overflow: hidden;
+  position: relative;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.editorContainer:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+
+.headerBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.4rem 0.5rem;
+  background: hsla(215, 20%, 65%, 0.08);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.toolbarGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-wrap: wrap;
+}
+
+.toolBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  padding: 0 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 0.78rem;
+  font-weight: 600;
+  gap: 0.25rem;
+}
+
+.toolBtn:hover:not(:disabled) {
+  background: hsla(215, 20%, 65%, 0.15);
+  color: var(--foreground);
+  border-color: hsla(215, 20%, 65%, 0.25);
+}
+
+.toolBtnActive {
+  background: var(--primary-soft, hsla(210, 90%, 55%, 0.18)) !important;
+  color: var(--primary, #38bdf8) !important;
+  border-color: hsla(210, 90%, 55%, 0.35) !important;
+  font-weight: 700;
+}
+
+.toolBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.headingDropdown {
+  height: 28px;
+  padding: 0 0.5rem;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.78rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.headingDropdown:focus {
+  border-color: var(--primary);
+}
+
+.headingDropdownActive {
+  border-color: var(--primary, #38bdf8);
+  background: var(--primary-soft, hsla(210, 90%, 55%, 0.18));
+  color: var(--primary, #38bdf8);
+  font-weight: 700;
+}
+
+.divider {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 0.25rem;
+}
+
+.tabGroup {
+  display: flex;
+  align-items: center;
+  background: hsla(215, 20%, 65%, 0.12);
+  padding: 2px;
+  border-radius: 6px;
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.6rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tabBtnActive {
+  background: var(--surface);
+  color: var(--foreground);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.textarea,
+.editableArea {
+  width: 100%;
+  min-height: 130px;
+  padding: 0.75rem;
+  border: none;
+  background: transparent;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-family: inherit;
+  line-height: 1.6;
+  outline: none;
+  resize: vertical;
+  overflow-y: auto;
+  box-sizing: border-box;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.editableArea:empty:before {
+  content: attr(data-placeholder);
+  color: var(--muted-foreground);
+  font-style: italic;
+  pointer-events: none;
+  display: block;
+}
+
+.editableArea ul {
+  list-style-type: disc;
+  padding-left: 24px;
+  margin-top: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+
+.editableArea ol {
+  list-style-type: decimal;
+  padding-left: 24px;
+  margin-top: 0.4rem;
+  margin-bottom: 0.7rem;
+}
+
+.editableArea li {
+  margin-bottom: 0.25rem;
+  line-height: 1.55;
+  display: list-item;
+}
+
+.editableArea a {
+  color: #38bdf8;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+
+.editableArea a:hover {
+  color: #60a5fa;
+}
+
+.previewContainer {
+  min-height: 130px;
+  padding: 0.75rem;
+  background: var(--surface);
+}
+
+/* Link Popover Modal */
+.linkPopoverOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.linkPopoverCard {
+  width: 100%;
+  max-width: 380px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.linkPopoverTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.closePopoverBtn {
+  background: none;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 4px;
+}
+
+.closePopoverBtn:hover {
+  color: var(--foreground);
+}
+
+.popoverField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.popoverLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.popoverInput {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.82rem;
+  outline: none;
+}
+
+.popoverInput:focus {
+  border-color: var(--primary);
+}
+
+.popoverError {
+  font-size: 0.72rem;
+  color: #f87171;
+  font-weight: 500;
+}
+
+.popoverActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.popoverBtnPrimary {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: none;
+  background: var(--primary, #3b82f6);
+  color: #fff;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.popoverBtnPrimary:hover {
+  opacity: 0.9;
+}
+
+.popoverBtnDanger {
+  padding: 0.35rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid hsla(350, 90%, 60%, 0.3);
+  background: hsla(350, 90%, 60%, 0.12);
+  color: #f87171;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.popoverBtnDanger:hover {
+  background: hsla(350, 90%, 60%, 0.2);
+}
+
+.popoverBtnSecondary {
+  padding: 0.35rem 0.65rem;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.popoverBtnSecondary:hover {
+  color: var(--foreground);
+  background: hsla(215, 20%, 65%, 0.1);
+}

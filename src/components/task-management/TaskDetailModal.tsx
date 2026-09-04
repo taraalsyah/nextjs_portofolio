@@ -10,6 +10,7 @@ import { TaskHistorySection } from './TaskHistorySection';
 import { ProjectPermissions } from '@/lib/project';
 import { notifyTaskMutated } from '@/lib/task-event';
 import InlineSpinner from '@/components/ui/loading/InlineSpinner';
+import { RichTextRenderer } from '@/components/ui/RichTextRenderer';
 
 interface TaskDetailData {
   id: number;
@@ -1734,7 +1735,7 @@ export function TaskDetailModal({
                   <div className={`${styles.infoCard} ${styles.infoCardFull}`}>
                     <label className={styles.label}>Deskripsi Lengkap</label>
                     <div className={styles.descriptionBox}>
-                      {task.description || 'Tidak ada deskripsi.'}
+                      <RichTextRenderer content={task.description} />
                     </div>
                   </div>
                 </div>

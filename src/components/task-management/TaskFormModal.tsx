@@ -6,6 +6,7 @@ import styles from '@/app/dashboard/task-management/task.module.css';
 import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
 import { DatePicker } from '@/components/ui/DatePicker';
 import { TimePicker } from '@/components/ui/TimePicker';
+import { RichTextEditor } from '@/components/ui/RichTextEditor';
 
 interface TaskFormModalProps {
   isOpen: boolean;
@@ -239,11 +240,11 @@ export function TaskFormModal({
 
             <div className={styles.formGroupFull}>
               <label className={styles.label}>Deskripsi *</label>
-              <textarea
-                placeholder="Jelaskan kebutuhan, ruang lingkup, atau langkah pengerjaan task..."
+              <RichTextEditor
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className={styles.textarea}
+                onChange={(val) => setDescription(val)}
+                placeholder="Jelaskan kebutuhan, ruang lingkup, atau langkah pengerjaan task..."
+                disabled={isSubmitting || isTaskDone}
                 required
               />
             </div>
