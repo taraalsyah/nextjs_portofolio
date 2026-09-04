@@ -10,6 +10,7 @@ import {
   Quote,
   Code,
   Link as LinkIcon,
+  Image as ImageIcon,
   X,
   ExternalLink,
   Trash2,
@@ -35,6 +36,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   required = false,
 }) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Active state feedback
   const [isBoldActive, setIsBoldActive] = useState(false);
@@ -57,12 +59,13 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
   // Convert markdown format to HTML for visual editor display
   const formatInitialHtml = useCallback((text: string): string => {
     if (!text) return '';
-    // If it already contains HTML tags like <b>, <strong>, <p>, <a>, keep as is
+    // If it already contains HTML tags like <b>, <strong>, <p>, <a>, <img>, keep as is
     if (/<[a-z][\s\S]*>/i.test(text)) {
       return text;
     }
-    // Convert markdown markers to HTML so they render visually bold, italic, etc.
+    // Convert markdown markers to HTML so they render visually bold, italic, images, etc.
     let html = text
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;height:auto;border-radius:8px;margin:0.5rem 0;display:block;" />')
       .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>')
       .replace(/__(.*?)__/g, '<b>$1</b>')
       .replace(/\*(.*?)\*/g, '<i>$1</i>')
@@ -331,6 +334,149 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
+  // Helper to insert <img> element at cursor position inside contentEditable
+  const insertImageAtCursor = useCallback((src: string, altText: string = 'Gambar deskripsi') => {
+    if (disabled) return;
+    if (editorRef.current) {
+      editorRef.current.focus();
+    }
+
+    const sel = window.getSelection();
+    if (!sel || sel.rangeCount === 0) return;
+
+    let range = sel.getRangeAt(0);
+
+    // If cursor is outside editor, collapse to end of editor
+    if (editorRef.current && !editorRef.current.contains(range.commonAncestorContainer)) {
+      range = document.createRange();
+      range.selectNodeContents(editorRef.current);
+      range.collapse(false);
+      sel.removeAllRanges();
+      sel.addRange(range);
+    }
+
+    const img = document.createElement('img');
+    img.src = src;
+    img.alt = altText;
+    img.style.maxWidth = '100%';
+    img.style.height = 'auto';
+    img.style.borderRadius = '8px';
+    img.style.margin = '0.5rem 0';
+    img.style.display = 'block';
+    img.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.15)';
+
+    range.deleteContents();
+    range.insertNode(img);
+
+    // Move cursor after the image
+    const newRange = document.createRange();
+    newRange.setStartAfter(img);
+    newRange.setEndAfter(img);
+    sel.removeAllRanges();
+    sel.addRange(newRange);
+
+    // Ensure a paragraph/break exists after image for typing
+    if (!img.nextSibling) {
+      const br = document.createElement('br');
+      img.parentNode?.appendChild(br);
+    }
+
+    handleInput();
+  }, [disabled]);
+
+// Helper to compress & resize pasted images for fast transmission and saving
+const optimizeAndConvertImage = (file: File): Promise<string> => {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const rawDataUrl = event.target?.result as string;
+      if (!rawDataUrl) {
+        resolve('');
+        return;
+      }
+      const img = document.createElement('img');
+      img.onload = () => {
+        const MAX_WIDTH = 1400;
+        const MAX_HEIGHT = 1400;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+          if (width > height) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          } else {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const mimeType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+          const compressedDataUrl = canvas.toDataURL(mimeType, 0.82);
+          resolve(compressedDataUrl);
+        } else {
+          resolve(rawDataUrl);
+        }
+      };
+      img.onerror = () => resolve(rawDataUrl);
+      img.src = rawDataUrl;
+    };
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+};
+
+  // Handle Copy-Paste of image files from clipboard
+  const handlePaste = (e: React.ClipboardEvent<HTMLDivElement>) => {
+    if (disabled) return;
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      if (item.type.startsWith('image/')) {
+        e.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        optimizeAndConvertImage(file).then((base64Src) => {
+          if (base64Src) {
+            insertImageAtCursor(base64Src, file.name || 'Pasted image');
+          }
+        });
+        return;
+      }
+    }
+  };
+
+  // Open file selector when Toolbar Image button is clicked
+  const handleImageButtonClick = () => {
+    if (disabled) return;
+    fileInputRef.current?.click();
+  };
+
+  // Handle selected image file from file picker
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const file = files[0];
+    if (file.type.startsWith('image/')) {
+      optimizeAndConvertImage(file).then((base64Src) => {
+        if (base64Src) {
+          insertImageAtCursor(base64Src, file.name);
+        }
+      });
+    }
+    e.target.value = '';
+  };
+
   // Keyboard Shortcuts (Cmd+B, Cmd+I, Cmd+K)
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     const isCmdOrCtrl = e.metaKey || e.ctrlKey;
@@ -466,6 +612,28 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
             <LinkIcon size={15} />
             <span>Link</span>
           </button>
+
+          {/* Image Upload Button */}
+          <button
+            type="button"
+            className={styles.toolBtn}
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={handleImageButtonClick}
+            disabled={disabled}
+            title="Sisipkan Gambar (atau Paste langsung dengan Ctrl+V / Cmd+V)"
+          >
+            <ImageIcon size={15} />
+            <span>Gambar</span>
+          </button>
+
+          {/* Hidden File Input for Image Upload */}
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileSelect}
+            accept="image/*"
+            style={{ display: 'none' }}
+          />
         </div>
       </div>
 
@@ -474,6 +642,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
         ref={editorRef}
         contentEditable={!disabled}
         onInput={handleInput}
+        onPaste={handlePaste}
         onSelect={updateActiveStates}
         onKeyUp={updateActiveStates}
         onClick={updateActiveStates}

@@ -71,6 +71,21 @@ function parseHtmlToReact(htmlContent: string): React.ReactNode[] {
               </a>
             );
           }
+          case 'img': {
+            const src = el.getAttribute('src') || '';
+            const alt = el.getAttribute('alt') || 'Gambar deskripsi task';
+            const safeSrc = sanitizeImageSrc(src);
+            if (!safeSrc) return null;
+            return (
+              <img
+                key={key}
+                src={safeSrc}
+                alt={alt}
+                className={styles.image}
+                loading="lazy"
+              />
+            );
+          }
           case 'code':
             return <code key={key} className={styles.inlineCode}>{children}</code>;
           case 'pre':
@@ -124,6 +139,23 @@ function sanitizeUrl(url: string): string {
   return trimmed;
 }
 
+function sanitizeImageSrc(url: string): string | null {
+  const trimmed = url.trim();
+  // Allow safe data:image/* base64 URIs
+  if (/^data:image\/(png|jpeg|jpg|webp|gif|svg\+xml);base64,/i.test(trimmed)) {
+    return trimmed;
+  }
+  // Reject dangerous pseudo-protocols like javascript:, vbscript:
+  if (/^(javascript|vbscript):/i.test(trimmed)) {
+    return null;
+  }
+  // Allow standard http(s) or absolute paths
+  if (/^https?:\/\//i.test(trimmed) || trimmed.startsWith('/')) {
+    return trimmed;
+  }
+  return null;
+}
+
 function parseInline(text: string): React.ReactNode[] {
   const parts: React.ReactNode[] = [];
   let remaining = text;
@@ -139,6 +171,27 @@ function parseInline(text: string): React.ReactNode[] {
         </code>
       );
       remaining = remaining.slice(codeMatch[0].length);
+      continue;
+    }
+
+    // Match images ![alt](url)
+    const imgMatch = /^!\[([^\]]*)\]\(([^)]+)\)/.exec(remaining);
+    if (imgMatch) {
+      const alt = imgMatch[1] || 'Gambar deskripsi task';
+      const rawSrc = imgMatch[2];
+      const safeSrc = sanitizeImageSrc(rawSrc);
+      if (safeSrc) {
+        parts.push(
+          <img
+            key={key++}
+            src={safeSrc}
+            alt={alt}
+            className={styles.image}
+            loading="lazy"
+          />
+        );
+      }
+      remaining = remaining.slice(imgMatch[0].length);
       continue;
     }
 

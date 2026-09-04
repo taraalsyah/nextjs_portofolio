@@ -251,7 +251,7 @@ model Task {
   id                 Int              @id @default(autoincrement())
   taskNumber         String           @unique @map("task_number")
   title              String
-  description        String           @db.Text
+  description        String           @db.LongText
   status             String           @default("BACKLOG")
   priority           String           @default("MEDIUM")
   assigneeId         Int?             @map("assignee_id")

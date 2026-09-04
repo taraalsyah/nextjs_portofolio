@@ -127,3 +127,13 @@
   text-decoration: line-through;
   opacity: 0.8;
 }
+
+.image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 0.6rem 0;
+  display: block;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border);
+}
