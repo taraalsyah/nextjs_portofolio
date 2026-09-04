@@ -3,7 +3,6 @@ import { requirePermission } from '@/lib/session';
 import { prisma } from '@/lib/prisma';
 import ProfileHeader from '@/components/profile/ProfileHeader';
 import ProfileForm from '@/components/profile/ProfileForm';
-import UpdatePasswordForm from '@/components/profile/UpdatePasswordForm';
 
 export const metadata = {
   title: 'Profil Saya | Dashboard Tara Alsyah',
@@ -49,7 +48,6 @@ export default async function ProfilePage() {
     <div style={{ maxWidth: '720px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
       <ProfileHeader name={initialUser.name} />
       <ProfileForm initialUser={initialUser} />
-      <UpdatePasswordForm />
     </div>
   );
 }
