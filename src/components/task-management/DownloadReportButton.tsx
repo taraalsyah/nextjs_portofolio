@@ -21,7 +21,7 @@ export function DownloadReportButton({
 
   const [isOpen, setIsOpen] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadingFormat, setDownloadingFormat] = useState<'pdf' | 'excel' | null>(null);
+  const [downloadingFormat, setDownloadingFormat] = useState<'pdf' | 'excel' | 'csv' | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -36,7 +36,7 @@ export function DownloadReportButton({
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleDownload = async (format: 'pdf' | 'excel') => {
+  const handleDownload = async (format: 'pdf' | 'excel' | 'csv') => {
     const projectId = activeProject?.projectId;
     if (!projectId) {
       if (toastCtx?.showToast) {
@@ -72,7 +72,8 @@ export function DownloadReportButton({
 
       // Extract filename from response header or construct fallback
       const contentDisposition = response.headers.get('content-disposition');
-      let filename = `Project_Report_${projectId}_${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`;
+      const ext = format === 'excel' ? 'xlsx' : format === 'csv' ? 'csv' : 'pdf';
+      let filename = `Project_Report_${projectId}_${new Date().toISOString().split('T')[0]}.${ext}`;
 
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename="?([^"]+)"?/);
@@ -150,6 +151,16 @@ export function DownloadReportButton({
             <FileSpreadsheet size={16} style={{ color: '#10B981' }} />
             <span>Download Excel</span>
             <span className={`${styles.itemBadge} ${styles.badgeExcel}`}>.XLSX</span>
+          </button>
+
+          <button
+            onClick={() => handleDownload('csv')}
+            className={styles.menuItem}
+            type="button"
+          >
+            <FileSpreadsheet size={16} style={{ color: '#3B82F6' }} />
+            <span>Download CSV</span>
+            <span className={`${styles.itemBadge} ${styles.badgeExcel}`}>.CSV</span>
           </button>
         </div>
       )}

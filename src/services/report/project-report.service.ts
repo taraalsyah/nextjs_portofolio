@@ -49,7 +49,6 @@ export interface ProjectReportData {
   taskDetails: Array<{
     taskNumber: string;
     title: string;
-    description: string;
     status: string;
     priority: string;
     assignee: string;
@@ -240,7 +239,6 @@ export async function getProjectReportData(
     return {
       taskNumber: t.taskNumber || `TASK-${t.id}`,
       title: t.title,
-      description: t.description || '-',
       status: t.status,
       priority: t.priority,
       assignee: t.assignee?.name || 'Unassigned',
@@ -313,18 +311,14 @@ export async function generateExcelReport(data: ProjectReportData): Promise<Buff
   summarySheet.getCell('B4').value = data.generatedAt;
   summarySheet.getCell('A4').font = { bold: true };
 
-  summarySheet.getCell('A5').value = 'Description:';
-  summarySheet.getCell('B5').value = data.projectDescription || '-';
-  summarySheet.getCell('A5').font = { bold: true };
-
   // Applied Filters Section Header
-  summarySheet.mergeCells('A7:B7');
-  const headerFilterCell = summarySheet.getCell('A7');
+  summarySheet.mergeCells('A6:B6');
+  const headerFilterCell = summarySheet.getCell('A6');
   headerFilterCell.value = 'APPLIED FILTERS';
   headerFilterCell.font = { size: 11, bold: true, color: { argb: 'FFFFFFFF' } };
   headerFilterCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF475569' } };
   headerFilterCell.alignment = { horizontal: 'center', vertical: 'middle' };
-  summarySheet.getRow(7).height = 22;
+  summarySheet.getRow(6).height = 22;
 
   const filterRows = [
     ['Search Query', data.appliedFilters.search],
@@ -336,7 +330,7 @@ export async function generateExcelReport(data: ProjectReportData): Promise<Buff
   ];
 
   filterRows.forEach((fr, idx) => {
-    const rowIdx = 8 + idx;
+    const rowIdx = 7 + idx;
     const labelCell = summarySheet.getCell(`A${rowIdx}`);
     const valCell = summarySheet.getCell(`B${rowIdx}`);
 
@@ -347,7 +341,7 @@ export async function generateExcelReport(data: ProjectReportData): Promise<Buff
   });
 
   // Summary Table Header
-  const summaryHeaderRow = 15;
+  const summaryHeaderRow = 14;
   summarySheet.mergeCells(`A${summaryHeaderRow}:B${summaryHeaderRow}`);
   const headerSummaryCell = summarySheet.getCell(`A${summaryHeaderRow}`);
   headerSummaryCell.value = 'FILTERED METRICS SUMMARY';
@@ -410,7 +404,6 @@ export async function generateExcelReport(data: ProjectReportData): Promise<Buff
     { header: 'Completed Date', key: 'completedDate', width: 18 },
     { header: 'Progress', key: 'progress', width: 12 },
     { header: 'Overdue Status', key: 'overdueStatus', width: 16 },
-    { header: 'Description', key: 'description', width: 36 },
   ];
 
   detailSheet.columns = columns;
@@ -659,4 +652,50 @@ export async function generatePdfReport(data: ProjectReportData): Promise<Buffer
       reject(err);
     }
   });
+}
+
+/**
+ * Generate CSV file buffer from project report data
+ */
+export async function generateCsvReport(data: ProjectReportData): Promise<Buffer> {
+  const headers = [
+    'Task Number',
+    'Task Title',
+    'Status',
+    'Priority',
+    'Assignee',
+    'Category',
+    'Created By',
+    'Created Date',
+    'Due Date',
+    'Completed Date',
+    'Progress',
+    'Overdue Status',
+  ];
+
+  const escapeCsv = (val: string | number | undefined | null) => {
+    const str = String(val ?? '');
+    if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+      return `"${str.replace(/"/g, '""')}"`;
+    }
+    return str;
+  };
+
+  const rows = data.taskDetails.map((t) => [
+    escapeCsv(t.taskNumber),
+    escapeCsv(t.title),
+    escapeCsv(t.status),
+    escapeCsv(t.priority),
+    escapeCsv(t.assignee),
+    escapeCsv(t.category),
+    escapeCsv(t.createdBy),
+    escapeCsv(t.createdDate),
+    escapeCsv(t.dueDate),
+    escapeCsv(t.completedDate),
+    escapeCsv(t.progress),
+    escapeCsv(t.overdueStatus),
+  ]);
+
+  const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
+  return Buffer.from('\uFEFF' + csvContent, 'utf-8');
 }

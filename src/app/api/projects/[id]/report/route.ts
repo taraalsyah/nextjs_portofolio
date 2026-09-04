@@ -6,6 +6,7 @@ import {
   getProjectReportData,
   generateExcelReport,
   generatePdfReport,
+  generateCsvReport,
   ProjectReportFilterParams,
 } from '@/services/report/project-report.service';
 
@@ -78,7 +79,19 @@ export async function GET(
     const safeProjectName = reportData.projectName.replace(/[^a-zA-Z0-9_-]/g, '_');
     const dateStamp = new Date().toISOString().split('T')[0];
 
-    if (format === 'excel' || format === 'xlsx') {
+    if (format === 'csv') {
+      const csvBuffer = await generateCsvReport(reportData);
+      const filename = `Project_${safeProjectName}_Report_${dateStamp}.csv`;
+
+      return new NextResponse(new Uint8Array(csvBuffer), {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="${filename}"`,
+          'Cache-Control': 'no-store, max-age=0',
+        },
+      });
+    } else if (format === 'excel' || format === 'xlsx') {
       const excelBuffer = await generateExcelReport(reportData);
       const filename = `Project_${safeProjectName}_Report_${dateStamp}.xlsx`;
 
