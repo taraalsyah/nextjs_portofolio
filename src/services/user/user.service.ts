@@ -117,3 +117,86 @@ export async function getUsersList(
     },
   };
 }
+
+export interface UpdatePasswordInput {
+  oldPassword?: string;
+  old_password?: string;
+  newPassword?: string;
+  new_password?: string;
+  confirmPassword?: string;
+  confirm_password?: string;
+}
+
+export interface UpdatePasswordResponse {
+  success: boolean;
+  message: string;
+}
+
+/**
+ * Updates a user's password following security requirements:
+ * 1. Validates presence of old_password, new_password, and confirm_password.
+ * 2. Ensures new_password is at least 8 characters.
+ * 3. Ensures new_password matches confirm_password.
+ * 4. Compares old_password against stored hash in database using bcrypt.
+ * 5. Hashes new_password using bcrypt before saving via Prisma ORM.
+ */
+export async function updatePassword(
+  userId: number,
+  input: UpdatePasswordInput
+): Promise<UpdatePasswordResponse> {
+  const oldPassword = (input.old_password ?? input.oldPassword ?? '').trim();
+  const newPassword = (input.new_password ?? input.newPassword ?? '').trim();
+  const confirmPassword = (input.confirm_password ?? input.confirmPassword ?? '').trim();
+
+  // 1. Check mandatory fields
+  if (!oldPassword || !newPassword || !confirmPassword) {
+    throw new Error('Password lama, password baru, dan konfirmasi password wajib diisi.');
+  }
+
+  // 2. Validate new_password min length (8 characters)
+  if (newPassword.length < 8) {
+    throw new Error('Password baru minimal terdiri dari 8 karakter.');
+  }
+
+  // 3. Ensure new_password matches confirm_password
+  if (newPassword !== confirmPassword) {
+    throw new Error('Konfirmasi password tidak cocok dengan password baru.');
+  }
+
+  // 4. Fetch user from database using Prisma ORM
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      id: true,
+      password: true,
+    },
+  });
+
+  if (!user) {
+    throw new Error('User tidak ditemukan.');
+  }
+
+  // 5. Compare old_password against database bcrypt hash
+  const { comparePassword, hashPassword } = await import('@/utils/password');
+  const isOldPasswordValid = await comparePassword(oldPassword, user.password);
+  if (!isOldPasswordValid) {
+    throw new Error('Password lama tidak sesuai.');
+  }
+
+  // 6. Hash new_password using bcrypt
+  const newPasswordHash = await hashPassword(newPassword);
+
+  // 7. Update user record in database using Prisma
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      password: newPasswordHash,
+      updatedAt: new Date(),
+    },
+  });
+
+  return {
+    success: true,
+    message: 'Password berhasil diperbarui.',
+  };
+}

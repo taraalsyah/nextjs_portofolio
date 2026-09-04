@@ -21,7 +21,7 @@ function baseTemplate(title: string, body: string): string {
           <tr>
             <td align="center" style="background:#2563eb;padding:36px 40px;">
               <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">
-                🚀 Tara Alsyah
+                🚀 Tasktuntas
               </h1>
               <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Portofolio &amp; Web Development</p>
             </td>
