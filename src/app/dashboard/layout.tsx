@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   LayoutDashboard,
   User,
@@ -127,7 +128,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.logoArea}>
-            <LayoutDashboard className={styles.logoIcon} size={18} />
+            <img src="/logo.png" alt="TaskTuntas Logo" width={22} height={22} style={{ borderRadius: '4px', objectFit: 'contain' }} />
             {!isCollapsed && <span className={styles.logoText}>TaskTuntas</span>}
           </div>
           {!isCollapsed && (

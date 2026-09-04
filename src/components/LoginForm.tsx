@@ -414,6 +414,9 @@ export default function LoginForm() {
       className={styles.card}
     >
       <div className={styles.cardHeader}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+          <img src="/logo.png" alt="TaskTuntas Logo" width={40} height={40} style={{ borderRadius: '8px', objectFit: 'contain' }} />
+        </div>
         <h1 className={styles.title}>
           Selamat Datang
         </h1>

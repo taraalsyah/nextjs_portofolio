@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, ArrowRight, Layers } from 'lucide-react';
+import Image from 'next/image';
+import { Menu, X, ArrowRight } from 'lucide-react';
 import styles from './Navbar.module.css';
 
 const Navbar = () => {
@@ -18,7 +19,7 @@ const Navbar = () => {
         {/* Brand Logo */}
         <Link href="/" className={styles.logo}>
           <div className={styles.logoIcon}>
-            <Layers size={18} />
+            <img src="/logo.png" alt="TaskTuntas Logo" width={22} height={22} style={{ borderRadius: '4px', objectFit: 'contain' }} />
           </div>
           <div className={styles.logoText}>
             Task<span>tuntas</span>

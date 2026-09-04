@@ -84,7 +84,7 @@ export const DemoLayoutInner: React.FC<DemoLayoutProps> = ({ children, pageTitle
         <div className={styles.sidebarHeader}>
           <Link href="/" className={styles.logoArea}>
             <div className={styles.logoIcon}>
-              <LayoutDashboard size={18} />
+              <img src="/logo.png" alt="TaskTuntas Logo" width={22} height={22} style={{ borderRadius: '4px', objectFit: 'contain' }} />
             </div>
             {(!isCollapsed || isMobileOpen) && (
               <span className={styles.logoText}>
