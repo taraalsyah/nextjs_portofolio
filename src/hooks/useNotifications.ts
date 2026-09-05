@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { getPusherClient } from '@/lib/pusher-client';
+import { notifyTaskMutated } from '@/lib/task-event';
 
 export interface NotificationItem {
   id: string;
@@ -115,6 +116,9 @@ export function useNotifications() {
 
         // Trigger toast ONLY for newly arrived realtime events
         setLatestRealtimeToast(newNotif);
+
+        // Notify application task event listeners so UI task lists update automatically in real-time
+        notifyTaskMutated(newNotif.taskId ? Number(newNotif.taskId) : undefined, 'ASSIGNED');
       });
 
       return () => {

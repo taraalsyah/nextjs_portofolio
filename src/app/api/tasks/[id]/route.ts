@@ -7,6 +7,7 @@ import { getActiveProjectContext } from '@/lib/active-project';
 import { validateWorkflowTransition, getProjectMember, getProjectPermissions, ProjectRole } from '@/lib/project';
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
+import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
 
 // Updated route with Done Request Approval Workflow & Stale-Client Purging
 export async function GET(
@@ -359,6 +360,11 @@ export async function PUT(
       }).catch((err) => console.error('Assignment notification dispatch error:', err));
     }
 
+    // Real-time Pusher broadcast for task update
+    triggerTaskRealtimeUpdate(updatedTask.projectId, 'updated', updatedTask).catch((err) =>
+      console.error('Real-time task update broadcast error:', err)
+    );
+
     return NextResponse.json({ task: updatedTask });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error';
@@ -419,6 +425,11 @@ export async function DELETE(
         tx,
       });
     }, { maxWait: 5000, timeout: 15000 });
+
+    // Real-time Pusher broadcast for task deletion
+    triggerTaskRealtimeUpdate(task.projectId, 'deleted', { id: taskId, projectId: task.projectId }).catch((err) =>
+      console.error('Real-time task deletion broadcast error:', err)
+    );
 
     return NextResponse.json({ message: 'Task berhasil dihapus (Soft Delete).' });
   } catch (err: unknown) {

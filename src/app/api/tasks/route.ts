@@ -6,6 +6,7 @@ import { generateNextTaskNumber, logTaskActivity } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
+import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
 
 export async function GET(req: NextRequest) {
   try {
@@ -281,6 +282,11 @@ export async function POST(req: NextRequest) {
         assignedByName: session.user.name || 'User',
       }).catch((err) => console.error('Assignment notification dispatch error:', err));
     }
+
+    // Real-time Pusher broadcast to project channel
+    triggerTaskRealtimeUpdate(task.projectId, 'created', task).catch((err) =>
+      console.error('Real-time task creation broadcast error:', err)
+    );
 
     return NextResponse.json({ task }, { status: 201 });
   } catch (err: any) {

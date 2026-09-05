@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useTransition, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/Toast';
+import { useTaskRealtime } from '@/hooks/useTaskRealtime';
 
 export interface ProjectItem {
   id: number;
@@ -48,6 +49,9 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
   const [isSwitching, setIsSwitching] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [, startTransition] = useTransition();
+
+  // Subscribe active project to Pusher real-time task updates
+  useTaskRealtime({ projectId: activeProject?.projectId });
 
   const fetchActiveProject = useCallback(async () => {
     try {
