@@ -21,19 +21,20 @@ export interface RealtimeTaskPayload {
  * Triggers a real-time task update via Pusher server SDK to workspace/project subscribers.
  */
 export async function triggerTaskRealtimeUpdate(
-  projectId: number,
+  projectId: number | null | undefined,
   action: 'created' | 'updated' | 'deleted',
   task: any
 ): Promise<boolean> {
-  if (!projectId || !task) return false;
+  const targetProjectId = projectId ? Number(projectId) : (task?.projectId ? Number(task.projectId) : null);
+  if (!targetProjectId || !task) return false;
 
   try {
-    const channelName = `private-project-${projectId}`;
+    const channelName = `private-project-${targetProjectId}`;
     const eventName = `task:${action}`;
 
     const payload: RealtimeTaskPayload = {
       id: Number(task.id),
-      projectId: Number(task.projectId || projectId),
+      projectId: Number(task.projectId || targetProjectId),
       taskNumber: task.taskNumber || `TASK-${task.id}`,
       title: String(task.title || ''),
       description: task.description || null,
@@ -51,7 +52,7 @@ export async function triggerTaskRealtimeUpdate(
     await pusherServer.trigger(channelName, eventName, payload);
     return true;
   } catch (err) {
-    console.error(`[Pusher Task Realtime Error] Failed to trigger event for project #${projectId}:`, err);
+    console.error(`[Pusher Task Realtime Error] Failed to trigger event for project #${targetProjectId}:`, err);
     return false;
   }
 }
