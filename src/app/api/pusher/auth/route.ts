@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { pusherServer } from '@/lib/pusher-server';
+import prisma from '@/lib/prisma';
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions);
@@ -34,9 +35,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing socket_id or channel_name' }, { status: 400 });
     }
 
-    // Security Check: User is strictly authorized ONLY to subscribe to their own channel private-user-{userId}
-    const expectedChannel = `private-user-${userId}`;
-    if (channelName !== expectedChannel) {
+    let isAuthorized = false;
+
+    if (channelName.startsWith('private-user-')) {
+      const channelUserId = parseInt(channelName.replace('private-user-', ''), 10);
+      if (channelUserId === userId) {
+        isAuthorized = true;
+      }
+    } else if (channelName.startsWith('private-project-')) {
+      const projectId = parseInt(channelName.replace('private-project-', ''), 10);
+      if (!isNaN(projectId)) {
+        const member = await prisma.projectMember.findFirst({
+          where: {
+            projectId,
+            userId,
+          },
+        });
+        if (member) {
+          isAuthorized = true;
+        }
+      }
+    }
+
+    if (!isAuthorized) {
       console.warn(
         `[Pusher Auth Security] User #${userId} attempted unauthorized subscription to channel "${channelName}". Forbidden.`
       );
