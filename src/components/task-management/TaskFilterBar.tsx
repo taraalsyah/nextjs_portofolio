@@ -11,6 +11,8 @@ interface TaskFilterBarProps {
   users: { id: number; name: string }[];
   initialFilters?: Record<string, string>;
   hideAssigneeFilter?: boolean;
+  hideSearchFilter?: boolean;
+  hideSortFilter?: boolean;
 }
 
 const STATUS_FILTER_OPTIONS: CustomDropdownOption[] = [
@@ -43,6 +45,8 @@ export function TaskFilterBar({
   users,
   initialFilters = {},
   hideAssigneeFilter = false,
+  hideSearchFilter = false,
+  hideSortFilter = false,
 }: TaskFilterBarProps) {
   const [search, setSearch] = useState(initialFilters.search || '');
   const [status, setStatus] = useState(initialFilters.status || '');
@@ -56,18 +60,17 @@ export function TaskFilterBar({
   useEffect(() => {
     const timer = setTimeout(() => {
       onFilterChange({
-        search,
+        ...(hideSearchFilter ? {} : { search }),
         status,
         priority,
         categoryId,
-        assigneeId,
-        sortBy,
-        sortOrder,
+        ...(hideAssigneeFilter ? {} : { assigneeId }),
+        ...(hideSortFilter ? {} : { sortBy, sortOrder }),
       });
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [search, status, priority, categoryId, assigneeId, sortBy, sortOrder]);
+  }, [search, status, priority, categoryId, assigneeId, sortBy, sortOrder, hideSearchFilter, hideAssigneeFilter, hideSortFilter, onFilterChange]);
 
   const handleReset = () => {
     setSearch('');
@@ -80,7 +83,12 @@ export function TaskFilterBar({
   };
 
   const hasActiveFilters =
-    search || status || priority || categoryId || assigneeId || sortBy !== 'createdAt' || sortOrder !== 'desc';
+    (!hideSearchFilter && Boolean(search)) ||
+    Boolean(status) ||
+    Boolean(priority) ||
+    Boolean(categoryId) ||
+    (!hideAssigneeFilter && Boolean(assigneeId)) ||
+    (!hideSortFilter && (sortBy !== 'createdAt' || sortOrder !== 'desc'));
 
   const categoryOptions: CustomDropdownOption[] = [
     { value: '', label: 'Semua Category', dotColor: '#94a3b8' },
@@ -102,19 +110,21 @@ export function TaskFilterBar({
 
   return (
     <div className={styles.filterBar}>
-      <div className={`${styles.filterItem} ${styles.filterItemSearch}`}>
-        <label className={styles.filterLabel}>Pencarian</label>
-        <div className={styles.searchWrapper}>
-          <input
-            type="text"
-            placeholder="Cari nomor task, judul, deskripsi, atau tags..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className={styles.searchInput}
-          />
-          <Search size={15} className={styles.searchIcon} />
+      {!hideSearchFilter && (
+        <div className={`${styles.filterItem} ${styles.filterItemSearch}`}>
+          <label className={styles.filterLabel}>Pencarian</label>
+          <div className={styles.searchWrapper}>
+            <input
+              type="text"
+              placeholder="Cari nomor task, judul, deskripsi, atau tags..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className={styles.searchInput}
+            />
+            <Search size={15} className={styles.searchIcon} />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className={styles.filterItem}>
         <label className={styles.filterLabel}>Status</label>
@@ -154,18 +164,20 @@ export function TaskFilterBar({
         </div>
       )}
 
-      <div className={styles.filterItem}>
-        <label className={styles.filterLabel}>Urutan</label>
-        <CustomDropdown
-          value={`${sortBy}-${sortOrder}`}
-          options={SORT_FILTER_OPTIONS}
-          onChange={(val) => {
-            const [by, order] = val.split('-');
-            setSortBy(by);
-            setSortOrder(order);
-          }}
-        />
-      </div>
+      {!hideSortFilter && (
+        <div className={styles.filterItem}>
+          <label className={styles.filterLabel}>Urutan</label>
+          <CustomDropdown
+            value={`${sortBy}-${sortOrder}`}
+            options={SORT_FILTER_OPTIONS}
+            onChange={(val) => {
+              const [by, order] = val.split('-');
+              setSortBy(by);
+              setSortOrder(order);
+            }}
+          />
+        </div>
+      )}
 
       {hasActiveFilters && (
         <div className={styles.filterActionItem}>

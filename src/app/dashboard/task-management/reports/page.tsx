@@ -157,6 +157,8 @@ export default function ReportsPage() {
           users={users}
           onFilterChange={handleFilterChange}
           initialFilters={filterParams}
+          hideSearchFilter
+          hideSortFilter
         />
 
         <TaskReportDashboard data={reportData} isLoading={isLoading} />
