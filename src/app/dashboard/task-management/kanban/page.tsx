@@ -99,6 +99,13 @@ export default function KanbanPage() {
     }
   }, [status, isAdmin, activeProjectId]);
 
+  const fetchKanbanTasksRef = useRef(fetchKanbanTasks);
+  const fetchCategoriesRef = useRef(fetchCategories);
+  useEffect(() => {
+    fetchKanbanTasksRef.current = fetchKanbanTasks;
+    fetchCategoriesRef.current = fetchCategories;
+  }, [fetchKanbanTasks, fetchCategories]);
+
   useEffect(() => {
     fetchCategories();
     fetchKanbanTasks();
@@ -108,12 +115,12 @@ export default function KanbanPage() {
     const handleProjectChanged = () => {
       setTasks([]);
       setCategories([]);
-      fetchCategories();
-      fetchKanbanTasks();
+      fetchCategoriesRef.current();
+      fetchKanbanTasksRef.current();
     };
 
     const handleTaskMutated = () => {
-      fetchKanbanTasks();
+      fetchKanbanTasksRef.current();
     };
 
     if (typeof window !== 'undefined') {
@@ -124,7 +131,7 @@ export default function KanbanPage() {
         window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       };
     }
-  }, [fetchCategories, fetchKanbanTasks]);
+  }, []);
 
   const toastCtx = useSafeToast();
 

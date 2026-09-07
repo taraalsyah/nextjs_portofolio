@@ -108,6 +108,13 @@ export default function ReportsPage() {
     }
   }, [status, activeProjectId]);
 
+  const fetchReportsRef = useRef(fetchReports);
+  const fetchCategoriesRef = useRef(fetchCategories);
+  useEffect(() => {
+    fetchReportsRef.current = fetchReports;
+    fetchCategoriesRef.current = fetchCategories;
+  }, [fetchReports, fetchCategories]);
+
   useEffect(() => {
     fetchReports();
   }, [fetchReports]);
@@ -115,8 +122,8 @@ export default function ReportsPage() {
   useEffect(() => {
     const handleProjectChanged = () => {
       setReportData(null);
-      fetchCategories();
-      fetchReports();
+      fetchCategoriesRef.current();
+      fetchReportsRef.current();
     };
 
     if (typeof window !== 'undefined') {
@@ -125,7 +132,7 @@ export default function ReportsPage() {
         window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
       };
     }
-  }, [fetchCategories, fetchReports]);
+  }, []);
 
   const handleFilterChange = useCallback((newFilters: Record<string, string>) => {
     setFilterParams(newFilters);

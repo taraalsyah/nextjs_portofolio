@@ -143,40 +143,49 @@ export default function MyTasksPage() {
     }
   }, [status, activeProjectId, currentPage, filterParams]);
 
-  // Track whether initial data has been loaded
-  const hasInitialized = useRef(false);
+  const handleFilterChange = useCallback((filters: Record<string, string>) => {
+    setFilterParams((prev) => {
+      const isSame = JSON.stringify(prev) === JSON.stringify(filters);
+      if (isSame) return prev;
+      setCurrentPage(1);
+      return filters;
+    });
+  }, []);
+
+  const fetchTasksRef = useRef(fetchTasks);
+  const fetchCategoriesRef = useRef(fetchCategories);
+  useEffect(() => {
+    fetchTasksRef.current = fetchTasks;
+    fetchCategoriesRef.current = fetchCategories;
+  }, [fetchTasks, fetchCategories]);
 
   useEffect(() => {
-    const loadData = () => {
+    fetchCategories();
+    fetchTasks();
+  }, [fetchCategories, fetchTasks]);
+
+  useEffect(() => {
+    const handleProjectChanged = () => {
       setTasks([]);
       setCategories([]);
       setCurrentPage(1);
-      fetchCategories();
-      fetchTasks();
+      fetchCategoriesRef.current();
+      fetchTasksRef.current();
     };
 
-    const handleProjectChanged = () => loadData();
-    const handleTaskMutated = () => fetchTasks();
+    const handleTaskMutated = () => {
+      fetchTasksRef.current();
+    };
 
     if (typeof window !== 'undefined') {
       window.addEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
       window.addEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
-    }
-
-    // Initial data load on mount
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      loadData();
-    }
-
-    return () => {
-      if (typeof window !== 'undefined') {
+      return () => {
         window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
         window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
-      }
-    };
-    // Only run on mount and when callbacks change due to activeProjectId / status
-  }, [fetchCategories, fetchTasks]);
+      };
+    }
+  }, []);
 
   const handleCreateOrUpdateTask = async (formData: TaskFormData) => {
     const url = editingTask ? `/api/tasks/${editingTask.id}` : '/api/tasks';
@@ -248,10 +257,7 @@ export default function MyTasksPage() {
         </div>
 
         <TaskFilterBar
-          onFilterChange={(filters) => {
-            setFilterParams(filters);
-            setCurrentPage(1);
-          }}
+          onFilterChange={handleFilterChange}
           categories={categories}
           users={users}
           hideAssigneeFilter={true}

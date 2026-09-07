@@ -98,6 +98,13 @@ export default function CalendarPage() {
     }
   }, [status, isAdmin, activeProjectId]);
 
+  const fetchCalendarTasksRef = useRef(fetchCalendarTasks);
+  const fetchCategoriesRef = useRef(fetchCategories);
+  useEffect(() => {
+    fetchCalendarTasksRef.current = fetchCalendarTasks;
+    fetchCategoriesRef.current = fetchCategories;
+  }, [fetchCalendarTasks, fetchCategories]);
+
   useEffect(() => {
     fetchCategories();
     fetchCalendarTasks();
@@ -107,12 +114,12 @@ export default function CalendarPage() {
     const handleProjectChanged = () => {
       setTasks([]);
       setCategories([]);
-      fetchCategories();
-      fetchCalendarTasks();
+      fetchCategoriesRef.current();
+      fetchCalendarTasksRef.current();
     };
 
     const handleTaskMutated = () => {
-      fetchCalendarTasks();
+      fetchCalendarTasksRef.current();
     };
 
     if (typeof window !== 'undefined') {
@@ -123,7 +130,7 @@ export default function CalendarPage() {
         window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       };
     }
-  }, [fetchCategories, fetchCalendarTasks]);
+  }, []);
 
   const handleCreateOrUpdateTask = async (formData: any) => {
     const url = editingTask ? `/api/tasks/${editingTask.id}` : '/api/tasks';

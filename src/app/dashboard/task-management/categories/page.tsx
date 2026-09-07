@@ -83,6 +83,11 @@ export default function CategoriesPage() {
     }
   }, [status, activeProjectId]);
 
+  const fetchCategoriesRef = useRef(fetchCategories);
+  useEffect(() => {
+    fetchCategoriesRef.current = fetchCategories;
+  }, [fetchCategories]);
+
   useEffect(() => {
     fetchCategories();
   }, [fetchCategories]);
@@ -90,7 +95,7 @@ export default function CategoriesPage() {
   useEffect(() => {
     const handleProjectChanged = () => {
       setCategories([]);
-      fetchCategories();
+      fetchCategoriesRef.current();
     };
 
     if (typeof window !== 'undefined') {
@@ -99,7 +104,7 @@ export default function CategoriesPage() {
         window.removeEventListener(ACTIVE_PROJECT_CHANGED_EVENT, handleProjectChanged);
       };
     }
-  }, [fetchCategories]);
+  }, []);
 
   const handleOpenModal = (category?: CategoryItem) => {
     if (category) {

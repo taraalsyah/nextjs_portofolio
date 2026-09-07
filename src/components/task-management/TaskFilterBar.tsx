@@ -56,21 +56,35 @@ export function TaskFilterBar({
   const [sortBy, setSortBy] = useState(initialFilters.sortBy || 'createdAt');
   const [sortOrder, setSortOrder] = useState(initialFilters.sortOrder || 'desc');
 
-  // Debounce search update
+  // Ref to hold current onFilterChange callback without triggering effect restarts
+  const onFilterChangeRef = useRef(onFilterChange);
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange;
+  }, [onFilterChange]);
+
+  const lastEmittedRef = useRef<string | null>(null);
+
+  // Debounce search/filter update
   useEffect(() => {
     const timer = setTimeout(() => {
-      onFilterChange({
+      const payload: Record<string, string> = {
         ...(hideSearchFilter ? {} : { search }),
         status,
         priority,
         categoryId,
         ...(hideAssigneeFilter ? {} : { assigneeId }),
         ...(hideSortFilter ? {} : { sortBy, sortOrder }),
-      });
+      };
+
+      const serialized = JSON.stringify(payload);
+      if (lastEmittedRef.current !== serialized) {
+        lastEmittedRef.current = serialized;
+        onFilterChangeRef.current(payload);
+      }
     }, 350);
 
     return () => clearTimeout(timer);
-  }, [search, status, priority, categoryId, assigneeId, sortBy, sortOrder, hideSearchFilter, hideAssigneeFilter, hideSortFilter, onFilterChange]);
+  }, [search, status, priority, categoryId, assigneeId, sortBy, sortOrder, hideSearchFilter, hideAssigneeFilter, hideSortFilter]);
 
   const handleReset = () => {
     setSearch('');

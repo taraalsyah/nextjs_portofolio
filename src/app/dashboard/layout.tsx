@@ -178,11 +178,17 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
             return visibleItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const targetHref =
+                item.href === '/dashboard/task-management' && userRole !== 'Admin'
+                  ? '/dashboard/task-management/my-tasks'
+                  : item.href;
+              const isActive =
+                pathname === item.href ||
+                (item.href === '/dashboard/task-management' && pathname.startsWith('/dashboard/task-management'));
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={targetHref}
                   className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
                 >
                   <Icon className={styles.menuIcon} size={16} />

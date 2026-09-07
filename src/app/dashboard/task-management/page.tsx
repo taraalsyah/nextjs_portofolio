@@ -146,13 +146,25 @@ export default function AllTasksPage() {
     }
   }, [status, activeProjectId, currentPage, filterParams]);
 
-  // Data fetching effect — called on mount and when fetch functions change.
-  // The fetch functions call setState in response to external API results, which is
-  // the intended use of effects as described in the React docs.
+  const handleFilterChange = useCallback((params: Record<string, string>) => {
+    setFilterParams((prev) => {
+      const isSame = JSON.stringify(prev) === JSON.stringify(params);
+      if (isSame) return prev;
+      setCurrentPage(1);
+      return params;
+    });
+  }, []);
+
+  const fetchTasksRef = useRef(fetchTasks);
+  const fetchCategoriesRef = useRef(fetchCategories);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching from external API is the intended use of effects; the setState calls inside fetchTasks power the loading UI
+    fetchTasksRef.current = fetchTasks;
+    fetchCategoriesRef.current = fetchCategories;
+  }, [fetchTasks, fetchCategories]);
+
+  // Data fetching effect — called on mount and when fetch functions change.
+  useEffect(() => {
     fetchCategories();
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- data fetching from external API is the intended use of effects; the setState calls inside fetchTasks power the loading UI
     fetchTasks();
   }, [fetchCategories, fetchTasks]);
 
@@ -161,12 +173,12 @@ export default function AllTasksPage() {
       setTasks([]);
       setCategories([]);
       setCurrentPage(1);
-      fetchCategories();
-      fetchTasks();
+      fetchCategoriesRef.current();
+      fetchTasksRef.current();
     };
 
     const handleTaskMutated = () => {
-      fetchTasks();
+      fetchTasksRef.current();
     };
 
     if (typeof window !== 'undefined') {
@@ -177,7 +189,7 @@ export default function AllTasksPage() {
         window.removeEventListener(TASK_MUTATED_EVENT, handleTaskMutated);
       };
     }
-  }, [fetchCategories, fetchTasks]);
+  }, []);
 
   const handleCreateOrUpdateTask = async (formData: Record<string, unknown>) => {
     const url = editingTask ? `/api/tasks/${editingTask.id}` : '/api/tasks';
@@ -260,10 +272,7 @@ export default function AllTasksPage() {
         <TaskFilterBar
           categories={categories}
           users={users}
-          onFilterChange={(params) => {
-            setFilterParams(params);
-            setCurrentPage(1);
-          }}
+          onFilterChange={handleFilterChange}
         />
 
         <TaskTable
