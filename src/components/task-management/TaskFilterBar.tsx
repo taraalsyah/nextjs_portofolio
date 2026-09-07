@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, X } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
