@@ -132,7 +132,7 @@ export function useNotifications() {
     } catch (err) {
       console.warn('[Pusher Client Connection Warning]:', err);
     }
-  }, [session?.user]);
+  }, [(session?.user as any)?.id]);
 
   const markAllAsRead = async () => {
     // Optimistic update
