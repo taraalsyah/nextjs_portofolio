@@ -74,9 +74,19 @@ export class PasswordResetService {
       },
     });
 
-    // 5. Buat reset URL menggunakan FRONTEND_URL env var
-    const frontendUrl = process.env.FRONTEND_URL?.replace(/\/$/, '') || 'https://tasktuntas.com';
-    const resetUrl = `${frontendUrl}/reset-password?token=${token}`;
+    // 5. Buat reset URL menggunakan FRONTEND_URL / NEXT_PUBLIC_APP_URL / NEXTAUTH_URL env var
+    const rawUrl =
+      process.env.FRONTEND_URL ||
+      process.env.NEXT_PUBLIC_APP_URL ||
+      process.env.NEXTAUTH_URL ||
+      'https://www.tasktuntas.com';
+
+    const baseUrl = rawUrl.replace(/\/$/, '');
+    const cleanBaseUrl = baseUrl.includes('taraalsyah.online')
+      ? 'https://www.tasktuntas.com'
+      : baseUrl;
+
+    const resetUrl = `${cleanBaseUrl}/reset-password?token=${token}`;
 
     // 6. Kirim email berisi link reset password (bukan OTP)
     const result = await emailService.sendForgotPasswordEmail(user.email, user.name, resetUrl);
