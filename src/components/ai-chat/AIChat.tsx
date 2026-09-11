@@ -73,7 +73,12 @@ export const AIChat: React.FC = () => {
     setInputValue('');
     setIsLoading(true);
 
-    const response = await sendChatMessage(text);
+    const historyPayload = messages.slice(-6).map((m) => ({
+      role: m.role,
+      content: m.content,
+    }));
+
+    const response = await sendChatMessage(text, { history: historyPayload });
     setIsLoading(false);
 
     if (response.success && response.answer) {

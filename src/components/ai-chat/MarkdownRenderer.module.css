@@ -61,6 +61,36 @@
   margin-bottom: 0;
 }
 
+.customOl {
+  margin-top: 0.5rem;
+  margin-bottom: 0.875rem;
+  padding-left: 0;
+  list-style: none;
+}
+
+.customOlItem {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.customOlItem:last-child {
+  margin-bottom: 0;
+}
+
+.listNum {
+  font-weight: 600;
+  color: #38bdf8;
+  min-width: 1.75rem;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.listItemContent {
+  flex: 1;
+  min-width: 0;
+}
+
 .inlineCode {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--glass-border);

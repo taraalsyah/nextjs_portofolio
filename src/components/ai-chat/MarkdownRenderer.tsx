@@ -185,7 +185,8 @@ function parseMarkdown(text: string): React.ReactNode[] {
       while (index < lines.length) {
         const itemMatch = /^[\*\-]\s+(.+)$/.exec(lines[index].trim());
         if (itemMatch) {
-          listItems.push(itemMatch[1]);
+          const cleanItem = itemMatch[1].replace(/^\d+\.\s+/, '');
+          listItems.push(cleanItem);
           index++;
         } else {
           break;
@@ -202,24 +203,53 @@ function parseMarkdown(text: string): React.ReactNode[] {
     }
 
     // 6. Ordered List (1. 2. etc.)
-    const olMatch = /^\d+\.\s+(.+)$/.exec(line.trim());
+    const olMatch = /^(\d+)\.\s+(.+)$/.exec(line.trim());
     if (olMatch) {
-      const listItems: string[] = [];
+      const listItems: { num: number; content: string }[] = [];
       while (index < lines.length) {
-        const itemMatch = /^\d+\.\s+(.+)$/.exec(lines[index].trim());
+        const trimmed = lines[index].trim();
+        const itemMatch = /^(\d+)\.\s+(.+)$/.exec(trimmed);
         if (itemMatch) {
-          listItems.push(itemMatch[1]);
+          listItems.push({
+            num: parseInt(itemMatch[1], 10),
+            content: itemMatch[2],
+          });
           index++;
+        } else if (trimmed === '') {
+          let foundNext = false;
+          for (let look = index + 1; look < lines.length; look++) {
+            const lookTrim = lines[look].trim();
+            if (lookTrim === '') continue;
+            if (/^(\d+)\.\s+/.test(lookTrim)) {
+              foundNext = true;
+            }
+            break;
+          }
+          if (foundNext) {
+            index++;
+          } else {
+            break;
+          }
         } else {
           break;
         }
       }
+
+      const hasOnlyOnes = listItems.length > 1 && listItems.every((it) => it.num === 1);
+      const firstNum = listItems[0]?.num || 1;
+
       result.push(
-        <ol key={elementKey++} className={styles.ol}>
-          {listItems.map((item, i) => (
-            <li key={i}>{parseInline(item)}</li>
-          ))}
-        </ol>
+        <ul key={elementKey++} className={styles.customOl}>
+          {listItems.map((item, i) => {
+            const displayNum = hasOnlyOnes ? i + 1 : item.num || firstNum + i;
+            return (
+              <li key={i} className={styles.customOlItem}>
+                <span className={styles.listNum}>{displayNum}.</span>
+                <div className={styles.listItemContent}>{parseInline(item.content)}</div>
+              </li>
+            );
+          })}
+        </ul>
       );
       continue;
     }

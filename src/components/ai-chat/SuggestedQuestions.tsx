@@ -5,14 +5,12 @@ import { HelpCircle } from 'lucide-react';
 import styles from './SuggestedQuestions.module.css';
 
 const DEFAULT_QUESTIONS = [
-  'Apa saja status task?',
-  'Apakah task Done bisa diedit?',
-  'Siapa yang bisa approve Request to Done?',
-  'Bagaimana workflow task dari Backlog sampai Done?',
-  'Apa perbedaan Owner, Admin, Member, dan Viewer?',
-  'Bagaimana cara Request to Done?',
-  'Bagaimana Task Management menangani tampilan mobile?',
-  'Database apa yang dipakai di task management?',
+  'Berapa task DONE di project saya?',
+  'Cari task tentang login',
+  'Tampilkan task IN_PROGRESS di project ini',
+  'Berikan detail project 1',
+  'Ada task yang berhubungan dengan database?',
+  'Tampilkan daftar task BACKLOG',
 ];
 
 interface SuggestedQuestionsProps {

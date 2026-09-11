@@ -35,19 +35,21 @@ export interface MessageItem {
 export async function sendChatMessage(
   message: string,
   options?: {
+    history?: { role: 'user' | 'assistant'; content: string }[];
     documentId?: number;
     documentIds?: number[];
     signal?: AbortSignal;
   }
 ): Promise<ChatApiResponse> {
   try {
-    const response = await fetch('/api/chat', {
+    const response = await fetch('/api/ai/chat', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         message,
+        history: options?.history,
         documentId: options?.documentId,
         documentIds: options?.documentIds,
       }),

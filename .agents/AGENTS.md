@@ -9,6 +9,7 @@ This project uses modularized agent rules located in `.agents/rules/`:
 5. [04-database.md](file:///Users/mac/Documents/NextJs/portofolio/.agents/rules/04-database.md) - Database & Prisma Transaction Safety Rules
 6. [05-ui-ux.md](file:///Users/mac/Documents/NextJs/portofolio/.agents/rules/05-ui-ux.md) - UI/UX Glassmorphism & Mobile Responsiveness Rules
 7. [06-security.md](file:///Users/mac/Documents/NextJs/portofolio/.agents/rules/06-security.md) - Security, Rate Limiting & Safe Logging Rules
+8. [ai-database.md](file:///Users/mac/Documents/NextJs/portofolio/.agents/rules/ai-database.md) - AI Database & MCP Behavior Rules
 
 ## Summary Instructions
 - Follow all standards defined in the rule files above for development, refactoring, and debugging.
