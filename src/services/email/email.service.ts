@@ -279,7 +279,7 @@ export class EmailService {
       ${otpBlock(otp)}
       <hr style="border:0;border-top:1px solid #e5e7eb;margin:28px 0;" />
       <p style="font-size:13px;color:#6b7280;line-height:1.6;margin:0;">
-        Kode ini berlaku selama <strong>5 menit</strong>. Jangan pernah memberitahukan kode ini kepada siapa pun. Jika Anda tidak merasa melakukan percobaan login, segera perbarui password akun Anda.
+        Jangan pernah memberitahukan kode ini kepada siapa pun. Jika Anda tidak merasa melakukan percobaan login, segera perbarui password akun Anda.
       </p>`;
 
     return sendEmail({ to: email, subject, html: baseTemplate(subject, body, { isOtp: true }) });
