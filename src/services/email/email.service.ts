@@ -2,7 +2,17 @@ import { sendEmail, EmailResult } from '@/lib/mail';
 
 // ─── HTML Templates ──────────────────────────────────────────────────────────
 
-function baseTemplate(title: string, body: string): string {
+function baseTemplate(title: string, body: string, options?: { isOtp?: boolean }): string {
+  const isOtp = options?.isOtp ?? false;
+
+  const footerHtml = isOtp
+    ? `⚠️ <strong>Jangan pernah membagikan kode OTP kepada siapa pun.</strong><br/>
+       Email ini dikirim secara otomatis oleh TaskTuntas. Jangan membalas email ini.<br/>
+       &copy; ${new Date().getFullYear()} TaskTuntas &mdash; tasktuntas.com`
+    : `Email ini dikirim secara otomatis oleh TaskTuntas.<br/>
+       Jangan membalas email ini.<br/><br/>
+       &copy; ${new Date().getFullYear()} TaskTuntas &mdash; tasktuntas.com`;
+
   return `
 <!DOCTYPE html>
 <html lang="id">
@@ -21,9 +31,9 @@ function baseTemplate(title: string, body: string): string {
           <tr>
             <td align="center" style="background:#2563eb;padding:36px 40px;">
               <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:700;letter-spacing:-0.5px;">
-                🚀 Tasktuntas
+                🚀 TaskTuntas
               </h1>
-              <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Portofolio &amp; Web Development</p>
+              <p style="margin:6px 0 0;color:rgba(255,255,255,0.8);font-size:13px;">Project Management</p>
             </td>
           </tr>
 
@@ -38,9 +48,7 @@ function baseTemplate(title: string, body: string): string {
           <tr>
             <td style="background-color:#f8f8fa;padding:24px 40px;border-top:1px solid #e5e7eb;">
               <p style="margin:0;font-size:12px;color:#9ca3af;text-align:center;line-height:1.6;">
-                ⚠️ <strong>Jangan pernah membagikan kode OTP kepada siapa pun.</strong><br/>
-                Email ini dikirim secara otomatis. Jangan membalas email ini.<br/>
-                &copy; ${new Date().getFullYear()} Tasktuntas &mdash; tasktuntas.com
+                ${footerHtml}
               </p>
             </td>
           </tr>
@@ -88,7 +96,7 @@ export class EmailService {
         Jika Anda tidak merasa mendaftar, abaikan email ini.
       </p>`;
 
-    return sendEmail({ to: email, subject, html: baseTemplate(subject, body) });
+    return sendEmail({ to: email, subject, html: baseTemplate(subject, body, { isOtp: true }) });
   }
 
   /**
@@ -108,7 +116,7 @@ export class EmailService {
         Jika Anda tidak meminta kode ini, abaikan email ini.
       </p>`;
 
-    return sendEmail({ to: email, subject, html: baseTemplate(subject, body) });
+    return sendEmail({ to: email, subject, html: baseTemplate(subject, body, { isOtp: true }) });
   }
 
   /**
@@ -164,7 +172,7 @@ export class EmailService {
         Jika Anda tidak meminta reset password, abaikan email ini. Password Anda tidak akan berubah.
       </p>`;
 
-    return sendEmail({ to: email, subject, html: baseTemplate(subject, body) });
+    return sendEmail({ to: email, subject, html: baseTemplate(subject, body, { isOtp: false }) });
   }
 
   /**
@@ -251,7 +259,7 @@ export class EmailService {
         Harap segera perbarui status task atau selesaikan pekerjaan yang ditugaskan.
       </p>`;
 
-    return sendEmail({ to: params.to, subject, html: baseTemplate(subject, body) });
+    return sendEmail({ to: params.to, subject, html: baseTemplate(subject, body, { isOtp: false }) });
   }
 
   /**
@@ -274,7 +282,7 @@ export class EmailService {
         Kode ini berlaku selama <strong>5 menit</strong>. Jangan pernah memberitahukan kode ini kepada siapa pun. Jika Anda tidak merasa melakukan percobaan login, segera perbarui password akun Anda.
       </p>`;
 
-    return sendEmail({ to: email, subject, html: baseTemplate(subject, body) });
+    return sendEmail({ to: email, subject, html: baseTemplate(subject, body, { isOtp: true }) });
   }
 }
 

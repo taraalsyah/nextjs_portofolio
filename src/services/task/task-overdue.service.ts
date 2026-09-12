@@ -100,7 +100,10 @@ export class TaskOverdueService {
   async processOverdueTasks(): Promise<ProcessOverdueResult> {
     const cronStartTime = performance.now();
     const now = new Date();
-    const baseUrl = process.env.FRONTEND_URL || process.env.NEXTAUTH_URL || 'https://tasktuntas.com';
+    const rawUrl = process.env.FRONTEND_URL || process.env.NEXTAUTH_URL || 'https://tasktuntas.com';
+    const baseUrl = rawUrl.includes('taraalsyah.online')
+      ? 'https://tasktuntas.com'
+      : rawUrl.replace(/\/$/, '');
 
     console.log('[CRON] Overdue task check started');
 
