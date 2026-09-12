@@ -4,13 +4,13 @@ export interface GetProjectTasksInput {
   project_id: string | number;
   status?: string;
   limit?: number;
+  assigned_to_me?: boolean;
 }
 
-export async function executeGetProjectTasks({
-  project_id,
-  status,
-  limit = 20,
-}: GetProjectTasksInput) {
+export async function executeGetProjectTasks(
+  { project_id, status, limit = 20, assigned_to_me }: GetProjectTasksInput,
+  currentUserId?: number
+) {
   const parsedId =
     typeof project_id === "number"
       ? project_id
@@ -32,11 +32,14 @@ export async function executeGetProjectTasks({
     return `Project dengan ID '${parsedId}' tidak ditemukan.`;
   }
 
+  const filterByAssignee = assigned_to_me && currentUserId && !isNaN(currentUserId);
+
   const tasks = await prisma.task.findMany({
     where: {
       projectId: parsedId,
       deletedAt: null,
       ...(cleanStatus ? { status: cleanStatus } : {}),
+      ...(filterByAssignee ? { assigneeId: currentUserId } : {}),
     },
     take: cappedLimit,
     include: {
@@ -73,6 +76,7 @@ export async function executeGetProjectTasks({
     {
       projectId: project.id,
       projectName: project.projectName,
+      assignedToMeOnly: !!filterByAssignee,
       filterStatus: cleanStatus || "ALL",
       count: tasks.length,
       limit: cappedLimit,

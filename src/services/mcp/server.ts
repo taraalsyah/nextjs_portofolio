@@ -6,6 +6,8 @@ import { executeGetProjectTasks } from "./tools/get-project-tasks";
 import { executeSearchProjects } from "./tools/search-projects";
 import { executeCountProjectTasks } from "./tools/count-project-tasks";
 import { executeGetOverdueTasks } from "./tools/get-overdue-tasks";
+import { executeListProjects } from "./tools/list-projects";
+import { executeCountAssignedTasks } from "./tools/count-assigned-tasks";
 
 export class SimpleMcpServer {
   name: string;
@@ -118,6 +120,32 @@ export function createMcpServer() {
       },
       async ({ project_id, limit }: { project_id: string | number; limit?: number }) => {
         const text = await executeGetOverdueTasks({ project_id, limit });
+        return { content: [{ type: "text", text }] };
+      }
+    );
+
+    server.tool(
+      "list_projects",
+      "Mengambil seluruh daftar project yang dapat diakses (authorized) oleh user yang sedang login",
+      {
+        limit: z.number().optional().describe("Jumlah maksimal hasil (default: 50, max: 100)"),
+      },
+      async ({ limit }: { limit?: number }) => {
+        const text = await executeListProjects({ limit });
+        return { content: [{ type: "text", text }] };
+      }
+    );
+
+    server.tool(
+      "count_assigned_tasks",
+      "Menghitung jumlah total task dalam sebuah project yang ditugaskan kepada SAYA (user yang sedang login)",
+      {
+        project_id: z.union([z.number(), z.string()]).describe("ID numerik dari project"),
+        status: z.string().optional().describe("Filter status task opsional (misal: 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CLOSED')"),
+      },
+      async ({ project_id, status }: { project_id: string | number; status?: string }) => {
+        // Fallback placeholder call (authorized direct tool calls are routed via handleAuthorizedToolCall)
+        const text = await executeCountAssignedTasks({ project_id, status }, 0);
         return { content: [{ type: "text", text }] };
       }
     );
@@ -255,6 +283,37 @@ export const MCP_TOOLS_LIST = [
       required: ["project_id"],
     },
   },
+  {
+    name: "list_projects",
+    description: "Mengambil seluruh daftar project yang dapat diakses (authorized) oleh user yang sedang login",
+    inputSchema: {
+      type: "object",
+      properties: {
+        limit: {
+          type: "number",
+          description: "Jumlah maksimal hasil (default: 50, max: 100)",
+        },
+      },
+    },
+  },
+  {
+    name: "count_assigned_tasks",
+    description: "Menghitung jumlah total task dalam sebuah project yang ditugaskan kepada SAYA (user yang sedang login) berdasarkan project ID",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project_id: {
+          type: ["number", "string"],
+          description: "ID numerik dari project",
+        },
+        status: {
+          type: "string",
+          description: "Filter status task opsional (misal: 'BACKLOG', 'IN_PROGRESS', 'DONE', 'CLOSED')",
+        },
+      },
+      required: ["project_id"],
+    },
+  },
 ];
 
 export async function handleDirectToolCall(name: string, args: Record<string, any>) {
@@ -273,6 +332,10 @@ export async function handleDirectToolCall(name: string, args: Record<string, an
       return await executeCountProjectTasks(args as any);
     case "get_overdue_tasks":
       return await executeGetOverdueTasks(args as any);
+    case "list_projects":
+      return await executeListProjects(args as any);
+    case "count_assigned_tasks":
+      return await executeCountAssignedTasks(args as any, 0);
     default:
       throw new Error(`Unknown tool name: '${name}'`);
   }

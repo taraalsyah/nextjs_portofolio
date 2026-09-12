@@ -7,6 +7,8 @@ import { executeGetProjectTasks, GetProjectTasksInput } from "./tools/get-projec
 import { executeSearchProjects, SearchProjectsInput } from "./tools/search-projects";
 import { executeCountProjectTasks, CountProjectTasksInput } from "./tools/count-project-tasks";
 import { executeGetOverdueTasks, GetOverdueTasksInput } from "./tools/get-overdue-tasks";
+import { executeListProjects, ListProjectsInput } from "./tools/list-projects";
+import { executeCountAssignedTasks, CountAssignedTasksInput } from "./tools/count-assigned-tasks";
 
 /**
  * Execute 'get_task' tool with server-side project authorization check.
@@ -186,7 +188,7 @@ export async function executeGetProjectTasksWithAuth(
     return `Error: Anda tidak memiliki akses ke project dengan ID '${parsedId}'.`;
   }
 
-  return await executeGetProjectTasks(input);
+  return await executeGetProjectTasks(input, userId);
 }
 
 /**
@@ -328,6 +330,113 @@ export async function executeGetOverdueTasksWithAuth(
 }
 
 /**
+ * Execute 'list_projects' tool returning ALL authorized projects for the current authenticated user.
+ */
+export async function executeListProjectsWithAuth(
+  input: ListProjectsInput,
+  userId: number
+): Promise<string> {
+  const { limit = 50 } = input || {};
+  const cappedLimit = Math.min(Math.max(1, limit || 50), 100);
+
+  // 1. Get user's authorized project IDs
+  const authorizedProjectIds = await getUserAuthorizedProjectIds(userId);
+  if (authorizedProjectIds.length === 0) {
+    return JSON.stringify(
+      {
+        total: 0,
+        limit: cappedLimit,
+        projects: [],
+      },
+      null,
+      2
+    );
+  }
+
+  // 2. Fetch ALL authorized projects of current user
+  const projects = await prisma.project.findMany({
+    where: {
+      id: { in: authorizedProjectIds },
+    },
+    take: cappedLimit,
+    include: {
+      owner: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+      _count: {
+        select: {
+          members: true,
+        },
+      },
+    },
+    orderBy: {
+      updatedAt: "desc",
+    },
+  });
+
+  const results = await Promise.all(
+    projects.map(async (p) => {
+      const activeTaskCount = await prisma.task.count({
+        where: {
+          projectId: p.id,
+          deletedAt: null,
+        },
+      });
+
+      return {
+        id: p.id,
+        projectName: p.projectName,
+        description: p.description,
+        visibility: p.visibility,
+        owner: p.owner ? { id: p.owner.id, name: p.owner.name, email: p.owner.email } : null,
+        totalMembers: p._count.members,
+        totalTasks: activeTaskCount,
+        updatedAt: p.updatedAt.toISOString(),
+      };
+    })
+  );
+
+  return JSON.stringify(
+    {
+      total: authorizedProjectIds.length,
+      limit: cappedLimit,
+      projects: results,
+    },
+    null,
+    2
+  );
+}
+
+/**
+ * Execute 'count_assigned_tasks' tool with server-side authorization check and session user ID binding.
+ */
+export async function executeCountAssignedTasksWithAuth(
+  input: CountAssignedTasksInput,
+  userId: number
+): Promise<string> {
+  const { project_id } = input;
+  const parsedId =
+    typeof project_id === "number"
+      ? project_id
+      : parseInt(String(project_id).trim(), 10);
+
+  if (isNaN(parsedId)) {
+    return "Error: project_id harus berupa angka atau string angka yang valid.";
+  }
+
+  const isAuthorized = await isUserAuthorizedForProject(userId, parsedId);
+  if (!isAuthorized) {
+    return `Error: Anda tidak memiliki akses ke project dengan ID '${parsedId}'.`;
+  }
+
+  return await executeCountAssignedTasks(input, userId);
+}
+
+/**
  * Main dispatcher for authorized MCP tool calls.
  */
 export async function handleAuthorizedToolCall(
@@ -350,6 +459,10 @@ export async function handleAuthorizedToolCall(
       return await executeCountProjectTasksWithAuth(args as CountProjectTasksInput, userId);
     case "get_overdue_tasks":
       return await executeGetOverdueTasksWithAuth(args as GetOverdueTasksInput, userId);
+    case "list_projects":
+      return await executeListProjectsWithAuth(args as ListProjectsInput, userId);
+    case "count_assigned_tasks":
+      return await executeCountAssignedTasksWithAuth(args as CountAssignedTasksInput, userId);
     default:
       return `Error: Tool '${name}' tidak dikenali oleh MCP server.`;
   }
