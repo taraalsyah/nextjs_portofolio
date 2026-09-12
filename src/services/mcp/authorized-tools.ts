@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { getUserAuthorizedProjectIds, isUserAuthorizedForProject } from "./authorization";
 import { executeGetTask, GetTaskInput } from "./tools/get-task";
-import { executeSearchTasks, SearchTasksInput } from "./tools/search-tasks";
+import { executeSearchTasks, SearchTasksInput, parseAndSanitizeSearchInput } from "./tools/search-tasks";
 import { executeGetProject, GetProjectInput } from "./tools/get-project";
 import { executeGetProjectTasks, GetProjectTasksInput } from "./tools/get-project-tasks";
 import { executeSearchProjects, SearchProjectsInput } from "./tools/search-projects";
@@ -62,33 +62,33 @@ export async function executeSearchTasksWithAuth(
   input: SearchTasksInput,
   userId: number
 ): Promise<string> {
-  const { keyword, limit = 10 } = input;
-  if (!keyword || typeof keyword !== "string" || keyword.trim() === "") {
-    return "Error: Parameter keyword wajib diisi.";
+  const parsed = parseAndSanitizeSearchInput(input);
+  if (!parsed.primaryQuery) {
+    return "Error: Parameter query atau keyword wajib diisi.";
   }
-
-  const cleanKeyword = keyword.trim();
-  const cappedLimit = Math.min(Math.max(1, limit || 10), 20);
 
   // 1. Get user's authorized project IDs
   const authorizedProjectIds = await getUserAuthorizedProjectIds(userId);
   if (authorizedProjectIds.length === 0) {
-    return `Tidak ditemukan task yang cocok dengan keyword '${cleanKeyword}' pada project yang dapat Anda akses.`;
+    return `Tidak ditemukan task yang cocok dengan query '${parsed.primaryQuery}' pada project yang dapat Anda akses.`;
   }
+
+  const searchConditions = parsed.termsToSearch.flatMap((term) => [
+    { taskNumber: { contains: term } },
+    { title: { contains: term } },
+    { description: { contains: term } },
+    { tags: { contains: term } },
+  ]);
 
   // 2. Perform search restricted ONLY to authorized projects
   const tasks = await prisma.task.findMany({
     where: {
       deletedAt: null,
       projectId: { in: authorizedProjectIds },
-      OR: [
-        { taskNumber: { contains: cleanKeyword } },
-        { title: { contains: cleanKeyword } },
-        { description: { contains: cleanKeyword } },
-        { tags: { contains: cleanKeyword } },
-      ],
+      ...(parsed.cleanStatus ? { status: parsed.cleanStatus } : {}),
+      OR: searchConditions,
     },
-    take: cappedLimit,
+    take: parsed.cappedLimit,
     include: {
       project: {
         select: {
@@ -114,8 +114,33 @@ export async function executeSearchTasksWithAuth(
   });
 
   if (tasks.length === 0) {
-    return `Tidak ditemukan task yang cocok dengan keyword '${cleanKeyword}' pada project yang Anda akses.`;
+    return `Tidak ditemukan task yang cocok dengan query '${parsed.primaryQuery}' pada project yang Anda akses.`;
   }
+
+  // Quality ranking: Primary query matches first, then related terms matches
+  const primaryLower = parsed.primaryQuery.toLowerCase();
+  tasks.sort((a, b) => {
+    const scoreA =
+      (a.title && a.title.toLowerCase().includes(primaryLower)) ||
+      (a.taskNumber && a.taskNumber.toLowerCase().includes(primaryLower))
+        ? 2
+        : (a.description && a.description.toLowerCase().includes(primaryLower)) ||
+          (a.tags && a.tags.toLowerCase().includes(primaryLower))
+        ? 1
+        : 0;
+
+    const scoreB =
+      (b.title && b.title.toLowerCase().includes(primaryLower)) ||
+      (b.taskNumber && b.taskNumber.toLowerCase().includes(primaryLower))
+        ? 2
+        : (b.description && b.description.toLowerCase().includes(primaryLower)) ||
+          (b.tags && b.tags.toLowerCase().includes(primaryLower))
+        ? 1
+        : 0;
+
+    if (scoreA !== scoreB) return scoreB - scoreA;
+    return b.updatedAt.getTime() - a.updatedAt.getTime();
+  });
 
   const results = tasks.map((t) => ({
     id: t.id,
@@ -133,7 +158,10 @@ export async function executeSearchTasksWithAuth(
   return JSON.stringify(
     {
       totalFound: tasks.length,
-      keyword: cleanKeyword,
+      query: parsed.primaryQuery,
+      searchMode: parsed.mode,
+      relatedTermsUsed: parsed.validRelatedTerms,
+      limit: parsed.cappedLimit,
       tasks: results,
     },
     null,

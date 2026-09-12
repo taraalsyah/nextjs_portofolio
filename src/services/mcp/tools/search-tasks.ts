@@ -1,29 +1,81 @@
 import prisma from "@/lib/prisma";
 
 export interface SearchTasksInput {
-  keyword: string;
+  query?: string;
+  keyword?: string;
+  relatedTerms?: string[];
+  searchMode?: "keyword" | "expanded";
   limit?: number;
+  status?: string;
 }
 
-export async function executeSearchTasks({ keyword, limit = 10 }: SearchTasksInput) {
-  if (!keyword || typeof keyword !== "string" || keyword.trim() === "") {
-    return "Error: Parameter keyword wajib diisi.";
+export function parseAndSanitizeSearchInput(input: SearchTasksInput) {
+  const primaryQuery = (input.query || input.keyword || "").trim();
+  const rawLimit = input.limit;
+  const cappedLimit = Math.min(Math.max(1, rawLimit || 20), 50);
+
+  let mode: "keyword" | "expanded" =
+    input.searchMode === "expanded" ? "expanded" : "keyword";
+
+  const validRelatedTerms: string[] = [];
+  if (Array.isArray(input.relatedTerms) && input.relatedTerms.length > 0) {
+    const seen = new Set<string>([primaryQuery.toLowerCase()]);
+    for (const term of input.relatedTerms) {
+      if (typeof term === "string") {
+        const clean = term.trim();
+        if (clean && clean.length <= 100 && !seen.has(clean.toLowerCase())) {
+          seen.add(clean.toLowerCase());
+          validRelatedTerms.push(clean);
+          if (validRelatedTerms.length >= 15) break;
+        }
+      }
+    }
   }
 
-  const cleanKeyword = keyword.trim();
-  const cappedLimit = Math.min(Math.max(1, limit || 10), 20);
+  if (validRelatedTerms.length > 0 && input.searchMode !== "keyword") {
+    mode = "expanded";
+  }
+
+  const termsToSearch =
+    mode === "expanded" && validRelatedTerms.length > 0
+      ? [primaryQuery, ...validRelatedTerms]
+      : [primaryQuery];
+
+  const cleanStatus =
+    input.status && typeof input.status === "string"
+      ? input.status.trim().toUpperCase()
+      : undefined;
+
+  return {
+    primaryQuery,
+    mode,
+    validRelatedTerms: mode === "expanded" ? validRelatedTerms : [],
+    termsToSearch: termsToSearch.filter(Boolean),
+    cappedLimit,
+    cleanStatus,
+  };
+}
+
+export async function executeSearchTasks(input: SearchTasksInput) {
+  const parsed = parseAndSanitizeSearchInput(input);
+  if (!parsed.primaryQuery) {
+    return "Error: Parameter query atau keyword wajib diisi.";
+  }
+
+  const searchConditions = parsed.termsToSearch.flatMap((term) => [
+    { taskNumber: { contains: term } },
+    { title: { contains: term } },
+    { description: { contains: term } },
+    { tags: { contains: term } },
+  ]);
 
   const tasks = await prisma.task.findMany({
     where: {
       deletedAt: null,
-      OR: [
-        { taskNumber: { contains: cleanKeyword } },
-        { title: { contains: cleanKeyword } },
-        { description: { contains: cleanKeyword } },
-        { tags: { contains: cleanKeyword } },
-      ],
+      ...(parsed.cleanStatus ? { status: parsed.cleanStatus } : {}),
+      OR: searchConditions,
     },
-    take: cappedLimit,
+    take: parsed.cappedLimit,
     include: {
       project: {
         select: {
@@ -49,8 +101,33 @@ export async function executeSearchTasks({ keyword, limit = 10 }: SearchTasksInp
   });
 
   if (tasks.length === 0) {
-    return `Tidak ditemukan task yang cocok dengan keyword '${cleanKeyword}'.`;
+    return `Tidak ditemukan task yang cocok dengan query '${parsed.primaryQuery}'.`;
   }
+
+  // Quality ranking: Primary query matches first, then related terms matches
+  const primaryLower = parsed.primaryQuery.toLowerCase();
+  tasks.sort((a, b) => {
+    const scoreA =
+      (a.title && a.title.toLowerCase().includes(primaryLower)) ||
+      (a.taskNumber && a.taskNumber.toLowerCase().includes(primaryLower))
+        ? 2
+        : (a.description && a.description.toLowerCase().includes(primaryLower)) ||
+          (a.tags && a.tags.toLowerCase().includes(primaryLower))
+        ? 1
+        : 0;
+
+    const scoreB =
+      (b.title && b.title.toLowerCase().includes(primaryLower)) ||
+      (b.taskNumber && b.taskNumber.toLowerCase().includes(primaryLower))
+        ? 2
+        : (b.description && b.description.toLowerCase().includes(primaryLower)) ||
+          (b.tags && b.tags.toLowerCase().includes(primaryLower))
+        ? 1
+        : 0;
+
+    if (scoreA !== scoreB) return scoreB - scoreA;
+    return b.updatedAt.getTime() - a.updatedAt.getTime();
+  });
 
   const results = tasks.map((t) => ({
     id: t.id,
@@ -68,7 +145,10 @@ export async function executeSearchTasks({ keyword, limit = 10 }: SearchTasksInp
   return JSON.stringify(
     {
       totalFound: tasks.length,
-      keyword: cleanKeyword,
+      query: parsed.primaryQuery,
+      searchMode: parsed.mode,
+      relatedTermsUsed: parsed.validRelatedTerms,
+      limit: parsed.cappedLimit,
       tasks: results,
     },
     null,

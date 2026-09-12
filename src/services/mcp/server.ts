@@ -48,13 +48,16 @@ export function createMcpServer() {
 
     server.tool(
       "search_tasks",
-      "Mencari task berdasarkan keyword pada taskNumber, judul, deskripsi, atau tag",
+      "Mencari task menggunakan pencarian kata kunci (keyword) atau pencarian konsep yang diperluas (expanded search) dengan relatedTerms",
       {
-        keyword: z.string().describe("Kata kunci pencarian task"),
-        limit: z.number().optional().describe("Jumlah maksimal hasil (default: 10, max: 20)"),
+        query: z.string().optional().describe("Konsep atau kata kunci pencarian utama"),
+        keyword: z.string().optional().describe("Kata kunci pencarian opsional (backwards compatibility)"),
+        relatedTerms: z.array(z.string()).optional().describe("Daftar kata kunci terkait, sinonim, istilah bahasa Indonesia/Inggris, atau singkatan untuk pencarian mode 'expanded' (maksimal 15 istilah)"),
+        searchMode: z.enum(["keyword", "expanded"]).optional().describe("Mode pencarian: 'keyword' untuk pencarian kata/judul/kode task persis; 'expanded' untuk pencarian konsep berbasis topik/sinonim"),
+        limit: z.number().optional().describe("Jumlah maksimal hasil yang dikembalikan (default: 20, max: 50)"),
       },
-      async ({ keyword, limit }: { keyword: string; limit?: number }) => {
-        const text = await executeSearchTasks({ keyword, limit });
+      async (args: any) => {
+        const text = await executeSearchTasks(args);
         return { content: [{ type: "text", text }] };
       }
     );
@@ -177,20 +180,33 @@ export const MCP_TOOLS_LIST = [
   },
   {
     name: "search_tasks",
-    description: "Mencari task berdasarkan keyword pada taskNumber, judul, deskripsi, atau tag",
+    description: "Mencari task menggunakan pencarian kata kunci (keyword) atau pencarian konsep topik yang diperluas (expanded search). Gunakan mode 'expanded' dengan 'relatedTerms' ketika user mencari task berdasarkan topik/konsep umum.",
     inputSchema: {
       type: "object",
       properties: {
+        query: {
+          type: "string",
+          description: "Konsep atau kata kunci pencarian utama dari user",
+        },
         keyword: {
           type: "string",
-          description: "Kata kunci pencarian task",
+          description: "Kata kunci pencarian opsional (backwards compatibility)",
+        },
+        relatedTerms: {
+          type: "array",
+          items: { type: "string" },
+          description: "Daftar kata kunci terkait, sinonim, istilah bahasa Indonesia/Inggris, singkatan, atau istilah teknis terkait dalam mode 'expanded' (max 15 istilah)",
+        },
+        searchMode: {
+          type: "string",
+          enum: ["keyword", "expanded"],
+          description: "Mode pencarian: 'keyword' untuk pencarian persis/kode/judul spesifik; 'expanded' untuk pencarian topik/konsep",
         },
         limit: {
           type: "number",
-          description: "Jumlah maksimal hasil (default: 10, max: 20)",
+          description: "Jumlah maksimal hasil (default: 20, max: 50)",
         },
       },
-      required: ["keyword"],
     },
   },
   {

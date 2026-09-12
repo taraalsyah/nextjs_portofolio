@@ -36,20 +36,35 @@ const GEMINI_FUNCTION_DECLARATIONS = [
   },
   {
     name: "search_tasks",
-    description: "Mencari task berdasarkan kata kunci/keyword pada taskNumber, judul, deskripsi, atau tag (Gunakan HANYA jika mencari kata kunci dalam isi/judul task, BUKAN untuk mencari nama project)",
+    description: "Mencari task dalam database menggunakan pencarian kata kunci (keyword) atau pencarian konsep yang diperluas (expanded search).\n\nGunakan mode 'keyword' saat user mencari kata, frasa, judul task, atau kode task persis (contoh: 'Network WIFI').\n\nGunakan mode 'expanded' saat user mencari task yang berkaitan, berhubungan, tentang, atau seputar suatu konsep/topik (contoh: 'carikan task yang berkaitan dengan network'). Pada mode 'expanded', tentukan 'query' utama dan hasilkan sinonim/istilah terkait/singkatan/istilah Indonesia & Inggris dalam 'relatedTerms' (max 15 istilah).",
     parameters: {
       type: "OBJECT",
       properties: {
+        query: {
+          type: "STRING",
+          description: "Konsep atau kata kunci pencarian utama dari user (contoh: 'network')",
+        },
         keyword: {
           type: "STRING",
-          description: "Kata kunci pencarian isi/judul task",
+          description: "Kata kunci pencarian opsional untuk backwards compatibility",
+        },
+        relatedTerms: {
+          type: "ARRAY",
+          items: {
+            type: "STRING",
+          },
+          description: "Daftar istilah terkait, sinonim, istilah Indonesia/Inggris, atau singkatan teknis untuk mode 'expanded' (contoh untuk 'network': ['jaringan', 'internet', 'koneksi', 'wifi', 'LAN', 'WAN', 'router', 'switch', 'DNS', 'VPN'])",
+        },
+        searchMode: {
+          type: "STRING",
+          enum: ["keyword", "expanded"],
+          description: "Mode pencarian: 'keyword' untuk pencarian persis/kode task; 'expanded' untuk pencarian topik/konsep",
         },
         limit: {
           type: "NUMBER",
-          description: "Jumlah maksimal hasil (default: 10, max: 20)",
+          description: "Jumlah maksimal hasil task yang dikembalikan (default: 20, max: 50)",
         },
       },
-      required: ["keyword"],
     },
   },
   {
@@ -214,8 +229,14 @@ PEMILIHAN MCP TOOLS & ATURAN SEMANTIK PERTANYAAN (SANGAT PENTING):
      * Langkah 1: Panggil 'search_projects' (keyword: "Icode USSD") -> dapatkan 'project_id'.
      * Langkah 2: Panggil 'get_project_tasks' (project_id: <ID>, status: "DONE").
 
-6. PENCARIAN KATA KUNCI TASK:
-   - Gunakan 'search_tasks' HANYA jika user memang secara eksplisit mencari task berdasarkan kata kunci isi/judul/deskripsi/tag task (misal: "Cari task tentang USSD", "task yang judulnya mengandung database").
+6. PENCARIAN KATA KUNCI & KONSEP TASK (search_tasks):
+   - Gunakan 'search_tasks' saat user mencari task berdasarkan isi/judul/deskripsi/tag/topik/konsep task.
+   - PENCARIAN PERSIS ("cari task dengan judul Network WIFI" / "task A-1234"):
+     * Gunakan query: "Network WIFI", searchMode: "keyword", relatedTerms: [].
+   - PENCARIAN KONSEP / TOPIK ("carikan task yang berkaitan dengan network" / "task seputar internet"):
+     * Gunakan query: "network", searchMode: "expanded".
+     * Hasikan istilah terkait, sinonim Indonesia/Inggris, singkatan, atau istilah teknis relevan dalam 'relatedTerms' (contoh: ["jaringan", "internet", "koneksi", "wifi", "LAN", "WAN", "router", "switch", "DNS", "VPN"]).
+   - Kembalikan SELURUH task yang cocok hingga batas limit (default 20, max 50), JANGAN membatasi jawaban hanya pada 1 task.
 
 7. DETAIL TASK / DETAIL PROJECT:
    - "Detail task A-1234" -> 'get_task'(task_id: "A-1234").
