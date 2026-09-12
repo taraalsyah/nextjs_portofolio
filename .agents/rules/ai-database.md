@@ -30,3 +30,17 @@
 - Do NOT fabricate task counts, task statuses, assignees, dates, or project details.
 - Respect tool result limits (`search_tasks` max 20, `get_project_tasks` max 50).
 - If tool results are truncated or limited by tool limits, state clearly to the user that the returned list reflects available results.
+
+## 5. Task Completion Duration & Timestamp Rules
+- **Formula**: For `DONE` tasks, `duration = completionTimestamp - createdAt`.
+- **Completion Timestamp Rules**:
+  1. Primary choice: Use `doneReviewedAt` if present (populated at the exact moment status changed to `DONE`).
+  2. Secondary choice: Use `updatedAt` ONLY if the application behavior guarantees that `updatedAt` represents the status transition into `DONE` (i.e. task was not edited after becoming `DONE`).
+  3. Never automatically assume every `updatedAt` value is a completion timestamp if the task might have been edited after completion.
+  4. Never use `dueDate` as the completion timestamp. `dueDate` is strictly the planned deadline for overdue/compliance analysis.
+  5. Never invent or fabricate completion timestamps.
+- **Analytics Response Formatting**:
+  - Filter `status = DONE`.
+  - Exclude tasks where completion timestamp cannot be reliably determined.
+  - Calculate average duration strictly from valid tasks.
+  - Report: Total DONE tasks count, Included tasks count, Excluded tasks count, Average duration, and Timestamp source used (`doneReviewedAt` or `updatedAt` DONE transition).

@@ -263,6 +263,27 @@ PEMILIHAN MCP TOOLS & ATURAN SEMANTIK PERTANYAAN (SANGAT PENTING):
      * Langkah 1: Panggil 'search_projects' (keyword: nama project X) -> dapatkan 'project_id'.
      * Langkah 2: Panggil 'get_project_tasks' (project_id: <ID>, assigned_to_me: true, status: "..." jika ada filter status).
 
+10. ANALISIS DURASI PENGERJAAN & TIMESTAMP SELESAI TASK DONE ("Berapa rata-rata waktu task sampai selesai?", "Berapa lama rata-rata task DONE dikerjakan?", "Hitung durasi pengerjaan task DONE"):
+    - Saat user meminta analisis durasi pengerjaan / waktu penyelesaian task DONE:
+      * Langkah 1: Ambil task berstatus DONE menggunakan 'get_project_tasks' (status: "DONE") atau 'search_tasks'.
+      * Langkah 2: Dapatkan data timestamp: 'taskNumber', 'title', 'createdAt', 'updatedAt', 'doneReviewedAt' (jika ada), dan 'dueDate'.
+      * ATURAN SELEKSI TIMESTAMP SELESAI (completionTimestamp):
+        1. Gunakan 'doneReviewedAt' sebagai timestamp selesai utama jika tersedia dan terisi (mencatat transisi tepat saat status menjadi DONE).
+        2. Jika 'doneReviewedAt' tidak ada/null, gunakan 'updatedAt' HANYA jika dipastikan 'updatedAt' merepresentasikan momen transisi perubahan status ke DONE dan task tidak pernah diedit lagi setelah berstatus DONE.
+        3. JANGAN PERNAH berasumsi semua 'updatedAt' pasti timestamp selesai jika task mungkin diedit setelah DONE. Jika timestamp transisi DONE asli tidak dapat dipastikan secara handal, JANGAN mengarang timestamp.
+        4. JANGAN PERNAH menggunakan 'dueDate' sebagai timestamp selesai (dueDate adalah tenggat waktu/deadline, bukan waktu penyelesaian aktual). JANGAN PERNAH menghitung (dueDate - createdAt) sebagai durasi pengerjaan.
+        5. JANGAN PERNAH mengarang atau memfabrikasi timestamp selesai.
+      * Langkah 3: Untuk setiap task valid: duration = completionTimestamp - createdAt.
+      * Langkah 4: Kecualikan task DONE yang timestamp selesainya tidak dapat dipastikan secara handal.
+      * Langkah 5: Hitung rata-rata durasi HANYA dari task-task yang valid.
+      * STRUKTUR JAWABAN ANALISIS (WAJIB EKSPLISIT DAN TRANSPARAN):
+        - Sebutkan total task berstatus DONE.
+        - Sebutkan jumlah task yang dimasukkan dalam kalkulasi (valid).
+        - Sebutkan jumlah task yang dikecualikan (jika ada).
+        - Sebutkan rata-rata durasi pengerjaan yang dihitung.
+        - Sebutkan secara jelas timestamp yang digunakan sebagai waktu penyelesaian (misal: createdAt -> doneReviewedAt atau createdAt -> updatedAt transisi DONE).
+        - Contoh format respon: "Berdasarkan 6 task DONE dengan timestamp penyelesaian yang valid, rata-rata durasi pengerjaan dari createdAt hingga selesai adalah 2 hari 7 jam. Untuk kalkulasi ini, updatedAt/doneReviewedAt digunakan sebagai timestamp penyelesaian karena aplikasi memperbarui timestamp tersebut saat status task berubah menjadi DONE. 2 task DONE dikecualikan karena timestamp penyelesaiannya tidak dapat dipastikan secara handal."
+
 ATURAN PENOMORAN DAFTAR TASK (WAJIB SEQUENTIAL 1 ... N - SANGAT KETAT):
 - Saat menampilkan daftar beberapa task (seperti hasil dari 'get_project_tasks', 'get_overdue_tasks', 'search_tasks', daftar task terfilter, dikelompokkan berdasarkan status/project, atau respon apa pun berisi beberapa record task), penomoran HARUS berurutan secara eksplisit dari 1 sampai N (1., 2., 3., 4., ... N.).
 - JANGAN PERNAH mengulang penomoran '1.' untuk setiap baris task! (JANGAN PERNAH: 1. ... 1. ... 1. ...).

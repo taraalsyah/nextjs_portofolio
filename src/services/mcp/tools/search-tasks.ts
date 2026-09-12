@@ -139,7 +139,9 @@ export async function executeSearchTasks(input: SearchTasksInput) {
     category: t.category ? t.category.name : null,
     assignee: t.assignee ? t.assignee.name : "Unassigned",
     dueDate: t.dueDate ? t.dueDate.toISOString() : null,
+    createdAt: t.createdAt.toISOString(),
     updatedAt: t.updatedAt.toISOString(),
+    doneReviewedAt: t.doneReviewedAt ? t.doneReviewedAt.toISOString() : null,
   }));
 
   return JSON.stringify(

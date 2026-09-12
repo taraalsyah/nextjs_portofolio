@@ -92,6 +92,7 @@ export async function executeGetTask({ task_id }: GetTaskInput) {
       dueDate: task.dueDate ? task.dueDate.toISOString() : null,
       createdAt: task.createdAt.toISOString(),
       updatedAt: task.updatedAt.toISOString(),
+      doneReviewedAt: task.doneReviewedAt ? task.doneReviewedAt.toISOString() : null,
       checklists: task.checklists.map((c) => ({
         title: c.title,
         isCompleted: c.isCompleted,
