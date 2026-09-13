@@ -9,6 +9,7 @@ export interface UserResponseItem {
   avatar: string | null;
   role: string;
   status: string;
+  lastLoginAt?: string | null;
 }
 
 export interface UserListResponse {
@@ -86,6 +87,7 @@ export async function getUsersList(
         role: true,
         status: true,
         createdAt: true,
+        lastLoginAt: true,
       },
       orderBy: {
         [sortField]: order,
@@ -104,6 +106,7 @@ export async function getUsersList(
     avatar: u.image,
     role: u.role,
     status: u.status,
+    lastLoginAt: u.lastLoginAt ? u.lastLoginAt.toISOString() : null,
   }));
 
   return {

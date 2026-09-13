@@ -92,6 +92,7 @@ export default async function UserManagementPage(props: {
       name: true,
       username: true,
       email: true,
+      image: true,
       role: true,
       roleId: true,
       roleRel: {
@@ -106,6 +107,7 @@ export default async function UserManagementPage(props: {
       otpSoftBlockUntil: true,
       otpSoftBlockCount: true,
       createdAt: true,
+      lastLoginAt: true,
     },
     orderBy: { id: 'asc' },
     skip: (currentPage - 1) * 10,
@@ -126,6 +128,7 @@ export default async function UserManagementPage(props: {
   const serializedUsers = users.map((u) => ({
     ...u,
     createdAt: u.createdAt.toISOString(),
+    lastLoginAt: u.lastLoginAt ? u.lastLoginAt.toISOString() : null,
     otpSoftBlockUntil: u.otpSoftBlockUntil ? u.otpSoftBlockUntil.toISOString() : null,
   }));
 

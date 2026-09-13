@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle, Unlock, Search, Mail, Shield, Filter, Calendar, RotateCcw } from 'lucide-react';
+import { Users as UsersIcon, Edit2, Trash2, X, Save, AlertTriangle, CheckCircle, Unlock, Search, Mail, Shield, Filter, Calendar, RotateCcw, User, Phone, Clock, Info } from 'lucide-react';
 import { ButtonLoading, InlineSpinner } from '@/components/ui/loading';
-import { formatShortWIB, getRemainingTimeString, isExpired } from '@/lib/date';
+import { formatShortWIB, formatActivityWIB, getRemainingTimeString, isExpired } from '@/lib/date';
 import styles from './users.module.css';
 
 interface UserData {
@@ -12,6 +12,7 @@ interface UserData {
   name: string;
   username: string | null;
   email: string;
+  image?: string | null;
   role: string;
   roleId: number | null;
   roleRel: {
@@ -24,6 +25,7 @@ interface UserData {
   otpSoftBlockUntil?: string | null;
   otpSoftBlockCount?: number;
   createdAt: string;
+  lastLoginAt?: string | null;
 }
 
 interface RoleData {
@@ -90,6 +92,7 @@ export default function UserManagementContent({
 }: UserManagementContentProps) {
   const [users, setUsers] = useState<UserData[]>(initialUsers);
   const [editingUser, setEditingUser] = useState<UserData | null>(null);
+  const [viewingUser, setViewingUser] = useState<UserData | null>(null);
   const [selectedRoleId, setSelectedRoleId] = useState<number>(0);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [deletingUser, setDeletingUser] = useState<UserData | null>(null);
@@ -99,6 +102,8 @@ export default function UserManagementContent({
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+
+  const closeUserDetailModal = () => setViewingUser(null);
 
   // Local filter states for real-time typing and UI responsiveness
   const [nameFilter, setNameFilter] = useState<string>(filterParams?.name || '');
@@ -506,6 +511,7 @@ export default function UserManagementContent({
                       <th className={styles.emailColTd}>Alamat Email</th>
                       <th>Hak Akses (Role)</th>
                       <th>Status</th>
+                      <th>Terakhir Login</th>
                       <th>Tanggal Gabung</th>
                       <th style={{ textAlign: 'center' }}>Aksi</th>
                     </tr>
@@ -514,7 +520,11 @@ export default function UserManagementContent({
                     {users.map((u) => (
                       <tr key={u.id}>
                         <td className={styles.userColTd}>
-                          <div className={styles.userCol}>
+                          <div
+                            className={`${styles.userCol} ${styles.userClickable}`}
+                            onClick={() => setViewingUser(u)}
+                            title="Klik untuk melihat detail pengguna"
+                          >
                             <span className={styles.nameText}>{u.name}</span>
                             <span className={styles.usernameText}>@{u.username || 'user'}</span>
                           </div>
@@ -553,6 +563,13 @@ export default function UserManagementContent({
                             }
                             return <span className={`${styles.badge} ${styles.statusPending}`}>Tertunda</span>;
                           })()}
+                        </td>
+                        <td className={styles.dateCol}>
+                          {u.lastLoginAt ? (
+                            formatShortWIB(u.lastLoginAt)
+                          ) : (
+                            <span style={{ color: 'var(--muted-foreground)', fontSize: '0.78rem' }}>Belum Pernah</span>
+                          )}
                         </td>
                         <td className={styles.dateCol}>
                           {formatShortWIB(u.createdAt)}
@@ -779,6 +796,158 @@ export default function UserManagementContent({
                 <Trash2 size={14} />
                 <span>Hapus Pengguna</span>
               </ButtonLoading>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* User Detail Modal */}
+      {viewingUser && (
+        <div className={styles.modalOverlay} onClick={closeUserDetailModal}>
+          <div
+            className={`${styles.detailModalContent} glass`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className={styles.modalHeader}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <User size={18} color="var(--primary)" />
+                <h3 className={styles.modalTitle}>Detail Informasi Pengguna</h3>
+              </div>
+              <button type="button" onClick={closeUserDetailModal} className={styles.closeModalBtn}>
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Header Profile Card */}
+            <div className={styles.detailHeaderCard}>
+              {viewingUser.image ? (
+                <img src={viewingUser.image} alt={viewingUser.name} className={styles.detailAvatarImg} />
+              ) : (
+                <div className={styles.detailAvatar}>
+                  {viewingUser.name ? viewingUser.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+              )}
+              <div className={styles.detailHeaderInfo}>
+                <h4 className={styles.detailName}>{viewingUser.name}</h4>
+                <span className={styles.detailSubtext}>
+                  @{viewingUser.username || 'user'} • {viewingUser.email}
+                </span>
+                <div style={{ marginTop: '0.35rem' }}>
+                  <span className={`${styles.badge} ${styles.roleBadge}`}>
+                    {viewingUser.roleRel?.name || viewingUser.role || 'Staff'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Detail Info Grid */}
+            <div className={styles.detailGrid}>
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>
+                  <User size={12} /> ID Pengguna
+                </span>
+                <span className={styles.detailValue}>#{viewingUser.id}</span>
+              </div>
+
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>
+                  <Shield size={12} /> Status Akun
+                </span>
+                <div style={{ marginTop: '0.1rem' }}>
+                  {(() => {
+                    if (viewingUser.status === 'BLOCKED') {
+                      return <span className={`${styles.badge} ${styles.statusBlocked}`}>BLOCKED</span>;
+                    }
+                    const isSoftBlocked = viewingUser.otpSoftBlockUntil && !isExpired(viewingUser.otpSoftBlockUntil);
+                    if (isSoftBlocked) {
+                      const remaining = getRemainingTimeString(viewingUser.otpSoftBlockUntil!);
+                      return (
+                        <span className={`${styles.badge} ${styles.statusSoftBlocked}`}>
+                          Soft Blocked ({remaining})
+                        </span>
+                      );
+                    }
+                    if (viewingUser.status === 'ACTIVE') {
+                      return <span className={`${styles.badge} ${styles.statusActive}`}>Aktif</span>;
+                    }
+                    return <span className={`${styles.badge} ${styles.statusPending}`}>Tertunda</span>;
+                  })()}
+                </div>
+              </div>
+
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>
+                  <Mail size={12} /> Alamat Email
+                </span>
+                <span className={styles.detailValue}>{viewingUser.email}</span>
+              </div>
+
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>
+                  <Phone size={12} /> Nomor Telepon
+                </span>
+                <span className={styles.detailValue}>{viewingUser.phone || '-'}</span>
+              </div>
+
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>
+                  <Clock size={12} /> Terakhir Login
+                </span>
+                <span className={styles.detailValue}>
+                  {viewingUser.lastLoginAt ? formatActivityWIB(viewingUser.lastLoginAt) : 'Belum Pernah'}
+                </span>
+              </div>
+
+              <div className={styles.detailItem}>
+                <span className={styles.detailLabel}>
+                  <Calendar size={12} /> Tanggal Gabung
+                </span>
+                <span className={styles.detailValue}>
+                  {formatActivityWIB(viewingUser.createdAt)}
+                </span>
+              </div>
+
+              {viewingUser.roleRel?.description && (
+                <div className={styles.detailItemFull}>
+                  <span className={styles.detailLabel}>
+                    <Info size={12} /> Deskripsi Role ({viewingUser.roleRel.name})
+                  </span>
+                  <span className={styles.detailValue} style={{ fontSize: '0.8rem', fontWeight: 500 }}>
+                    {viewingUser.roleRel.description}
+                  </span>
+                </div>
+              )}
+
+              {viewingUser.otpSoftBlockUntil && !isExpired(viewingUser.otpSoftBlockUntil) && (
+                <div className={styles.detailItemFull} style={{ background: '#FFFBEB', borderColor: '#FDE68A' }}>
+                  <span className={styles.detailLabel} style={{ color: '#D97706' }}>
+                    <AlertTriangle size={12} /> Soft Block Active
+                  </span>
+                  <span className={styles.detailValue} style={{ fontSize: '0.8rem', color: '#92400E', fontWeight: 500 }}>
+                    Akun sedang mengalami Soft Block akibat gagal verifikasi OTP sebanyak {viewingUser.otpSoftBlockCount || 5} kali. Sisa waktu: {getRemainingTimeString(viewingUser.otpSoftBlockUntil)}.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className={styles.modalFooter}>
+              <button
+                type="button"
+                onClick={() => {
+                  const u = viewingUser;
+                  closeUserDetailModal();
+                  openEditRoleModal(u);
+                }}
+                className={`${styles.btn} ${styles.saveBtn}`}
+                style={{ marginRight: 'auto' }}
+              >
+                <Edit2 size={13} />
+                <span>Ubah Role</span>
+              </button>
+              <button type="button" onClick={closeUserDetailModal} className={styles.btn}>
+                Tutup
+              </button>
             </div>
           </div>
         </div>
