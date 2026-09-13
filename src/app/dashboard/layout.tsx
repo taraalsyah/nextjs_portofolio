@@ -29,6 +29,7 @@ import { ToastProvider } from '@/components/ui/Toast';
 import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
 import AuthenticatedNavbar from '@/components/layout/AuthenticatedNavbar';
 import NotificationBell from '@/components/layout/NotificationBell';
+import { FloatingAIChat } from '@/components/ai-chat/FloatingAIChat';
 
 interface MenuItem {
   name: string;
@@ -39,7 +40,6 @@ interface MenuItem {
 const MENU_ITEMS: MenuItem[] = [
   { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Task Management', href: '/dashboard/task-management', icon: ListTodo },
-  { name: 'AI Assistant', href: '/dashboard/ai-chat', icon: Bot },
   { name: 'User Management', href: '/dashboard/user-management', icon: Users },
   { name: 'Role Management', href: '/dashboard/role-management', icon: Shield },
   { name: 'Activity History', href: '/dashboard/activity-history', icon: History },
@@ -264,6 +264,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           {children}
         </main>
       </div>
+
+      {/* Persistent Global Floating AI Chat Widget */}
+      <FloatingAIChat />
     </div>
   );
 }

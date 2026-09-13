@@ -1,6 +1,6 @@
 .container {
   width: 100%;
-  padding: 0.875rem 1rem 0.625rem;
+  padding: 0.65rem 0.85rem 0.5rem;
   background: #ffffff;
   border-top: 1px solid var(--border);
   position: sticky;
@@ -11,11 +11,11 @@
 .composerWrapper {
   display: flex;
   align-items: flex-end;
-  gap: 0.625rem;
+  gap: 0.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  padding: 0.5rem 0.75rem;
+  padding: 0.4rem 0.65rem;
   transition: var(--transition);
 }
 
@@ -31,12 +31,12 @@
   outline: none;
   color: var(--foreground);
   font-family: var(--font-sans);
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.8125rem;
+  line-height: 1.45;
   resize: none;
-  max-height: 160px;
-  min-height: 24px;
-  padding: 0.25rem 0;
+  max-height: 140px;
+  min-height: 22px;
+  padding: 0.2rem 0;
 }
 
 .textarea::placeholder {

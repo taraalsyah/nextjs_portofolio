@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useSession } from 'next-auth/react';
 import { ArrowDown } from 'lucide-react';
 import { ChatHeader } from './ChatHeader';
 import { ChatMessage } from './ChatMessage';
@@ -11,8 +12,18 @@ import { sendChatMessage, MessageItem } from '@/services/chat/chat.service';
 import { useSafeToast } from '@/components/ui/Toast';
 import styles from './AIChat.module.css';
 
-export const AIChat: React.FC = () => {
+export interface AIChatProps {
+  onClose?: () => void;
+  onMinimize?: () => void;
+}
+
+export const AIChat: React.FC<AIChatProps> = ({ onClose, onMinimize }) => {
+  const { data: session } = useSession();
+  const userId = session?.user ? (session.user as any).id : null;
+  const storageKey = userId ? `tasktuntas_ai_messages_${userId}` : null;
+
   const [messages, setMessages] = useState<MessageItem[]>([]);
+  const [isLoaded, setIsLoaded] = useState<boolean>(false);
   const [inputValue, setInputValue] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [showJumpToLatest, setShowJumpToLatest] = useState<boolean>(false);
@@ -20,6 +31,33 @@ export const AIChat: React.FC = () => {
   const toast = useSafeToast();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Load user-scoped messages from localStorage when storageKey changes
+  useEffect(() => {
+    if (!storageKey || typeof window === 'undefined') return;
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        setMessages(JSON.parse(saved));
+      } else {
+        setMessages([]);
+      }
+    } catch (e) {
+      console.error('Failed to load saved AI messages:', e);
+      setMessages([]);
+    }
+    setIsLoaded(true);
+  }, [storageKey]);
+
+  // Sync messages to user-scoped localStorage
+  useEffect(() => {
+    if (!isLoaded || !storageKey || typeof window === 'undefined') return;
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(messages));
+    } catch (e) {
+      console.error('Failed to save AI messages:', e);
+    }
+  }, [messages, storageKey, isLoaded]);
 
   // Format current timestamp (e.g. "14:55")
   const getFormattedTime = () => {
@@ -128,6 +166,12 @@ export const AIChat: React.FC = () => {
   const handleClearHistory = () => {
     setMessages([]);
     setShowJumpToLatest(false);
+    if (typeof window !== 'undefined') {
+      if (storageKey) {
+        localStorage.removeItem(storageKey);
+      }
+      localStorage.removeItem('tasktuntas_ai_messages');
+    }
     toast?.showToast('Riwayat percakapan berhasil dibersihkan', 'info');
   };
 
@@ -137,6 +181,8 @@ export const AIChat: React.FC = () => {
         onClearHistory={handleClearHistory}
         messageCount={messages.length}
         disabled={isLoading}
+        onClose={onClose}
+        onMinimize={onMinimize}
       />
 
       <div

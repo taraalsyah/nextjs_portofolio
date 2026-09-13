@@ -1,0 +1,120 @@
+/* Floating AI Chat Container & Trigger Button Styles */
+
+.floatingTrigger {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.95rem;
+  border-radius: 30px;
+  background: var(--primary);
+  color: #ffffff;
+  border: 1px solid var(--primary-hover);
+  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.floatingTrigger:hover {
+  background: var(--primary-hover);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 12px 28px rgba(37, 99, 235, 0.45), 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.floatingTrigger:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.triggerIconWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.onlineBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--success);
+  border: 2px solid var(--primary);
+}
+
+.triggerText {
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* Floating Chat Window Panel */
+.floatingWindow {
+  position: fixed;
+  bottom: 68px;
+  right: 16px;
+  width: 400px;
+  height: 560px;
+  max-height: calc(100vh - 84px);
+  z-index: 999999;
+  border-radius: 16px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25), 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideUpFade 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .floatingTrigger {
+    bottom: 12px;
+    right: 12px;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.78125rem;
+  }
+
+  .floatingWindow {
+    bottom: 12px;
+    right: 12px;
+    width: calc(100vw - 24px);
+    height: calc(100dvh - 75px);
+    max-height: calc(100dvh - 75px);
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .triggerText {
+    display: none;
+  }
+
+  .floatingTrigger {
+    padding: 0.65rem;
+    border-radius: 50%;
+  }
+
+  .floatingWindow {
+    bottom: 10px;
+    right: 10px;
+    width: calc(100vw - 20px);
+    height: calc(100dvh - 65px);
+  }
+}

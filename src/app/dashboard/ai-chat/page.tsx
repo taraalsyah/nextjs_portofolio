@@ -1,13 +1,14 @@
 'use client';
 
-import React from 'react';
-import { AIChat } from '@/components/ai-chat/AIChat';
-import styles from './page.module.css';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AIChatPage() {
-  return (
-    <div className={styles.pageContainer}>
-      <AIChat />
-    </div>
-  );
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace('/dashboard');
+  }, [router]);
+
+  return null;
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Bot, RotateCcw, FolderKanban } from 'lucide-react';
+import { Bot, RotateCcw, FolderKanban, Minus, X } from 'lucide-react';
 import { useProjectContext } from '@/context/ProjectContext';
 import styles from './ChatHeader.module.css';
 
@@ -9,12 +9,16 @@ interface ChatHeaderProps {
   onClearHistory: () => void;
   messageCount: number;
   disabled?: boolean;
+  onMinimize?: () => void;
+  onClose?: () => void;
 }
 
 export const ChatHeader: React.FC<ChatHeaderProps> = ({
   onClearHistory,
   messageCount,
   disabled = false,
+  onMinimize,
+  onClose,
 }) => {
   const projectContext = useProjectContext();
   const activeProjectName =
@@ -28,7 +32,7 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           <span className={styles.onlineStatusDot} title="System operational" />
         </div>
         <div className={styles.titleInfo}>
-          <h1 className={styles.title}>AI Knowledge Assistant</h1>
+          <h1 className={styles.title}>AI Assistant</h1>
           <div className={styles.subTitleRow}>
             <span className={styles.onlineBadge}>● Online</span>
             <span className={styles.divider}>•</span>
@@ -51,6 +55,26 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
           >
             <RotateCcw size={14} />
             <span className={styles.clearBtnText}>Reset Chat</span>
+          </button>
+        )}
+        {onMinimize && (
+          <button
+            onClick={onMinimize}
+            className={styles.iconHeaderBtn}
+            title="Minimize AI Chat"
+            aria-label="Minimize AI Chat"
+          >
+            <Minus size={14} />
+          </button>
+        )}
+        {onClose && (
+          <button
+            onClick={onClose}
+            className={styles.iconHeaderBtn}
+            title="Close AI Chat"
+            aria-label="Close AI Chat"
+          >
+            <X size={14} />
           </button>
         )}
       </div>
