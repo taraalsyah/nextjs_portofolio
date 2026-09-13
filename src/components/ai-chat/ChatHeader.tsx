@@ -28,17 +28,18 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     <div className={styles.header}>
       <div className={styles.left}>
         <div className={styles.botIconWrapper}>
-          <Bot size={20} className={styles.botIcon} />
+          <Bot size={18} className={styles.botIcon} />
           <span className={styles.onlineStatusDot} title="System operational" />
         </div>
         <div className={styles.titleInfo}>
-          <h1 className={styles.title}>AI Assistant</h1>
+          <div className={styles.titleRow}>
+            <h1 className={styles.title}>AI Assistant</h1>
+            <span className={styles.onlineTag}>Active</span>
+          </div>
           <div className={styles.subTitleRow}>
-            <span className={styles.onlineBadge}>● Online</span>
-            <span className={styles.divider}>•</span>
-            <div className={styles.projectBadge} title="Active Project Context">
-              <FolderKanban size={11} />
-              <span>{activeProjectName}</span>
+            <div className={styles.projectBadge} title={`Project Aktif: ${activeProjectName}`}>
+              <FolderKanban size={11} className={styles.projectIcon} />
+              <span className={styles.projectName}>{activeProjectName}</span>
             </div>
           </div>
         </div>
@@ -50,11 +51,11 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
             onClick={onClearHistory}
             disabled={disabled}
             className={styles.clearBtn}
-            title="Clear conversation history"
-            aria-label="Clear conversation history"
+            title="Bersihkan riwayat percakapan"
+            aria-label="Bersihkan riwayat percakapan"
           >
-            <RotateCcw size={14} />
-            <span className={styles.clearBtnText}>Reset Chat</span>
+            <RotateCcw size={13} />
+            <span className={styles.clearBtnText}>Reset</span>
           </button>
         )}
         {onMinimize && (
@@ -70,9 +71,9 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
         {onClose && (
           <button
             onClick={onClose}
-            className={styles.iconHeaderBtn}
-            title="Close AI Chat"
-            aria-label="Close AI Chat"
+            className={`${styles.iconHeaderBtn} ${styles.closeBtn}`}
+            title="Tutup AI Chat"
+            aria-label="Tutup AI Chat"
           >
             <X size={14} />
           </button>
@@ -81,3 +82,4 @@ export const ChatHeader: React.FC<ChatHeaderProps> = ({
     </div>
   );
 };
+
