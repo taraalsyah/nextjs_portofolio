@@ -1,4 +1,5 @@
 import { handleAuthorizedToolCall } from "@/services/mcp/authorized-tools";
+import { SAFE_AI_ERROR_MESSAGE } from "@/services/mcp/error-handler";
 
 export interface ChatHistoryMessage {
   role: "user" | "assistant" | "model";
@@ -36,33 +37,76 @@ const GEMINI_FUNCTION_DECLARATIONS = [
   },
   {
     name: "search_tasks",
-    description: "Mencari task dalam database menggunakan pencarian kata kunci (keyword) atau pencarian konsep yang diperluas (expanded search).\n\nGunakan mode 'keyword' saat user mencari kata, frasa, judul task, atau kode task persis (contoh: 'Network WIFI').\n\nGunakan mode 'expanded' saat user mencari task yang berkaitan, berhubungan, tentang, atau seputar suatu konsep/topik (contoh: 'carikan task yang berkaitan dengan network'). Pada mode 'expanded', tentukan 'query' utama dan hasilkan sinonim/istilah terkait/singkatan/istilah Indonesia & Inggris dalam 'relatedTerms' (max 15 istilah).",
+    description: "Mencari dan memfilter task dalam database berdasarkan kata kunci, topik, status, excludeStatuses (pengecualian status seperti ['DONE'] untuk mencari task yang BELUM SELESAI), prioritas, atau proyek.\n\nUNTUK QUERY TASK BELUM SELESAI ('Task yang belum selesai apa aja?', 'task belum selesai', 'unfinished tasks'):\n- Panggil 'search_tasks' langsung dengan excludeStatuses: ['DONE'], limit: 20, offset: 0.\n- JANGAN PERNAH meminta user menyebutkan nama project hanya karena project tidak disebutkan dalam query!\n\nMode 'keyword' untuk pencarian persis/kode task; 'expanded' untuk topik/konsep.",
     parameters: {
       type: "OBJECT",
       properties: {
         query: {
           type: "STRING",
-          description: "Konsep atau kata kunci pencarian utama dari user (contoh: 'network')",
+          description: "Konsep atau kata kunci pencarian utama dari user",
         },
         keyword: {
           type: "STRING",
-          description: "Kata kunci pencarian opsional untuk backwards compatibility",
+          description: "Kata kunci pencarian opsional",
         },
         relatedTerms: {
           type: "ARRAY",
           items: {
             type: "STRING",
           },
-          description: "Daftar istilah terkait, sinonim, istilah Indonesia/Inggris, atau singkatan teknis untuk mode 'expanded' (contoh untuk 'network': ['jaringan', 'internet', 'koneksi', 'wifi', 'LAN', 'WAN', 'router', 'switch', 'DNS', 'VPN'])",
+          description: "Daftar istilah terkait untuk mode 'expanded'",
         },
         searchMode: {
           type: "STRING",
           enum: ["keyword", "expanded"],
-          description: "Mode pencarian: 'keyword' untuk pencarian persis/kode task; 'expanded' untuk pencarian topik/konsep",
+          description: "Mode pencarian: 'keyword' atau 'expanded'",
+        },
+        status: {
+          type: "STRING",
+          description: "Filter status spesifik opsional (misal: 'OPEN', 'IN_PROGRESS', 'BACKLOG')",
+        },
+        statuses: {
+          type: "ARRAY",
+          items: {
+            type: "STRING",
+          },
+          description: "Daftar status inklusif opsional",
+        },
+        excludeStatuses: {
+          type: "ARRAY",
+          items: {
+            type: "STRING",
+          },
+          description: "Daftar status yang dikecualikan (contoh: ['DONE'] untuk mencari task yang BELUM SELESAI)",
+        },
+        priority: {
+          type: "STRING",
+          description: "Filter prioritas opsional (misal: 'HIGH', 'MEDIUM', 'LOW')",
+        },
+        projectId: {
+          type: "NUMBER",
+          description: "ID numerik project opsional jika user menyebutkan project spesifik",
+        },
+        assigned_to_me: {
+          type: "BOOLEAN",
+          description: "Set true jika user menanyakan task miliknya/yang ditugaskan ke dirinya sendiri",
+        },
+        overdue: {
+          type: "BOOLEAN",
+          description: "Set true jika user menanyakan task yang overdue/terlambat/lewat tenggat",
+        },
+        datePreset: {
+          type: "STRING",
+          enum: ["TODAY", "YESTERDAY", "TOMORROW", "THIS_WEEK", "LAST_WEEK", "THIS_MONTH", "LAST_MONTH"],
+          description: "Preset rentang tanggal relatif (misal: 'TODAY' untuk pertanyaan seperti 'Ada task yang selesai hari ini?')",
         },
         limit: {
           type: "NUMBER",
-          description: "Jumlah maksimal hasil task yang dikembalikan (default: 20, max: 50)",
+          description: "Jumlah maksimal hasil task yang dikembalikan (default: 10, max: 20)",
+        },
+        offset: {
+          type: "NUMBER",
+          description: "Posisi awal hasil untuk pagination (default: 0)",
         },
       },
     },
@@ -192,6 +236,19 @@ const GEMINI_FUNCTION_DECLARATIONS = [
       required: ["project_id"],
     },
   },
+  {
+    name: "get_current_datetime",
+    description: "Mengambil tanggal, waktu, dan timezone aktual dari server TaskTuntas (default Asia/Jakarta). Gunakan ini saat user menanyakan tanggal/waktu saat ini ('hari ini tanggal berapa?', 'jam berapa sekarang?').",
+    parameters: {
+      type: "OBJECT",
+      properties: {
+        timezone: {
+          type: "STRING",
+          description: "Timezone opsional (default 'Asia/Jakarta')",
+        },
+      },
+    },
+  },
 ];
 
 const SYSTEM_INSTRUCTION_TEXT = `Kamu adalah TaskTuntas AI Assistant, asisten cerdas pengelolaan task dan project di TaskTuntas.
@@ -284,6 +341,29 @@ PEMILIHAN MCP TOOLS & ATURAN SEMANTIK PERTANYAAN (SANGAT PENTING):
         - Sebutkan secara jelas timestamp yang digunakan sebagai waktu penyelesaian (misal: createdAt -> doneReviewedAt atau createdAt -> updatedAt transisi DONE).
         - Contoh format respon: "Berdasarkan 6 task DONE dengan timestamp penyelesaian yang valid, rata-rata durasi pengerjaan dari createdAt hingga selesai adalah 2 hari 7 jam. Untuk kalkulasi ini, updatedAt/doneReviewedAt digunakan sebagai timestamp penyelesaian karena aplikasi memperbarui timestamp tersebut saat status task berubah menjadi DONE. 2 task DONE dikecualikan karena timestamp penyelesaiannya tidak dapat dipastikan secara handal."
 
+QUERY INTENT RULE & PENCARIAN TASK BELUM SELESAI:
+
+Tidak semua query task tanpa project harus diklarifikasi.
+Jika user sudah memberikan filter yang jelas (seperti status, exclude status, priority, task saya, overdue, tanggal, dsb.), LANGSUNG proses query tersebut!
+
+1. PERTANYAAN TASK BELUM SELESAI ("Task yang belum selesai apa aja?", "task belum selesai", "tampilkan task unfinished", "task saya yang belum selesai"):
+   - Ini ADALAH QUERY SPESIFIK yang valid dengan filter status.
+   - JANGAN PERNAH meminta user menyebutkan nama project hanya karena project tidak disebutkan dalam query!
+   - Langsung panggil 'search_tasks' dengan: { excludeStatuses: ["DONE"], limit: 20, offset: 0 }.
+   - Interpretasikan "belum selesai" sebagai task berstatus selain DONE/CLOSED (di database TaskTuntas: status BACKLOG, OPEN, IN_PROGRESS).
+   - Setelah mendapatkan hasil dari 'search_tasks', SEGERA buat jawaban akhir. JANGAN mengulang panggil tool yang sama.
+
+2. QUERY DENGAN FILTER SPESIFIK LAIN TANPA PROJECT:
+   - "Task HIGH apa aja?" -> search_tasks(priority: "HIGH")
+   - "Task DONE apa aja?" -> search_tasks(status: "DONE")
+   - "Task saya apa aja?" -> search_tasks(assigned_to_me: true)
+   - "Task overdue apa aja?" -> search_tasks(overdue: true) atau get_overdue_tasks
+   - Project HANYA menjadi filter tambahan jika user menyebutkannya secara eksplisit.
+
+3. MENCEGAH REPEATED TOOL CALLS & LOOP:
+   - Jangan pernah mengulang panggil tool yang sama dengan argumen yang sama dalam satu user request.
+   - Jika hasil 'search_tasks' sudah diperoleh, gunakan data hasil tersebut untuk membuat final answer. JANGAN melakukan tool call tambahan hanya untuk memastikan hasil yang sudah ada.
+
 ATURAN PENOMORAN DAFTAR TASK (WAJIB SEQUENTIAL 1 ... N - SANGAT KETAT):
 - Saat menampilkan daftar beberapa task (seperti hasil dari 'get_project_tasks', 'get_overdue_tasks', 'search_tasks', daftar task terfilter, dikelompokkan berdasarkan status/project, atau respon apa pun berisi beberapa record task), penomoran HARUS berurutan secara eksplisit dari 1 sampai N (1., 2., 3., 4., ... N.).
 - JANGAN PERNAH mengulang penomoran '1.' untuk setiap baris task! (JANGAN PERNAH: 1. ... 1. ... 1. ...).
@@ -362,6 +442,162 @@ export function enforceSequentialTaskNumbering(text: string): string {
   return resultLines.join("\n");
 }
 
+export type QueryScope =
+  | "NONE"
+  | "PROJECT"
+  | "MY_TASKS"
+  | "STATUS"
+  | "PRIORITY"
+  | "ASSIGNEE"
+  | "KEYWORD"
+  | "OVERDUE"
+  | "DATE"
+  | "ALL"
+  | "TASK_NUMBER";
+
+export interface PreQueryGateResult {
+  scope: QueryScope;
+  requiresClarification: boolean;
+  clarificationQuestion?: string;
+}
+
+/**
+ * Deterministic Pre-Query Gate
+ * Evaluated BEFORE Gemini REST API fetch & BEFORE any MCP tool execution.
+ */
+export function getPreQueryGate(message: string): PreQueryGateResult {
+  if (!message || typeof message !== "string") {
+    return {
+      scope: "NONE",
+      requiresClarification: true,
+      clarificationQuestion:
+        "Mau menampilkan task dari project tertentu, task kamu, atau berdasarkan status/priority tertentu?",
+    };
+  }
+
+  const rawClean = message.trim().toLowerCase();
+  const normalized = rawClean
+    .replace(/[?.,!/#!$%\^&\*;:{}=\-_`~()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const EXACT_BROAD_QUERIES = new Set([
+    "tampilkan task",
+    "tampilkan tasks",
+    "lihat task",
+    "lihat tasks",
+    "list task",
+    "list tasks",
+    "show task",
+    "show tasks",
+    "cari task",
+    "cari tasks",
+    "daftar task",
+    "daftar tasks",
+    "apa saja task",
+    "apa saja tasks",
+    "kasih task",
+    "kasih tasks",
+    "tampilkan daftar task",
+    "tampilkan beberapa task",
+    "lihat daftar task",
+    "list daftar task",
+    "show task list",
+    "show tasks list",
+  ]);
+
+  if (EXACT_BROAD_QUERIES.has(normalized)) {
+    return {
+      scope: "NONE",
+      requiresClarification: true,
+      clarificationQuestion:
+        "Mau menampilkan task dari project tertentu, task kamu, atau berdasarkan status/priority tertentu?",
+    };
+  }
+
+  // 1. Task Number (e.g. TSK-420004, A-1234)
+  if (/\b(?:tsk|a|t)-\d+\b/i.test(normalized) || /\btask\s+\d+\b/i.test(normalized)) {
+    return { scope: "TASK_NUMBER", requiresClarification: false };
+  }
+
+  // 2. My tasks / User scope
+  if (
+    /\b(saya|aku|my|milik saya|tugas saya|task saya|ditugaskan ke saya|assigned to me)\b/i.test(
+      normalized
+    )
+  ) {
+    return { scope: "MY_TASKS", requiresClarification: false };
+  }
+
+  // 3. Priority scope
+  if (/\b(high|medium|low|prioritas|priority)\b/i.test(normalized)) {
+    return { scope: "PRIORITY", requiresClarification: false };
+  }
+
+  // 4. Status scope
+  if (
+    /\b(done|open|in progress|in_progress|backlog|closed|selesai|belum selesai|status)\b/i.test(
+      normalized
+    )
+  ) {
+    return { scope: "STATUS", requiresClarification: false };
+  }
+
+  // 5. Overdue scope
+  if (/\b(overdue|over due|terlambat|tenggat|lewat tenggat)\b/i.test(normalized)) {
+    return { scope: "OVERDUE", requiresClarification: false };
+  }
+
+  // 6. Project scope
+  if (
+    /\b(project|proyek|di project|pada project|dalam project|dari project)\b/i.test(
+      normalized
+    )
+  ) {
+    return { scope: "PROJECT", requiresClarification: false };
+  }
+
+  // 7. Explicit ALL scope
+  if (/\b(semua|seluruh|all|every)\b/i.test(normalized)) {
+    return { scope: "ALL", requiresClarification: false };
+  }
+
+  // 8. Keyword / Topic search indicators
+  if (
+    /\b(tentang|seputar|berkaitan|mengenai|berhubungan|dengan kata|judul|deskripsi|tag|tags)\b/i.test(
+      normalized
+    )
+  ) {
+    return { scope: "KEYWORD", requiresClarification: false };
+  }
+
+  // 9. Date scope
+  if (
+    /\b(hari ini|minggu ini|bulan ini|kemarin|besok|created|updated|due|deadline)\b/i.test(
+      normalized
+    )
+  ) {
+    return { scope: "DATE", requiresClarification: false };
+  }
+
+  // Strip filler words to test if remaining message is just an action + task phrase
+  const strippedFiller = normalized
+    .replace(/\b(tolong|dong|ya|nya|bisa|minta|bantu|please|kah|tampilkan|lihat|list|show|cari|daftar)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (strippedFiller === "" || strippedFiller === "task" || strippedFiller === "tasks") {
+    return {
+      scope: "NONE",
+      requiresClarification: true,
+      clarificationQuestion:
+        "Mau menampilkan task dari project tertentu, task kamu, atau berdasarkan status/priority tertentu?",
+    };
+  }
+
+  return { scope: "KEYWORD", requiresClarification: false };
+}
+
 /**
  * Main engine executing Gemini 3.5 Flash Lite / Gemini API with MCP Tool Calling
  */
@@ -370,6 +606,16 @@ export async function runTaskAiAssistant({
   userId,
   history = [],
 }: RunTaskAiInput): Promise<RunTaskAiOutput> {
+  // Execute deterministic pre-query gate BEFORE any Gemini API call or MCP execution
+  const gate = getPreQueryGate(message);
+  if (gate.requiresClarification) {
+    return {
+      answer:
+        gate.clarificationQuestion ||
+        "Mau menampilkan task dari project tertentu, task kamu, atau berdasarkan status/priority tertentu?",
+      toolCallsUsed: [],
+    };
+  }
   const apiKey =
     process.env.GEMINI_API_KEY ||
     process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
@@ -415,6 +661,7 @@ export async function runTaskAiAssistant({
   });
 
   const toolCallsUsed: string[] = [];
+  const executedToolSignatures = new Set<string>();
   let iterations = 0;
   const maxIterations = 5;
 
@@ -486,10 +733,27 @@ export async function runTaskAiAssistant({
         const name = call.name;
         const args = call.args || {};
 
+        const toolSignature = `${name}:${JSON.stringify(args)}`;
         toolCallsUsed.push(name);
 
-        // Execute authorized tool call server-side
-        const toolResultText = await handleAuthorizedToolCall(name, args, userId);
+        let toolResultText: string;
+        if (executedToolSignatures.has(toolSignature)) {
+          console.warn(`[TaskAiAssistant] Duplicate tool call detected: ${toolSignature}. Returning previous result notice.`);
+          toolResultText = JSON.stringify({
+            notice: `Tool '${name}' dengan parameter tersebut sudah pernah dieksekusi pada iterasi sebelumnya. Gunakan data hasil sebelumnya untuk membuat jawaban akhir kepada user. JANGAN memanggil tool ini lagi.`,
+          });
+        } else {
+          executedToolSignatures.add(toolSignature);
+          toolResultText = await handleAuthorizedToolCall(name, args, userId);
+        }
+
+        if (toolResultText.includes("INTERNAL_ERROR") || toolResultText.includes(SAFE_AI_ERROR_MESSAGE)) {
+          console.warn(`[TaskAiAssistant] Internal error detected in tool '${name}' execution. Stopping tool loop.`);
+          return {
+            answer: SAFE_AI_ERROR_MESSAGE,
+            toolCallsUsed,
+          };
+        }
 
         // Append model's functionCall turn to contents
         contents.push({

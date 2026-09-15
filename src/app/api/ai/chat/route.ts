@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { runTaskAiAssistant } from "@/services/ai/mcp-gemini.service";
+import { SAFE_AI_ERROR_MESSAGE } from "@/services/mcp/error-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,12 +72,18 @@ export async function POST(request: Request) {
       toolCallsUsed: result.toolCallsUsed,
     });
   } catch (error: any) {
-    console.error("AI Assistant API Route Error:", error);
+    console.error("[AI_CHAT_ROUTE_ERROR] Raw Exception:", {
+      name: error?.name,
+      message: error?.message,
+      code: error?.code,
+      stack: error?.stack,
+    });
+
     return NextResponse.json(
       {
         success: false,
-        error:
-          error?.message || "Terjadi kesalahan pada server AI Assistant.",
+        answer: SAFE_AI_ERROR_MESSAGE,
+        error: SAFE_AI_ERROR_MESSAGE,
       },
       { status: 500 }
     );
