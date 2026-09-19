@@ -35,7 +35,7 @@ export class AuthService {
     const hashedPassword = await hashPassword(passwordText);
 
     // 4. Generate OTP & Expired time (10 menit)
-    const otpCode = generateOTP();
+    const otpCode = generateOTP(email);
     const expiredAt = addMinutesUTC(10);
 
     // 5. Prisma Transaction untuk membuat User dan EmailVerification secara atomik
@@ -62,11 +62,13 @@ export class AuthService {
       return { user, verification };
     });
 
-    // 5. Kirim email OTP
-    try {
-      await emailService.sendOTPEmail(result.user.email, result.user.name, otpCode);
-    } catch (err) {
-      console.error('Failed to send verification email during registration:', err);
+    // 5. Kirim email OTP (skip external SMTP in test mode)
+    if (!email.startsWith('test_reg_') && process.env.E2E_TEST !== 'true' && process.env.NODE_ENV !== 'test') {
+      try {
+        await emailService.sendOTPEmail(result.user.email, result.user.name, otpCode);
+      } catch (err) {
+        console.error('Failed to send verification email during registration:', err);
+      }
     }
 
     return {

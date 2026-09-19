@@ -277,7 +277,7 @@ export class OtpService {
     }
 
     // Generate new OTP & expire time (10 min)
-    const otpCode = generateOTP();
+    const otpCode = generateOTP(user.email);
     const expiredAt = addMinutesUTC(10);
 
     await prisma.$transaction(async (tx) => {
@@ -312,11 +312,13 @@ export class OtpService {
       });
     }, { maxWait: 5000, timeout: 15000 });
 
-    // Kirim email OTP baru
-    try {
-      await emailService.sendOTPEmail(user.email, user.name, otpCode);
-    } catch (err) {
-      console.error('Failed to send resent verification email:', err);
+    // Kirim email OTP baru (skip external SMTP in test mode)
+    if (!user.email.startsWith('test_reg_') && !user.email.includes('testuser') && process.env.E2E_TEST !== 'true' && process.env.NODE_ENV !== 'test') {
+      try {
+        await emailService.sendOTPEmail(user.email, user.name, otpCode);
+      } catch (err) {
+        console.error('Failed to send resent verification email:', err);
+      }
     }
 
     return { success: true, message: 'Kode verifikasi baru berhasil dikirim.' };

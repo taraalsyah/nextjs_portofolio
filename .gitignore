@@ -49,6 +49,12 @@ next-env.d.ts
 # Android (Capacitor)
 android/
 
-# Android Studio
+# IDE
 .idea/
 .vscode/
+
+# Playwright
+/playwright-report/
+/test-results/
+
+

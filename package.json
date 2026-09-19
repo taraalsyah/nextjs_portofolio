@@ -17,7 +17,8 @@
     "android:build:debug": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleDebug",
     "android:build:release": "npm run android:sync && export JAVA_HOME=\"/Library/Java/JavaVirtualMachines/temurin-21.jdk/Contents/Home\" && cd android && ./gradlew :app:assembleRelease",
     "generate-token": "npx tsx scripts/generate-token.ts",
-    "test:categories": "npx tsx scripts/test-categories-cache.ts"
+    "test:categories": "npx tsx scripts/test-categories-cache.ts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@capacitor/android": "^7.0.1",
@@ -54,6 +55,7 @@
   },
   "devDependencies": {
     "@capacitor/cli": "^7.0.1",
+    "@playwright/test": "^1.49.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/dotenv": "^6.1.1",
     "@types/node": "^20",
