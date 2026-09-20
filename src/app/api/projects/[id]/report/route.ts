@@ -49,7 +49,8 @@ export async function GET(
       },
     });
 
-    const isSystemAdmin = (session.user as { role?: string }).role === 'Admin';
+    const sysRole = (session.user as { role?: string }).role || '';
+    const isSystemAdmin = sysRole === 'Admin' || sysRole === 'Operation' || sysRole.toLowerCase() === 'operation';
 
     if (!isOwner && !membership && !isSystemAdmin) {
       return NextResponse.json(

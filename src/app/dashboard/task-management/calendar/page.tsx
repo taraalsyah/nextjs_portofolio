@@ -28,7 +28,7 @@ export default function CalendarPage() {
   const [editingTask, setEditingTask] = useState<any | null>(null);
 
   const role = (session?.user as any)?.role || 'Staff';
-  const isAdmin = role === 'Admin';
+  const isAdmin = role === 'Admin' || role === 'Operation' || role?.toLowerCase() === 'operation';
   const currentUserId = parseInt((session?.user as any)?.id || '0', 10);
 
   // Ref to track latest active project ID for race condition prevention

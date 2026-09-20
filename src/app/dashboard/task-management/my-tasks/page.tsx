@@ -57,7 +57,7 @@ export default function MyTasksPage() {
   const [taskToDelete, setTaskToDelete] = useState<TaskItem | null>(null);
 
   const role = session?.user?.role || 'Staff';
-  const isAdmin = role === 'Admin';
+  const isAdmin = role === 'Admin' || role === 'Operation' || role?.toLowerCase() === 'operation';
   const currentUserId = parseInt(session?.user?.id || '0', 10);
 
   // Ref to track latest active project ID for race condition prevention

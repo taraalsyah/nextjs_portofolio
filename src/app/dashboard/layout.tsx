@@ -178,8 +178,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
             return visibleItems.map((item) => {
               const Icon = item.icon;
+              const isManagementUser = userRole === 'Admin' || userRole === 'Operation' || userRole?.toLowerCase() === 'operation';
               const targetHref =
-                item.href === '/dashboard/task-management' && userRole !== 'Admin'
+                item.href === '/dashboard/task-management' && !isManagementUser
                   ? '/dashboard/task-management/my-tasks'
                   : item.href;
               const isActive =

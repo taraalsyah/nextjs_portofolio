@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     // Verify user membership in project
     const member = await getProjectMember(targetProjectId, userId);
     const sysRole = (session.user as any).role || '';
-    const isAdmin = sysRole === 'admin' || sysRole === 'Admin' || sysRole === 'ADMIN' || sysRole === 'superadmin';
+    const isAdmin = sysRole === 'admin' || sysRole === 'Admin' || sysRole === 'ADMIN' || sysRole === 'superadmin' || sysRole === 'operation' || sysRole === 'Operation' || sysRole === 'OPERATION';
 
     if (!member && !isAdmin) {
       return NextResponse.json({ error: 'Akses ditolak. Anda bukan anggota project ini.' }, { status: 403 });
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
     // Validate membership and project permission
     const member = await getProjectMember(targetProjectId, userId);
     const sysRole = (session.user as any).role || '';
-    const isSysAdmin = sysRole === 'admin' || sysRole === 'Admin' || sysRole === 'ADMIN' || sysRole === 'superadmin';
+    const isSysAdmin = sysRole === 'admin' || sysRole === 'Admin' || sysRole === 'ADMIN' || sysRole === 'superadmin' || sysRole === 'operation' || sysRole === 'Operation' || sysRole === 'OPERATION';
 
     if (!member && !isSysAdmin) {
       return NextResponse.json({ error: 'Akses ditolak. Anda tidak memiliki akses ke project ini.' }, { status: 403 });

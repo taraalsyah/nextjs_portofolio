@@ -24,7 +24,7 @@ export default function ReportsPage() {
   const [filterParams, setFilterParams] = useState<Record<string, string>>({});
 
   const role = (session?.user as any)?.role || 'Staff';
-  const isAdmin = role === 'Admin';
+  const isAdmin = role === 'Admin' || role === 'Operation' || role?.toLowerCase() === 'operation';
 
   const { users: projectUsers } = useProjectMembers();
   const users = useMemo(() => projectUsers.map((m: { id: number; name: string }) => ({ id: m.id, name: m.name })), [projectUsers]);

@@ -18,7 +18,7 @@ export function TaskNavTab() {
   const pathname = usePathname();
   const { data: session } = useSession();
   const role = (session?.user as any)?.role || 'Staff';
-  const isAdmin = role === 'Admin';
+  const isAdmin = role === 'Admin' || role === 'Operation' || role?.toLowerCase() === 'operation';
 
   const navItems = [
     ...(isAdmin
