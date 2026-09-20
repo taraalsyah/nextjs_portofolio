@@ -90,7 +90,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
 
   // Polling payment status when in Step 3 (Pending Checkout)
   useEffect(() => {
-    if (step !== 3 || !paymentData?.transactionId) return;
+    if (step !== 3 || !paymentData?.transactionId || paymentData?.status === 'PAID') return;
 
     const interval = setInterval(async () => {
       try {

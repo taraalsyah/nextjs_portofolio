@@ -176,19 +176,28 @@ export class PaymentService {
     // Transaction to create project & mark payment as used atomically
     const createdProject = await prisma.$transaction(
       async (tx) => {
-        // Double check payment inside transaction for concurrency safety
-        const freshPayment = await tx.projectPayment.findUnique({
-          where: { id: paymentRecord.id },
+        // Atomic row-locking claim: update isUsed = true conditionally
+        const claimResult = await tx.projectPayment.updateMany({
+          where: {
+            id: paymentRecord.id,
+            isUsed: false,
+          },
+          data: {
+            isUsed: true,
+          },
         });
 
-        if (!freshPayment || freshPayment.status !== 'PAID') {
-          return null;
-        }
-
-        if (freshPayment.isUsed && freshPayment.usedForProjectId) {
-          return await tx.project.findUnique({
-            where: { id: freshPayment.usedForProjectId },
+        // If count === 0, payment was already claimed by a concurrent request
+        if (claimResult.count === 0) {
+          const currentPayment = await tx.projectPayment.findUnique({
+            where: { id: paymentRecord.id },
           });
+          if (currentPayment?.usedForProjectId) {
+            return await tx.project.findUnique({
+              where: { id: currentPayment.usedForProjectId },
+            });
+          }
+          return null;
         }
 
         const project = await tx.project.create({
@@ -218,9 +227,8 @@ export class PaymentService {
         });
 
         await tx.projectPayment.update({
-          where: { id: freshPayment.id },
+          where: { id: paymentRecord.id },
           data: {
-            isUsed: true,
             usedForProjectId: project.id,
           },
         });
@@ -397,6 +405,10 @@ export class PaymentService {
 
     const project = await PaymentService.autoCreateProjectFromPaidPayment(updated);
 
-    return { payment: updated, project };
+    const freshPayment = await model.findUnique({
+      where: { id: payment.id },
+    });
+
+    return { payment: freshPayment || updated, project };
   }
 }
