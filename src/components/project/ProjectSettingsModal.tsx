@@ -29,6 +29,7 @@ import { format } from 'date-fns';
 import styles from './project.module.css';
 import InlineSpinner from '@/components/ui/loading/InlineSpinner';
 import { useSafeToast } from '@/components/ui/Toast';
+import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 import { notifyProjectMembersUpdated } from '@/hooks/useProjectMembers';
 import {
   ALL_PERMISSIONS_LIST,
@@ -148,6 +149,10 @@ export function ProjectSettingsModal({
   // Transfer Ownership Dialog states
   const [transferTargetUser, setTransferTargetUser] = useState<ProjectMemberItem | null>(null);
   const [isTransferring, setIsTransferring] = useState(false);
+
+  // Delete Project Confirmation Dialog states
+  const [isDeleteProjectModalOpen, setIsDeleteProjectModalOpen] = useState(false);
+  const [isDeletingProject, setIsDeletingProject] = useState(false);
 
   // Matrix Roles state
   const [permMatrix, setPermMatrix] = useState<Record<string, Record<string, boolean>> | null>(null);
@@ -609,16 +614,16 @@ export function ProjectSettingsModal({
     }
   };
 
-  const handleDeleteProject = async () => {
+  const handleDeleteProjectClick = () => {
     if (!isOwner) return;
-    const confirmName = prompt(
-      `PERINGATAN: Tindakan ini akan menghapus proyek "${projectData?.projectName}" beserta SELURUH task di dalamnya secara permanen!\n\nKetik nama proyek untuk mengonfirmasi:`
-    );
+    setIsDeleteProjectModalOpen(true);
+  };
 
-    if (confirmName !== projectData?.projectName) {
-      alert('Nama proyek yang Anda ketikkan tidak cocok. Penghapusan dibatalkan.');
-      return;
-    }
+  const handleConfirmDeleteProject = async () => {
+    if (!isOwner || !activeProjectId) return;
+    setIsDeletingProject(true);
+    setError(null);
+    setSuccessMsg(null);
 
     try {
       const res = await fetch(`/api/projects/${activeProjectId}`, {
@@ -626,15 +631,22 @@ export function ProjectSettingsModal({
       });
 
       if (res.ok) {
-        alert('Proyek berhasil dihapus.');
+        setIsDeleteProjectModalOpen(false);
+        toast?.showToast('Proyek berhasil dihapus.', 'success');
         onProjectUpdated();
         onClose();
       } else {
         const json = await res.json();
-        alert(json.error || 'Gagal menghapus proyek.');
+        const errMsg = json.error || 'Gagal menghapus proyek.';
+        setError(errMsg);
+        toast?.showToast(errMsg, 'error');
       }
     } catch (err: any) {
-      alert(err.message || 'Gagal menghapus proyek.');
+      const errMsg = err.message || 'Gagal menghapus proyek.';
+      setError(errMsg);
+      toast?.showToast(errMsg, 'error');
+    } finally {
+      setIsDeletingProject(false);
     }
   };
 
@@ -1351,7 +1363,7 @@ export function ProjectSettingsModal({
                     basis data.
                   </p>
                   <button
-                    onClick={handleDeleteProject}
+                    onClick={handleDeleteProjectClick}
                     className={styles.dangerBtn}
                     style={{ alignSelf: 'flex-start' }}
                   >
@@ -1901,6 +1913,17 @@ export function ProjectSettingsModal({
           </div>
         </div>
       )}
+
+      <ConfirmDeleteModal
+        isOpen={isDeleteProjectModalOpen}
+        title="Delete Project"
+        description={`Are you sure you want to delete this project (${projectData?.projectName || ''})? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={isDeletingProject}
+        onClose={() => setIsDeleteProjectModalOpen(false)}
+        onConfirm={handleConfirmDeleteProject}
+      />
     </div>,
     document.body
   );
