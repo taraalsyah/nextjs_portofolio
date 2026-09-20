@@ -28,14 +28,22 @@ TaskTuntas adalah platform manajemen tugas (task management) dan proyek (project
    - **Deskripsi Project**: Penjelasan singkat mengenai tujuan project.
 4. Klik **Simpan** / **Buat Project**.
 
-### Mengundang Anggota (Invite Member) ke Project
-- Pembatasan Hak Akses: Hanya pengguna dengan role **OWNER** atau **ADMIN** di project tersebut yang dapat mengundang anggota baru.
-- Langkah-langkah:
-  1. Masuk ke halaman detail project.
-  2. Buka tab **Anggota** / **Members** atau klik tombol **Invite Member**.
-  3. Masukkan alamat email pengguna yang akan diundang.
-  4. Pilih role project yang diberikan: **ADMIN**, **MEMBER**, atau **VIEWER**.
-  5. Klik **Kirim Undangan** / **Invite**.
+### Mengundang Anggota (Invite Member) & Alur Join Project
+- **Otorisasi**: Hanya pengguna dengan role **OWNER** atau **ADMIN** project yang dapat membuat dan mengelola kode undangan (*invite code*).
+
+- **Proses Membuat Kode Undangan (Owner / Admin)**:
+  1. Login menggunakan akun dengan role **OWNER** atau **ADMIN** project.
+  2. Buka halaman **Pengaturan Proyek** (*Project Settings*).
+  3. Klik tab **Anggota** (*Members*).
+  4. Klik tombol **Generate Invite Code** (atau tombol *Regenerate* jika ingin memperbarui kode undangan).
+  5. Salin dan infokan kode undangan tersebut secara terpisah kepada calon anggota.
+
+- **Proses Bergabung ke Project (Calon Member / User)**:
+  1. Calon anggota login ke aplikasi web TaskTuntas.
+  2. Klik tombol **Join Proyek via Code**.
+  3. Masukkan **Invite Code** yang diterima dari Owner/Admin.
+  4. Klik **Join Proyek**.
+  5. Calon anggota tinggal menunggu persetujuan (**Approval**) dari **OWNER** atau **ADMIN** project pada halaman aplikasi web mereka.
 
 ---
 
@@ -62,6 +70,15 @@ Setiap task di TaskTuntas mendapatkan kode unik otomatis, contohnya `TSK-930002`
 3. Ubah informasi yang diperlukan (judul, deskripsi, priority, assignee, due date, kategori).
 4. Klik **Simpan Perubahan**.
 
+### Notifikasi Task Overdue (Lewat Tenggat Waktu) via Email
+- Jika terdapat task yang melewati tenggat waktu (*due time* / *deadline*), pengguna berikut akan menerima email notifikasi:
+  1. **User Assignee** (pengguna yang ditugaskan pada task tersebut).
+  2. **Project Owner** (pemilik project).
+  3. **Project Admin** (administrator project).
+- Format Judul/Subjek Email:
+  `[Task Overdue] Task "<Judul Task>" telah melewati deadline`
+  (Contoh: `[Task Overdue] Task "Buat Automation Testing Web Application" telah melewati deadline`).
+
 ---
 
 ## 4. WORKFLOW & STATUS TASK
@@ -76,6 +93,9 @@ Status task di TaskTuntas mencerminkan siklus hidup pekerjaan:
 | **DONE** | Task telah selesai dikerjakan dan disetujui oleh reviewer/owner. |
 | **CLOSED** | Task telah ditutup sepenuhnya dan tidak memerlukan tindakan lanjutan. |
 
+### Perubahan Status Otomatis Menjadi OPEN
+- Ketika waktu dan tanggal mulai (*start date and time*) dari sebuah task yang berstatus `BACKLOG` telah tercapai, sistem akan secara otomatis memperbarui status task tersebut menjadi **OPEN** (siap dikerjakan).
+
 ---
 
 ### Workflow Penyelesaian Task (Approval Workflows)
@@ -88,6 +108,8 @@ Task tidak langsung berubah dari `IN_PROGRESS` menjadi `DONE` secara otomatis ol
 - **Langkah 4**:
   - Jika **Disetujui (Approve)**: Status task berubah menjadi **DONE**, dan waktu penyelesaian dicatat (`doneReviewedAt`).
   - Jika **Ditolak (Reject)**: Status task kembali ke **IN_PROGRESS** beserta alasan penolakan.
+
+> **Aturan Imutabilitas Task DONE**: Setelah status task berubah menjadi **DONE** (setelah disetujui / *approved* oleh **OWNER** atau **ADMIN** project), task tersebut dikunci secara permanen dan **TIDAK DAPAT** di-edit (*update*), di-delete (*hapus*), maupun di-reopen (*dibuka kembali*).
 
 > **Catatan**: Task yang sudah berstatus `DONE` tidak dapat diajukan *Request to Done* kembali.
 
@@ -106,26 +128,29 @@ Digunakan untuk menutup task berstatus `IN_PROGRESS` atau `DONE` secara permanen
 
 TaskTuntas menerapkan dua tingkatan otorisasi: Otorisasi tingkat Sistem (System-wide RBAC) dan Otorisasi tingkat Project (Project-level Authorization).
 
+> **Aturan Khusus Pembuatan & Pengeditan Task**: Hanya pengguna dengan role **OWNER** dan **ADMIN** project yang memiliki hak akses untuk membuat (*create*) dan memperbarui/mengedit (*update*) task. Role **MEMBER** dan **VIEWER** tidak dapat membuat atau mengedit task.
+
 ### Tingkat Role Project:
 
 #### 1. OWNER (Pemilik Project)
 - Memiliki kontrol penuh atas project.
 - Dapat mengedit detail project dan menghapus project.
+- Dapat membuat (*create*), mengedit/memperbarui (*update*), dan menghapus task di dalam project.
 - Dapat mengundang, mengubah role, dan menghapus anggota project.
 - Memiliki hak penuh melakukan Review & Approval untuk *Request to Done* dan *Request to Close*.
 - Menerima notifikasi khusus permohonan *Request to Close*.
 
 #### 2. ADMIN (Administrator Project)
-- Dapat membuat, mengedit, dan menghapus task di dalam project.
+- Dapat membuat (*create*), mengedit/memperbarui (*update*), dan menghapus task di dalam project.
 - Dapat mengundang anggota baru ke dalam project.
 - Dapat menyetujui permohonan *Request to Done*.
 - Tidak dapat menghapus project atau mengubah role Owner.
 
 #### 3. MEMBER (Anggota Tim)
-- Dapat membuat task baru di dalam project.
 - Dapat mengerjakan task yang ditugaskan kepadanya.
 - Dapat memperbarui status task menjadi `IN_PROGRESS`.
 - Dapat mengajukan permohonan *Request to Done* dan *Request to Close*.
+- **TIDAK DAPAT** membuat (*create*) atau mengedit (*update*) task di dalam project.
 - Tidak dapat mengundang anggota atau mengubah pengaturan project.
 
 #### 4. VIEWER (Pengamat)

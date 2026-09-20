@@ -1,17 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 
-let cachedKnowledge: string | null = null;
-
 /**
- * Loads and caches the TaskTuntas Markdown Knowledge Base file.
+ * Loads the TaskTuntas Markdown Knowledge Base file.
  * Returns the plain markdown string content.
  */
 export function getTaskTuntasKnowledge(): string {
-  if (cachedKnowledge) {
-    return cachedKnowledge;
-  }
-
   try {
     const filePath = path.join(
       process.cwd(),
@@ -20,8 +14,7 @@ export function getTaskTuntasKnowledge(): string {
       'tasktuntas-knowledge.md'
     );
     if (fs.existsSync(filePath)) {
-      cachedKnowledge = fs.readFileSync(filePath, 'utf-8');
-      return cachedKnowledge;
+      return fs.readFileSync(filePath, 'utf-8');
     }
   } catch (error) {
     console.error('[KnowledgeService] Failed to load knowledge base file:', error);
@@ -32,7 +25,7 @@ export function getTaskTuntasKnowledge(): string {
 
 /**
  * Utility to check if a user prompt is seeking Knowledge Base documentation
- * (e.g. "bagaimana cara...", "apa itu...", "apa perbedaan...", etc.)
+ * (e.g. "bagaimana cara...", "apa itu...", "apakah ada alert...", etc.)
  */
 export function isKnowledgeQuery(message: string): boolean {
   if (!message || typeof message !== 'string') return false;
@@ -54,6 +47,8 @@ export function isKnowledgeQuery(message: string): boolean {
     'apa saja status',
     'apa role',
     'apa syarat',
+    'apakah ada',
+    'apakah',
     'kenapa fitur',
     'mengapa',
     'jelaskan workflow',
@@ -67,9 +62,34 @@ export function isKnowledgeQuery(message: string): boolean {
     'cara mengundang',
     'panduan',
     'aturan',
+    'alert',
+    'notifikasi',
+    'email',
+    'dikirim ke',
+    'dikirimkan ke',
+    'start date',
+    'waktu mulai',
+    'tanggal mulai',
+    'otomatis',
+    'menjadi open',
+    'berubah status',
+    'reopen',
+    'bisa di-edit',
+    'bisa diedit',
+    'bisa dihapus',
+    'bisa di-delete',
+    'setelah done',
+    'task done',
+    'invite code',
+    'generate invite',
+    'join proyek',
+    'join via code',
+    'pengaturan proyek',
+    'regenerate',
     'request to done',
     'request to close',
   ];
 
   return KNOWLEDGE_KEYWORDS.some((keyword) => normalized.includes(keyword));
 }
+
