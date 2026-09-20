@@ -1,5 +1,6 @@
 import { handleAuthorizedToolCall } from "@/services/mcp/authorized-tools";
 import { SAFE_AI_ERROR_MESSAGE } from "@/services/mcp/error-handler";
+import { getTaskTuntasKnowledge, isKnowledgeQuery } from "@/services/ai/knowledge.service";
 
 export interface ChatHistoryMessage {
   role: "user" | "assistant" | "model";
@@ -251,7 +252,27 @@ const GEMINI_FUNCTION_DECLARATIONS = [
   },
 ];
 
-const SYSTEM_INSTRUCTION_TEXT = `Kamu adalah TaskTuntas AI Assistant, asisten cerdas pengelolaan task dan project di TaskTuntas.
+const SYSTEM_INSTRUCTION_TEXT = `Kamu adalah TaskTuntas AI Assistant, asisten cerdas pengelolaan task, project, dan panduan penggunaan di TaskTuntas.
+
+DUAL SOURCE OF TRUTH (SUMBER KEBENARAN DOKUMENTASI & DATABASE):
+Kamu memiliki DUA sumber kebenaran utama:
+
+1. KNOWLEDGE BASE (Dokumentasi Statis Aplikasi):
+   - Digunakan untuk menjawab pertanyaan tentang cara penggunaan TaskTuntas, fitur-fitur, alur/workflow task, hak akses (role & permission), panduan, dan dokumentasi aplikasi.
+   - Sumber kebenaran untuk pertanyaan seperti: "Bagaimana cara...", "Apa fungsi...", "Apa itu...", "Apa perbedaan...", "Bagaimana workflow...", "Apa permission role ini...".
+   - JANGAN PERNAH mengarang fitur atau alur aplikasi jika tidak tercantum dalam Knowledge Base. Jika informasi tidak tersedia di Knowledge Base, sampaikan dengan jujur bahwa informasi tersebut belum tersedia dalam dokumentasi.
+   - Untuk pertanyaan dokumentasi statis murni, JAWAB LANGSUNG menggunakan Knowledge Base TANPA perlu memanggil MCP tools database!
+
+2. MCP TOOLS (Data Dinamis Database):
+   - Digunakan untuk mengambil data aktual dari database TaskTuntas (daftar task, daftar project, jumlah task, task overdue, status task aktual, assignee, tanggal).
+   - Sumber kebenaran untuk pertanyaan seperti: "Berapa task saya?", "Tampilkan task yang belum selesai", "Task apa saja di project X?", "Berapa task DONE?".
+   - JANGAN PERNAH mengambil data aktual pengguna dari Knowledge Base. SELALU panggil MCP tool yang sesuai untuk query data dinamis.
+
+3. PERTANYAAN GABUNGAN (KNOWLEDGE BASE + MCP):
+   - Jika pertanyaan membutuhkan penjelasan alur/dokumentasi SEKALIGUS data aktual pengguna (misal: "Bagaimana cara mengubah task menjadi DONE dan tampilkan task saya yang sudah DONE"), jelaskan alur dari Knowledge Base DAN gunakan MCP tool untuk mengambil data aktual pengguna.
+   - Gabungkan informasi dari kedua sumber secara rapi dan profesional.
+   - JANGAN memanggil MCP tools jika pertanyaan HANYA menanyakan dokumentasi statis/cara penggunaan.
+
 Tugas kamu adalah membantu user menjawab pertanyaan terkait task, project, status task, dan pencarian task berdasarkan data nyata dari MCP tools.
 
 PEMILIHAN MCP TOOLS & ATURAN SEMANTIK PERTANYAAN (SANGAT PENTING):
@@ -453,7 +474,8 @@ export type QueryScope =
   | "OVERDUE"
   | "DATE"
   | "ALL"
-  | "TASK_NUMBER";
+  | "TASK_NUMBER"
+  | "KNOWLEDGE";
 
 export interface PreQueryGateResult {
   scope: QueryScope;
@@ -473,6 +495,11 @@ export function getPreQueryGate(message: string): PreQueryGateResult {
       clarificationQuestion:
         "Mau menampilkan task dari project tertentu, task kamu, atau berdasarkan status/priority tertentu?",
     };
+  }
+
+  // 0. Knowledge query bypass (documentation / how-to / definitions)
+  if (isKnowledgeQuery(message)) {
+    return { scope: "KNOWLEDGE", requiresClarification: false };
   }
 
   const rawClean = message.trim().toLowerCase();
@@ -660,6 +687,16 @@ export async function runTaskAiAssistant({
     parts: [{ text: message }],
   });
 
+  const knowledgeContent = getTaskTuntasKnowledge();
+  const fullSystemInstruction = `${SYSTEM_INSTRUCTION_TEXT}
+
+==================================================
+DOCUMENTATION & KNOWLEDGE BASE SOURCE OF TRUTH:
+==================================================
+${knowledgeContent || "Dokumentasi belum dimuat."}
+==================================================
+`;
+
   const toolCallsUsed: string[] = [];
   const executedToolSignatures = new Set<string>();
   let iterations = 0;
@@ -670,7 +707,7 @@ export async function runTaskAiAssistant({
 
     const payload = {
       systemInstruction: {
-        parts: [{ text: SYSTEM_INSTRUCTION_TEXT }],
+        parts: [{ text: fullSystemInstruction }],
       },
       contents,
       tools: [
