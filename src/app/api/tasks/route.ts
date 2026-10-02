@@ -46,8 +46,12 @@ export async function GET(req: NextRequest) {
     if (mode === 'my') {
       where.assigneeId = sessionUserId;
     } else if (reqAssigneeId) {
-      const parsedAssId = parseInt(reqAssigneeId, 10);
-      if (!isNaN(parsedAssId)) where.assigneeId = parsedAssId;
+      if (reqAssigneeId === 'unassigned' || reqAssigneeId === 'null') {
+        where.assigneeId = null;
+      } else {
+        const parsedAssId = parseInt(reqAssigneeId, 10);
+        if (!isNaN(parsedAssId)) where.assigneeId = parsedAssId;
+      }
     }
 
     if (status) where.status = status;

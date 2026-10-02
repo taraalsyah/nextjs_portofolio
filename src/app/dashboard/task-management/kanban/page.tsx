@@ -6,6 +6,7 @@ import { Kanban, Plus } from 'lucide-react';
 import styles from '../task.module.css';
 import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { TaskKanbanBoard } from '@/components/task-management/TaskKanbanBoard';
+import { TaskFilterBar } from '@/components/task-management/TaskFilterBar';
 import { TaskDetailModal } from '@/components/task-management/TaskDetailModal';
 import { TaskFormModal } from '@/components/task-management/TaskFormModal';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
@@ -23,6 +24,7 @@ export default function KanbanPage() {
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const { users } = useProjectMembers();
   const [isLoading, setIsLoading] = useState(true);
+  const [filterParams, setFilterParams] = useState<Record<string, string>>({});
 
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
@@ -45,6 +47,50 @@ export default function KanbanPage() {
     setCategories([]);
     setIsLoading(true);
   }, [activeProjectId]);
+
+  const handleFilterChange = useCallback((newFilters: Record<string, string>) => {
+    setFilterParams(newFilters);
+  }, []);
+
+  const filteredTasks = React.useMemo(() => {
+    return tasks.filter((t) => {
+      // Search filter
+      if (filterParams.search?.trim()) {
+        const q = filterParams.search.trim().toLowerCase();
+        const matchNumber = t.taskNumber?.toLowerCase().includes(q);
+        const matchTitle = t.title?.toLowerCase().includes(q);
+        const matchDesc = t.description?.toLowerCase().includes(q);
+        const matchTag = t.tags?.toLowerCase().includes(q);
+        if (!matchNumber && !matchTitle && !matchDesc && !matchTag) return false;
+      }
+      // Status filter
+      if (filterParams.status && t.status !== filterParams.status) {
+        return false;
+      }
+      // Priority filter
+      if (filterParams.priority && t.priority !== filterParams.priority) {
+        return false;
+      }
+      // Category filter
+      if (filterParams.categoryId) {
+        const catId = parseInt(filterParams.categoryId, 10);
+        if (t.categoryId !== catId && t.category?.id !== catId) return false;
+      }
+      // Assignee filter
+      if (filterParams.assigneeId && filterParams.assigneeId !== '' && filterParams.assigneeId !== 'all') {
+        if (filterParams.assigneeId === 'unassigned') {
+          if (t.assigneeId !== null && t.assigneeId !== undefined && t.assignee && t.assignee.id) {
+            return false;
+          }
+        } else {
+          const assId = parseInt(filterParams.assigneeId, 10);
+          const tAssId = t.assigneeId ?? t.assignee?.id;
+          if (tAssId !== assId) return false;
+        }
+      }
+      return true;
+    });
+  }, [tasks, filterParams]);
 
   // Fetch Categories for select dropdowns
   const fetchCategories = useCallback(async () => {
@@ -204,6 +250,13 @@ export default function KanbanPage() {
           </button>
         </div>
 
+        <TaskFilterBar
+          categories={categories}
+          users={users}
+          onFilterChange={handleFilterChange}
+          hideSortFilter={true}
+        />
+
         {isLoading ? (
           <div className={styles.loadingBox}>
             <InlineSpinner size={18} color="var(--primary)" />
@@ -211,7 +264,7 @@ export default function KanbanPage() {
           </div>
         ) : (
           <TaskKanbanBoard
-            tasks={tasks}
+            tasks={filteredTasks}
             onStatusChange={handleStatusChange}
             onCardClick={(task) => setSelectedTaskId(task.id)}
           />

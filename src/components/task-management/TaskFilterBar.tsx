@@ -120,6 +120,7 @@ export function TaskFilterBar({
       label: u.name,
       dotColor: '#06b6d4',
     })),
+    { value: 'unassigned', label: 'Unassigned', dotColor: '#94a3b8' },
   ];
 
   return (
