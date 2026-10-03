@@ -47,16 +47,17 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
     return null;
   };
 
-  const getPriorityBadgeClass = (priority: string) => {
-    switch (priority) {
+  const getPriorityTextClass = (priority: string) => {
+    switch (priority?.toUpperCase()) {
       case 'LOW':
-        return styles.priorityLow;
+        return styles.priorityTextLow;
       case 'MEDIUM':
-        return styles.priorityMedium;
+        return styles.priorityTextMedium;
       case 'HIGH':
-        return styles.priorityHigh;
+        return styles.priorityTextHigh;
       case 'CRITICAL':
-        return styles.priorityCritical;
+      case 'URGENT':
+        return styles.priorityTextCritical;
       default:
         return '';
     }
@@ -151,25 +152,27 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
 
                       <div className={styles.kanbanCardHeader}>
                         <span className={styles.taskNumber}>{task.taskNumber}</span>
-                        <div style={{ display: 'flex', gap: '0.25rem', alignItems: 'center' }}>
-                          <span className={`${styles.badge} ${getPriorityBadgeClass(task.priority)}`}>
-                            {task.priority}
-                          </span>
-                        </div>
+                        <span className={`${styles.priorityText} ${getPriorityTextClass(task.priority)}`}>
+                          {task.priority}
+                        </span>
                       </div>
 
-                      <h5 className={styles.kanbanTaskTitle}>{task.title}</h5>
+                      <div className={styles.kanbanCardTitleSection}>
+                        <h5 className={styles.kanbanTaskTitle}>{task.title}</h5>
+                      </div>
 
                       {task.category && (
-                        <div style={{ fontSize: '0.72rem', color: 'var(--secondary-text)', fontWeight: 500 }}>
+                        <div className={styles.kanbanCardCategorySection}>
                           🏷️ {task.category.name}
                         </div>
                       )}
 
                       <div className={styles.kanbanCardFooter}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                          <User size={12} />
-                          <span>{task.assignee?.name || 'Unassigned'}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', minWidth: 0, overflow: 'hidden', flex: 1, paddingRight: '0.4rem' }}>
+                          <User size={13} style={{ flexShrink: 0 }} />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {task.assignee?.name || 'Unassigned'}
+                          </span>
                         </div>
 
                         <div style={{ display: 'flex', gap: '0.2rem' }}>
