@@ -219,8 +219,8 @@ export function TaskTable({
                     <td>{getStatusBadge(task.status)}</td>
                     <td>{getPriorityBadge(task.priority)}</td>
                     <td>
-                      <span style={{ color: 'var(--foreground)', fontSize: '0.8rem', fontWeight: 500 }}>
-                        {task.category?.name || '-'}
+                      <span style={{ color: (!task.category || task.category.name === 'Uncategorized') ? 'var(--muted-foreground)' : 'var(--foreground)', fontSize: '0.8rem', fontWeight: (!task.category || task.category.name === 'Uncategorized') ? 400 : 500 }}>
+                        {task.category?.name || 'Uncategorized'}
                       </span>
                     </td>
                     <td>

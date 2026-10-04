@@ -71,13 +71,16 @@ export function TaskFormModal({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const uncategorizedCat = categories.find((c) => c.name === 'Uncategorized');
+    const defaultCatId = uncategorizedCat ? String(uncategorizedCat.id) : '';
+
     if (initialData) {
       setTitle(initialData.title || '');
       setDescription(initialData.description || '');
       setStatus(initialData.status || 'BACKLOG');
       setPriority(initialData.priority || 'MEDIUM');
       setAssigneeId(initialData.assigneeId ? String(initialData.assigneeId) : '');
-      setCategoryId(initialData.categoryId ? String(initialData.categoryId) : '');
+      setCategoryId(initialData.categoryId ? String(initialData.categoryId) : defaultCatId);
       setTags(initialData.tags || '');
 
       const startParts = parseDateParts(initialData.startDate);
@@ -93,7 +96,7 @@ export function TaskFormModal({
       setStatus('BACKLOG');
       setPriority('MEDIUM');
       setAssigneeId('');
-      setCategoryId('');
+      setCategoryId(defaultCatId);
       setTags('');
       setStartDate('');
       setStartTime('09:00');
@@ -101,7 +104,7 @@ export function TaskFormModal({
       setDueTime('17:00');
     }
     setError(null);
-  }, [initialData, isOpen]);
+  }, [initialData, isOpen, categories]);
 
   if (!isOpen) return null;
 
@@ -145,6 +148,8 @@ export function TaskFormModal({
     setIsSubmitting(true);
     setError(null);
 
+    const uncategorizedCat = categories.find((c) => c.name === 'Uncategorized');
+
     try {
       await onSubmit({
         title: title.trim(),
@@ -152,7 +157,7 @@ export function TaskFormModal({
         status,
         priority,
         assigneeId: assigneeId || null,
-        categoryId: categoryId || null,
+        categoryId: categoryId || (uncategorizedCat ? String(uncategorizedCat.id) : null),
         tags: tags.trim() || null,
         startDate: fullStartDate,
         dueDate: fullDueDate,
@@ -165,13 +170,18 @@ export function TaskFormModal({
     }
   };
 
+  const uncategorizedCat = categories.find((c) => c.name === 'Uncategorized');
+  const uncategorizedId = uncategorizedCat ? String(uncategorizedCat.id) : '';
+
   const categoryOptions: CustomDropdownOption[] = [
-    { value: '', label: 'Pilih Kategori', dotColor: '#94a3b8' },
-    ...categories.map((c) => ({
-      value: String(c.id),
-      label: c.name,
-      dotColor: '#3b82f6',
-    })),
+    { value: uncategorizedId, label: 'Uncategorized', dotColor: '#94a3b8' },
+    ...categories
+      .filter((c) => c.name !== 'Uncategorized')
+      .map((c) => ({
+        value: String(c.id),
+        label: c.name,
+        dotColor: '#3b82f6',
+      })),
   ];
 
   const assigneeOptions: CustomDropdownOption[] = [

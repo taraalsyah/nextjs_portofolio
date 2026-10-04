@@ -7,6 +7,7 @@ import { getActiveProjectContext } from '@/lib/active-project';
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
 import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
+import { getOrCreateUncategorizedCategory } from '@/lib/category-service';
 
 export async function GET(req: NextRequest) {
   try {
@@ -210,17 +211,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let targetCategoryId: number | null = null;
     const parsedCategoryId = categoryId ? parseInt(String(categoryId), 10) : null;
-    if (parsedCategoryId) {
+    if (parsedCategoryId && !isNaN(parsedCategoryId) && parsedCategoryId > 0) {
       const validCat = await prisma.taskCategory.findFirst({
         where: { id: parsedCategoryId, projectId: activeProject.projectId },
       });
-      if (!validCat) {
-        return NextResponse.json(
-          { error: 'Kategori tidak valid untuk project ini.' },
-          { status: 400 }
-        );
+      if (validCat) {
+        targetCategoryId = validCat.id;
       }
+    }
+
+    if (!targetCategoryId) {
+      const uncategorizedCat = await getOrCreateUncategorizedCategory(activeProject.projectId);
+      targetCategoryId = uncategorizedCat.id;
     }
 
     // Atomic creation
@@ -237,7 +241,7 @@ export async function POST(req: NextRequest) {
           priority,
           assigneeId: targetAssigneeId,
           createdById: sessionUserId,
-          categoryId: categoryId ? parseInt(String(categoryId), 10) : null,
+          categoryId: targetCategoryId,
           tags: tags?.trim() || null,
           startDate: parsedStartDate,
           dueDate: parsedDueDate,

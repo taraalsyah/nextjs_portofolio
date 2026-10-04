@@ -1,10 +1,11 @@
 import { prisma } from '@/lib/prisma';
+import { migrateUncategorizedTasks } from '@/lib/category-service';
 
 let isMigrated = false;
 
 /**
  * Ensures that the required database columns for Done Request Approval Workflow
- * exist in the MySQL/TiDB database.
+ * exist in the MySQL/TiDB database, and migrates null categories to "Uncategorized".
  */
 export async function ensureDoneRequestColumns() {
   if (isMigrated) return;
@@ -35,6 +36,8 @@ export async function ensureDoneRequestColumns() {
       }
     }
   }
+
+  await migrateUncategorizedTasks();
 
   isMigrated = true;
 }

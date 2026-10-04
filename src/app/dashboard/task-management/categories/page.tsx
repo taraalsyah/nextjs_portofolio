@@ -226,36 +226,51 @@ export default function CategoriesPage() {
                 </tr>
               </thead>
               <tbody>
-                {categories.map((c) => (
-                  <tr key={c.id}>
-                    <td className={styles.colCategoryId}>#{c.id}</td>
-                    <td className={styles.colCategoryName}>{c.name}</td>
-                    <td className={styles.colCategoryDesc}>{c.description ? c.description : '-'}</td>
-                    <td className={styles.colCategoryDate}>
-                      {new Date(c.createdAt).toLocaleDateString('id-ID')}
-                    </td>
-                    <td className={styles.colCategoryAction}>
-                      <div className={styles.categoryActionGroup}>
-                        <button
-                          type="button"
-                          title="Edit Kategori"
-                          onClick={() => handleOpenModal(c)}
-                          className={styles.categoryActionBtn}
-                        >
-                          <Edit3 size={15} />
-                        </button>
-                        <button
-                          type="button"
-                          title="Hapus Kategori"
-                          onClick={() => handleDeleteCategory(c)}
-                          className={`${styles.categoryActionBtn} ${styles.categoryDeleteBtn}`}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                {categories.map((c) => {
+                  const isUncategorized = c.name === 'Uncategorized';
+
+                  return (
+                    <tr key={c.id}>
+                      <td className={styles.colCategoryId}>#{c.id}</td>
+                      <td className={styles.colCategoryName}>
+                        {c.name}
+                        {isUncategorized && (
+                          <span style={{ fontSize: '0.72rem', color: 'var(--muted-foreground)', fontWeight: 400, marginLeft: '0.35rem' }}>
+                            (Default Sistem)
+                          </span>
+                        )}
+                      </td>
+                      <td className={styles.colCategoryDesc}>{c.description ? c.description : '-'}</td>
+                      <td className={styles.colCategoryDate}>
+                        {new Date(c.createdAt).toLocaleDateString('id-ID')}
+                      </td>
+                      <td className={styles.colCategoryAction}>
+                        <div className={styles.categoryActionGroup}>
+                          <button
+                            type="button"
+                            disabled={isUncategorized}
+                            title={isUncategorized ? 'Kategori default sistem tidak dapat diubah' : 'Edit Kategori'}
+                            onClick={() => !isUncategorized && handleOpenModal(c)}
+                            className={styles.categoryActionBtn}
+                            style={{ opacity: isUncategorized ? 0.35 : 1, cursor: isUncategorized ? 'not-allowed' : 'pointer' }}
+                          >
+                            <Edit3 size={15} />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={isUncategorized}
+                            title={isUncategorized ? 'Kategori default sistem tidak dapat dihapus' : 'Hapus Kategori'}
+                            onClick={() => !isUncategorized && handleDeleteCategory(c)}
+                            className={`${styles.categoryActionBtn} ${styles.categoryDeleteBtn}`}
+                            style={{ opacity: isUncategorized ? 0.35 : 1, cursor: isUncategorized ? 'not-allowed' : 'pointer' }}
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

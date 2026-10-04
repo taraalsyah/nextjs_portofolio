@@ -31,6 +31,10 @@ export async function PUT(
       return NextResponse.json({ error: 'Kategori tidak ditemukan.' }, { status: 404 });
     }
 
+    if (categoryToUpdate.name === 'Uncategorized') {
+      return NextResponse.json({ error: 'Kategori default "Uncategorized" tidak dapat diubah nama atau diedit.' }, { status: 400 });
+    }
+
     // Check project permission / ownership
     const targetProjectId = categoryToUpdate.projectId;
     const sysRole = (session.user as any).role || '';
@@ -115,6 +119,10 @@ export async function DELETE(
 
     if (!category) {
       return NextResponse.json({ error: 'Kategori tidak ditemukan.' }, { status: 404 });
+    }
+
+    if (category.name === 'Uncategorized') {
+      return NextResponse.json({ error: 'Kategori default "Uncategorized" tidak dapat dihapus.' }, { status: 400 });
     }
 
     // Check project permission / ownership

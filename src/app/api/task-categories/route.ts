@@ -6,6 +6,7 @@ import { createActivityLog } from '@/lib/activity';
 import { getCachedCategories, setCachedCategories, invalidateCategoriesCache } from '@/lib/category-cache';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { getProjectMember } from '@/lib/project';
+import { getOrCreateUncategorizedCategory } from '@/lib/category-service';
 
 export async function GET(req: NextRequest) {
   try {
@@ -47,9 +48,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Akses ditolak. Anda bukan anggota project ini.' }, { status: 403 });
     }
 
+    // Ensure default Uncategorized category exists for project
+    await getOrCreateUncategorizedCategory(targetProjectId);
+
     // 1. Try fetching Categories from Redis Read-Cache for this project
     const cachedCategories = await getCachedCategories(targetProjectId);
-    if (cachedCategories) {
+    if (cachedCategories && cachedCategories.some((c: any) => c.name === 'Uncategorized')) {
       return NextResponse.json({ categories: cachedCategories });
     }
 
@@ -81,6 +85,10 @@ export async function POST(req: NextRequest) {
 
     if (!name || !name.trim()) {
       return NextResponse.json({ error: 'Nama kategori wajib diisi.' }, { status: 400 });
+    }
+
+    if (name.trim().toLowerCase() === 'uncategorized') {
+      return NextResponse.json({ error: 'Kategori "Uncategorized" adalah kategori default sistem.' }, { status: 400 });
     }
 
     let targetProjectId = projectId ? parseInt(String(projectId), 10) : null;

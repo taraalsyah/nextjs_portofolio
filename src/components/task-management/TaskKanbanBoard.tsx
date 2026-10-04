@@ -150,22 +150,29 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                         </div>
                       )}
 
-                      <div className={styles.kanbanCardHeader}>
+                      <div className={styles.kanbanCardNumberSection}>
                         <span className={styles.taskNumber}>{task.taskNumber}</span>
+                      </div>
+
+                      <div className={styles.kanbanCardPrioritySection}>
                         <span className={`${styles.priorityText} ${getPriorityTextClass(task.priority)}`}>
                           {task.priority}
                         </span>
                       </div>
 
                       <div className={styles.kanbanCardTitleSection}>
-                        <h5 className={styles.kanbanTaskTitle}>{task.title}</h5>
+                        <h5 className={styles.kanbanTaskTitle} title={task.title}>{task.title}</h5>
                       </div>
 
-                      {task.category && (
-                        <div className={styles.kanbanCardCategorySection}>
-                          🏷️ {task.category.name}
-                        </div>
-                      )}
+                      <div className={styles.kanbanCardCategorySection}>
+                        {task.category ? (
+                          <span style={{ color: task.category.name === 'Uncategorized' ? 'var(--muted-foreground)' : 'var(--secondary-text)', opacity: task.category.name === 'Uncategorized' ? 0.85 : 1 }}>
+                            🏷️ {task.category.name}
+                          </span>
+                        ) : (
+                          <span style={{ color: 'var(--muted-foreground)', opacity: 0.85 }}>🏷️ Uncategorized</span>
+                        )}
+                      </div>
 
                       <div className={styles.kanbanCardFooter}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', minWidth: 0, overflow: 'hidden', flex: 1, paddingRight: '0.4rem' }}>
@@ -175,7 +182,7 @@ export function TaskKanbanBoard({ tasks, onStatusChange, onCardClick }: TaskKanb
                           </span>
                         </div>
 
-                        <div style={{ display: 'flex', gap: '0.2rem' }}>
+                        <div style={{ display: 'flex', gap: '0.2rem', flexShrink: 0 }}>
                           {prev && (
                             <button
                               title={`Kembalikan ke ${prev}`}

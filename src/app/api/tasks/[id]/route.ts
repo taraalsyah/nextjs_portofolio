@@ -8,6 +8,7 @@ import { validateWorkflowTransition, getProjectMember, getProjectPermissions, Pr
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
 import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
+import { getOrCreateUncategorizedCategory } from '@/lib/category-service';
 
 // Updated route with Done Request Approval Workflow & Stale-Client Purging
 export async function GET(
@@ -258,16 +259,26 @@ export async function PUT(
       newAssigneeId = parsedAssId;
     }
 
-    if (categoryId !== undefined && categoryId !== null && categoryId !== '') {
-      const parsedCatId = parseInt(String(categoryId), 10);
-      if (!isNaN(parsedCatId) && parsedCatId > 0) {
+    let newCategoryId = oldTask.categoryId;
+    if (categoryId !== undefined) {
+      const parsedCatId = categoryId ? parseInt(String(categoryId), 10) : null;
+      if (parsedCatId && !isNaN(parsedCatId) && parsedCatId > 0) {
         const validCat = await prisma.taskCategory.findFirst({
           where: { id: parsedCatId, projectId: activeProject.projectId },
         });
-        if (!validCat) {
-          return NextResponse.json({ error: 'Kategori tidak valid untuk project ini.' }, { status: 400 });
+        if (validCat) {
+          newCategoryId = validCat.id;
+        } else {
+          const uncategorizedCat = await getOrCreateUncategorizedCategory(activeProject.projectId);
+          newCategoryId = uncategorizedCat.id;
         }
+      } else {
+        const uncategorizedCat = await getOrCreateUncategorizedCategory(activeProject.projectId);
+        newCategoryId = uncategorizedCat.id;
       }
+    } else if (!newCategoryId) {
+      const uncategorizedCat = await getOrCreateUncategorizedCategory(activeProject.projectId);
+      newCategoryId = uncategorizedCat.id;
     }
 
     const updatedTask = await prisma.$transaction(async (tx) => {
@@ -279,7 +290,7 @@ export async function PUT(
           status: status || oldTask.status,
           priority: priority || oldTask.priority,
           assigneeId: newAssigneeId,
-          categoryId: categoryId !== undefined ? (categoryId ? parseInt(String(categoryId), 10) : null) : oldTask.categoryId,
+          categoryId: newCategoryId,
           tags: tags !== undefined ? (tags?.trim() || null) : oldTask.tags,
           startDate: parsedStartDate,
           dueDate: parsedDueDate,

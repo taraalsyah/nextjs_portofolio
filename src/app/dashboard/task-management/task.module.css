@@ -912,10 +912,11 @@
 /* Kanban Board Layout */
 .kanbanGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1rem;
-  align-items: start;
+  align-items: stretch;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .kanbanColumn {
@@ -926,11 +927,11 @@
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
-  min-height: 250px;
-  max-height: calc(100vh - 210px);
-  max-height: calc(100dvh - 210px);
-  position: sticky;
-  top: 70px;
+  min-width: 0;
+  width: 100%;
+  height: calc(100vh - 210px);
+  height: calc(100dvh - 210px);
+  min-height: 500px;
   box-sizing: border-box;
 }
 
@@ -970,7 +971,7 @@
   min-height: 120px;
   flex: 1;
   overflow-y: auto;
-  overscroll-behavior-y: auto;
+  overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
   padding-right: 4px;
 }
@@ -995,11 +996,14 @@
   padding: 0.75rem 0.85rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.45rem;
   cursor: grab;
   transition: var(--transition);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  width: 100%;
   min-width: 0;
+  min-height: 185px;
+  height: 185px;
   box-sizing: border-box;
 }
 
@@ -1008,17 +1012,26 @@
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
 }
 
-.kanbanCardHeader {
+.kanbanCardNumberSection {
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.35rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+}
+
+.kanbanCardPrioritySection {
   border-bottom: 1px solid var(--border);
-  padding-bottom: 0.45rem;
+  padding-bottom: 0.35rem;
+  display: flex;
+  align-items: center;
 }
 
 .kanbanCardTitleSection {
   border-bottom: 1px solid var(--border);
-  padding-bottom: 0.45rem;
+  padding-bottom: 0.35rem;
+  height: 2.7em;
+  display: flex;
+  align-items: flex-start;
 }
 
 .kanbanTaskTitle {
@@ -1026,31 +1039,40 @@
   font-weight: 600;
   margin: 0;
   color: var(--foreground);
-  line-height: 1.4;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
   word-break: break-word;
   overflow-wrap: break-word;
-  word-wrap: break-word;
-  white-space: normal;
-  display: block;
+  max-height: 2.7em;
   width: 100%;
-  max-width: 30ch;
 }
 
 .kanbanCardCategorySection {
   border-bottom: 1px solid var(--border);
-  padding-bottom: 0.45rem;
+  padding-bottom: 0.35rem;
   font-size: 0.72rem;
   color: var(--secondary-text);
   font-weight: 500;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .kanbanCardFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-top: 0.05rem;
+  padding-top: 0.1rem;
   font-size: 0.75rem;
   color: var(--muted-foreground);
+  margin-top: auto;
 }
 
 /* Calendar View Layout */
