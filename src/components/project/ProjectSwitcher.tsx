@@ -8,7 +8,11 @@ import { ProjectSettingsModal } from './ProjectSettingsModal';
 import { JoinProjectModal } from './JoinProjectModal';
 import { useProjectContext } from '@/context/ProjectContext';
 
-export function ProjectSwitcher() {
+interface ProjectSwitcherProps {
+  isCollapsed?: boolean;
+}
+
+export function ProjectSwitcher({ isCollapsed = false }: ProjectSwitcherProps) {
   const {
     projects,
     activeProject,
@@ -71,8 +75,11 @@ export function ProjectSwitcher() {
       <button
         onClick={() => !isSwitching && setIsOpen(!isOpen)}
         disabled={isSwitching}
-        className={`${styles.switcherBtn} ${isSwitching ? styles.switcherBtnDisabled : ''}`}
+        className={`${styles.switcherBtn} ${isSwitching ? styles.switcherBtnDisabled : ''} ${
+          isCollapsed ? styles.switcherCollapsed : ''
+        }`}
         aria-label="Switch project"
+        title={isCollapsed ? (currentDisplayProject ? currentDisplayProject.projectName : 'Proyek') : undefined}
       >
         <div className={styles.switcherLeft}>
           <div className={styles.projectIconBg}>
@@ -100,7 +107,7 @@ export function ProjectSwitcher() {
             </div>
           </div>
         </div>
-        <ChevronDown size={14} style={{ opacity: isSwitching ? 0.3 : 0.6 }} />
+        <ChevronDown size={14} className={styles.switcherChevron} style={{ opacity: isSwitching ? 0.3 : undefined }} />
       </button>
 
       {isOpen && !isSwitching && (

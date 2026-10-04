@@ -232,7 +232,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
             </span>
           )}
         </div>
-        {!isCollapsedView && <span className={styles.label}>Notifikasi</span>}
+        <span className={styles.label}>Notifikasi</span>
       </button>
 
       {/* Notification Dropdown Panel */}

@@ -5,6 +5,8 @@
   width: 100%;
   padding: 0.5rem 0.75rem;
   margin-bottom: 0.5rem;
+  transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
 }
 
 .switcherBtn {
@@ -18,7 +20,14 @@
   border-radius: var(--radius-md);
   color: var(--foreground);
   cursor: pointer;
-  transition: var(--transition);
+  transition: background-color 0.15s ease, border-color 0.15s ease, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.switcherCollapsed {
+  padding: 0.45rem 0.3rem;
+  justify-content: center;
 }
 
 .switcherBtn:hover {
@@ -38,6 +47,7 @@
   gap: 0.65rem;
   overflow: hidden;
   text-align: left;
+  white-space: nowrap;
 }
 
 .projectIconBg {
@@ -56,6 +66,29 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  white-space: nowrap;
+  max-width: 130px;
+  opacity: 1;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.switcherCollapsed .projectInfo {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.switcherChevron {
+  flex-shrink: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  max-width: 16px;
+  opacity: 0.6;
+}
+
+.switcherCollapsed .switcherChevron {
+  max-width: 0;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .projectName {
@@ -73,6 +106,7 @@
   gap: 0.35rem;
   font-size: 0.7rem;
   color: var(--muted-foreground);
+  white-space: nowrap;
 }
 
 .roleBadge {

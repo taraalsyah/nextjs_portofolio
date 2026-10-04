@@ -128,23 +128,21 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
       >
         <div className={styles.sidebarHeader}>
           <div className={styles.logoArea}>
-            <img src="/logo.png" alt="TaskTuntas Logo" width={22} height={22} style={{ borderRadius: '4px', objectFit: 'contain' }} />
-            {!isCollapsed && <span className={styles.logoText}>TaskTuntas</span>}
+            <img src="/logo.png" alt="TaskTuntas Logo" width={22} height={22} style={{ borderRadius: '4px', objectFit: 'contain', flexShrink: 0 }} />
+            <span className={styles.logoText}>TaskTuntas</span>
           </div>
-          {!isCollapsed && (
-            <button
-              onClick={toggleCollapse}
-              className={`${styles.menuToggle} hidden-mobile`}
-              aria-label="Collapse sidebar"
-              style={{ padding: '0.25rem' }}
-            >
-              <ChevronLeft size={16} />
-            </button>
-          )}
+          <button
+            onClick={toggleCollapse}
+            className={`${styles.menuToggle} hidden-mobile`}
+            aria-label="Collapse sidebar"
+            style={{ padding: '0.25rem' }}
+          >
+            <ChevronLeft size={16} className={styles.collapseHeaderIcon} />
+          </button>
         </div>
 
         {/* ─── PROJECT SWITCHER ─── */}
-        {(!isCollapsed || isMobileOpen) && <ProjectSwitcher />}
+        <ProjectSwitcher isCollapsed={isCollapsed && !isMobileOpen} />
 
         {/* Sidebar Nav Items */}
         <nav className={styles.navSection}>
@@ -191,11 +189,10 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
                   key={item.href}
                   href={targetHref}
                   className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
+                  title={isCollapsed && !isMobileOpen ? item.name : undefined}
                 >
                   <Icon className={styles.menuIcon} size={16} />
-                  {(!isCollapsed || isMobileOpen) && (
-                    <span className={styles.menuLabel}>{item.name}</span>
-                  )}
+                  <span className={styles.menuLabel}>{item.name}</span>
                 </Link>
               );
             });
@@ -206,23 +203,15 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <div className={styles.sidebarFooter}>
           <NotificationBell isCollapsed={isCollapsed} isMobileOpen={isMobileOpen} />
 
-          {isCollapsed ? (
-            <button
-              onClick={toggleCollapse}
-              className={styles.collapseBtn}
-              aria-label="Expand sidebar"
-            >
-              <ChevronRight size={14} />
-            </button>
-          ) : (
-            <button
-              onClick={toggleCollapse}
-              className={styles.collapseBtn}
-            >
-              <ChevronLeft size={16} />
-              <span>Sembunyikan</span>
-            </button>
-          )}
+          <button
+            onClick={toggleCollapse}
+            className={styles.collapseBtn}
+            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={isCollapsed && !isMobileOpen ? 'Tampilkan sidebar' : undefined}
+          >
+            <ChevronLeft size={16} className={styles.collapseFooterIcon} />
+            <span className={styles.collapseLabel}>Sembunyikan</span>
+          </button>
         </div>
       </aside>
 
