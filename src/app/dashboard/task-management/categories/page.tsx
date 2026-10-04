@@ -211,40 +211,44 @@ export default function CategoriesPage() {
         ) : categories.length === 0 ? (
           <div className={styles.emptyBox}>
             <p className={styles.emptyBoxTitle}>Belum ada kategori task yang dibuat</p>
-            <p className={styles.emptyBoxSubtitle}>Klik tombol "Tambah Kategori" di atas untuk membuat kategori baru.</p>
+            <p className={styles.emptyBoxSubtitle}>Belum ada kategori tugas pada project ini. Klik tombol "Tambah Kategori" di atas untuk membuat kategori baru.</p>
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
-            <table className={styles.table}>
+          <div className={styles.tableScrollBody}>
+            <table className={styles.categoryTable}>
               <thead>
                 <tr>
-                  <th>ID</th>
-                  <th>Nama Kategori</th>
-                  <th>Deskripsi</th>
-                  <th>Dibuat Pada</th>
-                  <th style={{ textAlign: 'right' }}>Aksi</th>
+                  <th className={styles.colCategoryId}>ID</th>
+                  <th className={styles.colCategoryName}>NAMA KATEGORI</th>
+                  <th className={styles.colCategoryDesc}>DESKRIPSI</th>
+                  <th className={styles.colCategoryDate}>DIBUAT PADA</th>
+                  <th className={`${styles.colCategoryAction} ${styles.textRight}`}>AKSI</th>
                 </tr>
               </thead>
               <tbody>
                 {categories.map((c) => (
                   <tr key={c.id}>
-                    <td>#{c.id}</td>
-                    <td className={styles.categoryName}>{c.name}</td>
-                    <td>{c.description || '-'}</td>
-                    <td>{new Date(c.createdAt).toLocaleDateString('id-ID')}</td>
-                    <td>
-                      <div className={styles.actionGroup} style={{ justifyContent: 'flex-end' }}>
+                    <td className={styles.colCategoryId}>#{c.id}</td>
+                    <td className={styles.colCategoryName}>{c.name}</td>
+                    <td className={styles.colCategoryDesc}>{c.description ? c.description : '-'}</td>
+                    <td className={styles.colCategoryDate}>
+                      {new Date(c.createdAt).toLocaleDateString('id-ID')}
+                    </td>
+                    <td className={styles.colCategoryAction}>
+                      <div className={styles.categoryActionGroup}>
                         <button
+                          type="button"
                           title="Edit Kategori"
                           onClick={() => handleOpenModal(c)}
-                          className={styles.actionBtn}
+                          className={styles.categoryActionBtn}
                         >
                           <Edit3 size={15} />
                         </button>
                         <button
+                          type="button"
                           title="Hapus Kategori"
                           onClick={() => handleDeleteCategory(c)}
-                          className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                          className={`${styles.categoryActionBtn} ${styles.categoryDeleteBtn}`}
                         >
                           <Trash2 size={15} />
                         </button>
@@ -260,67 +264,63 @@ export default function CategoriesPage() {
 
       {/* Modal Form Create / Edit */}
       {isOpenModal && (
-        <div className={styles.modalOverlay}>
-          <div className={styles.modalContent} style={{ maxWidth: '500px' }}>
+        <div className={styles.modalOverlay} onClick={() => setIsOpenModal(false)}>
+          <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '640px' }}>
             <div className={styles.modalHeader}>
               <h3 className={styles.modalTitle}>
                 {editingCategory ? 'Edit Kategori' : 'Tambah Kategori Baru'}
               </h3>
-              <button onClick={() => setIsOpenModal(false)} className={styles.closeBtn}>
+              <button
+                type="button"
+                onClick={() => setIsOpenModal(false)}
+                className={styles.closeBtn}
+                aria-label="Tutup modal"
+              >
                 <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleSaveCategory}>
-              {error && (
-                <div
-                  style={{
-                    padding: '0.6rem 0.8rem',
-                    background: 'rgba(239, 68, 68, 0.15)',
-                    border: '1px solid rgba(239, 68, 68, 0.3)',
-                    borderRadius: '8px',
-                    color: '#f87171',
-                    fontSize: '0.8rem',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  {error}
+              <div className={styles.modalFormBody}>
+                {error && (
+                  <div className={styles.modalErrorBox}>
+                    {error}
+                  </div>
+                )}
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Nama Kategori *</label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Contoh: Backend, Design, QA..."
+                    className={styles.input}
+                  />
                 </div>
-              )}
 
-              <div className={styles.formGroup} style={{ marginBottom: '1rem' }}>
-                <label className={styles.label}>Nama Kategori *</label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Contoh: Backend, Design, QA..."
-                  className={styles.input}
-                />
-              </div>
-
-              <div className={styles.formGroup} style={{ marginBottom: '1rem' }}>
-                <label className={styles.label}>Deskripsi (Opsional)</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Deskripsi singkat mengenai kategori..."
-                  className={styles.textarea}
-                  rows={3}
-                />
+                <div className={styles.formGroup}>
+                  <label className={styles.label}>Deskripsi (Opsional)</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Deskripsi singkat mengenai kategori..."
+                    className={styles.textarea}
+                  />
+                </div>
               </div>
 
               <div className={styles.modalFooter}>
                 <button
                   type="button"
                   onClick={() => setIsOpenModal(false)}
-                  className={styles.clearFilterBtn}
+                  className={styles.modalCancelBtn}
                   disabled={isSubmitting}
                 >
                   Batal
                 </button>
-                <button type="submit" className={styles.createBtn} disabled={isSubmitting}>
+                <button type="submit" className={styles.modalSubmitBtn} disabled={isSubmitting}>
                   <Check size={16} />
                   {isSubmitting ? 'Menyimpan...' : 'Simpan Kategori'}
                 </button>
