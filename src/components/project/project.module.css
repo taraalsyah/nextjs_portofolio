@@ -3,8 +3,9 @@
 .switcherWrapper {
   position: relative;
   width: 100%;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem;
   margin-bottom: 0.5rem;
+  box-sizing: border-box;
   transition: padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -13,19 +14,18 @@
   align-items: center;
   justify-content: space-between;
   width: 100%;
-  padding: 0.6rem 0.75rem;
+  padding: 0.5rem 0.65rem;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   color: var(--foreground);
   cursor: pointer;
   transition: background-color 0.15s ease, border-color 0.15s ease, padding 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  overflow: hidden;
-  white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .switcherCollapsed {
-  padding: 0.45rem 0.3rem;
+  padding: 0.35rem 0;
   justify-content: center;
 }
 
@@ -47,14 +47,21 @@
   overflow: hidden;
   text-align: left;
   white-space: nowrap;
+  min-width: 0;
+}
+
+.switcherCollapsed .switcherLeft {
+  gap: 0;
+  justify-content: center;
+  width: 100%;
 }
 
 .projectIconBg {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--radius-sm);
   background: var(--primary);
   color: #fff;
@@ -72,6 +79,7 @@
 }
 
 .switcherCollapsed .projectInfo {
+  display: none !important;
   max-width: 0;
   opacity: 0;
   pointer-events: none;
@@ -85,6 +93,7 @@
 }
 
 .switcherCollapsed .switcherChevron {
+  display: none !important;
   max-width: 0;
   opacity: 0;
   pointer-events: none;
