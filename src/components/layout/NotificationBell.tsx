@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Bell, Inbox, ChevronRight, UserCheck, X, Smartphone } from 'lucide-react';
@@ -54,11 +55,19 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const [activeToast, setActiveToast] = useState<NotificationItem | null>(null);
   const [isPushSubscribed, setIsPushSubscribed] = useState<boolean>(false);
   const [pushLoading, setPushLoading] = useState<boolean>(false);
+  const [mounted, setMounted] = useState<boolean>(false);
+  const [panelStyle, setPanelStyle] = useState<React.CSSProperties>({});
 
-  const containerRef = useRef<HTMLDivElement>(null);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
   const { notifications, unreadCount, markAllAsRead, markAsRead, latestRealtimeToast } = useNotifications();
   const { activeProject, switchProject } = useProjectContext();
   const toastCtx = useSafeToast();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Check Web Push subscription status on mount
   useEffect(() => {
@@ -66,6 +75,31 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       setIsPushSubscribed(status.isSubscribed);
     });
   }, []);
+
+  const updatePosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      const isCollapsedView = isCollapsed && !isMobileOpen;
+      const bottom = window.innerHeight - rect.top + 8;
+      const left = isCollapsedView ? Math.max(12, rect.left) : rect.left;
+      const width = isCollapsedView ? 310 : Math.max(rect.width, 280);
+
+      setPanelStyle({
+        position: 'fixed',
+        bottom: `${bottom}px`,
+        left: `${left}px`,
+        width: `${width}px`,
+        zIndex: 9999,
+      });
+    }
+  };
+
+  const handleToggle = () => {
+    if (!isOpen) {
+      updatePosition();
+    }
+    setIsOpen((prev) => !prev);
+  };
 
   const handleTogglePush = async () => {
     setPushLoading(true);
@@ -116,7 +150,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   // Close dropdown on click outside or ESC key
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      const target = event.target as Node;
+      const clickedBtn = buttonRef.current && buttonRef.current.contains(target);
+      const clickedPanel = panelRef.current && panelRef.current.contains(target);
+
+      if (!clickedBtn && !clickedPanel) {
         setIsOpen(false);
       }
     }
@@ -127,14 +165,22 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       }
     }
 
+    function handleReposition() {
+      updatePosition();
+    }
+
     if (isOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       document.addEventListener('keydown', handleKeyDown);
+      window.addEventListener('resize', handleReposition);
+      window.addEventListener('scroll', handleReposition, true);
     }
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
       document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, true);
     };
   }, [isOpen]);
 
@@ -177,8 +223,107 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
 
   const isCollapsedView = isCollapsed && !isMobileOpen;
 
+  const dropdownPanelElement = (
+    <div
+      ref={panelRef}
+      style={panelStyle}
+      className={`${styles.dropdownPanel} ${
+        isCollapsedView ? styles.dropdownPanelCollapsed : ''
+      }`}
+      role="dialog"
+      aria-label="Notification Panel"
+    >
+      {/* Panel Header */}
+      <div className={styles.panelHeader}>
+        <div className={styles.headerTitleArea}>
+          <span className={styles.panelTitle}>Notifikasi</span>
+          {unreadCount > 0 && (
+            <span className={styles.headerBadge}>{unreadCount} Baru</span>
+          )}
+        </div>
+        <div className={styles.headerActions}>
+          <button
+            type="button"
+            onClick={handleTogglePush}
+            disabled={pushLoading}
+            className={`${styles.pushToggleBtn} ${isPushSubscribed ? styles.pushActive : ''}`}
+            title={isPushSubscribed ? 'Matikan Notifikasi HP' : 'Aktifkan Notifikasi HP'}
+          >
+            <Smartphone size={13} />
+            <span>{isPushSubscribed ? 'Notifikasi HP Aktif' : 'Aktifkan HP'}</span>
+          </button>
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={markAllAsRead}
+              className={styles.markAllBtn}
+              title="Tandai semua telah dibaca"
+            >
+              Mark all as read
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Notification List */}
+      <div className={styles.notificationList}>
+        {notifications.length === 0 ? (
+          <div className={styles.emptyState}>
+            <Inbox className={styles.emptyIcon} size={32} />
+            <span className={styles.emptyTitle}>No notifications</span>
+            <span className={styles.emptyText}>You have no notifications at this time.</span>
+          </div>
+        ) : (
+          notifications.map((item) => (
+            <div
+              key={item.id}
+              onClick={() => handleItemClick(item)}
+              className={`${styles.notificationItem} ${
+                !item.isRead ? styles.unreadItem : ''
+              }`}
+            >
+              <div className={!item.isRead ? styles.unreadDot : styles.readDot} />
+              <div className={styles.notificationContent}>
+                <div className={styles.itemHeader}>
+                  <span
+                    className={`${styles.itemTitle} ${
+                      !item.isRead ? styles.unreadTitle : ''
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                  <span className={styles.itemTime}>
+                    {formatRelativeTime(item.createdAt)}
+                  </span>
+                </div>
+                <p className={styles.itemMessage}>{item.message}</p>
+                {item.assignedBy && (
+                  <span className={styles.assignedByText}>
+                    Assigned by: {item.assignedBy}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* Panel Footer: View All Notifications Link */}
+      <div className={styles.panelFooter}>
+        <Link
+          href="/dashboard/notifications"
+          onClick={() => setIsOpen(false)}
+          className={styles.viewAllLink}
+        >
+          <span>View All Notifications</span>
+          <ChevronRight size={14} />
+        </Link>
+      </div>
+    </div>
+  );
+
   return (
-    <div className={styles.container} ref={containerRef}>
+    <div className={styles.container}>
       {/* Realtime Toast Popup (Positioned Above Notification Bell) */}
       {activeToast && (
         <div
@@ -216,7 +361,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
 
       <button
         type="button"
-        onClick={() => setIsOpen((prev) => !prev)}
+        ref={buttonRef}
+        onClick={handleToggle}
         className={`${styles.bellTrigger} ${isOpen ? styles.bellTriggerActive : ''} ${
           isCollapsedView ? styles.collapsedTrigger : ''
         }`}
@@ -235,104 +381,8 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
         <span className={styles.label}>Notifikasi</span>
       </button>
 
-      {/* Notification Dropdown Panel */}
-      {isOpen && (
-        <div
-          className={`${styles.dropdownPanel} ${
-            isCollapsedView ? styles.dropdownPanelCollapsed : ''
-          }`}
-          role="dialog"
-          aria-label="Notification Panel"
-        >
-          {/* Panel Header */}
-          <div className={styles.panelHeader}>
-            <div className={styles.headerTitleArea}>
-              <span className={styles.panelTitle}>Notifikasi</span>
-              {unreadCount > 0 && (
-                <span className={styles.headerBadge}>{unreadCount} Baru</span>
-              )}
-            </div>
-            <div className={styles.headerActions}>
-              <button
-                type="button"
-                onClick={handleTogglePush}
-                disabled={pushLoading}
-                className={`${styles.pushToggleBtn} ${isPushSubscribed ? styles.pushActive : ''}`}
-                title={isPushSubscribed ? 'Matikan Notifikasi HP' : 'Aktifkan Notifikasi HP'}
-              >
-                <Smartphone size={13} />
-                <span>{isPushSubscribed ? 'Notifikasi HP Aktif' : 'Aktifkan HP'}</span>
-              </button>
-              {unreadCount > 0 && (
-                <button
-                  type="button"
-                  onClick={markAllAsRead}
-                  className={styles.markAllBtn}
-                  title="Tandai semua telah dibaca"
-                >
-                  Mark all as read
-                </button>
-              )}
-            </div>
-          </div>
-
-
-          {/* Notification List */}
-          <div className={styles.notificationList}>
-            {notifications.length === 0 ? (
-              <div className={styles.emptyState}>
-                <Inbox className={styles.emptyIcon} size={32} />
-                <span className={styles.emptyTitle}>No notifications</span>
-                <span className={styles.emptyText}>You have no notifications at this time.</span>
-              </div>
-            ) : (
-              notifications.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleItemClick(item)}
-                  className={`${styles.notificationItem} ${
-                    !item.isRead ? styles.unreadItem : ''
-                  }`}
-                >
-                  <div className={!item.isRead ? styles.unreadDot : styles.readDot} />
-                  <div className={styles.notificationContent}>
-                    <div className={styles.itemHeader}>
-                      <span
-                        className={`${styles.itemTitle} ${
-                          !item.isRead ? styles.unreadTitle : ''
-                        }`}
-                      >
-                        {item.title}
-                      </span>
-                      <span className={styles.itemTime}>
-                        {formatRelativeTime(item.createdAt)}
-                      </span>
-                    </div>
-                    <p className={styles.itemMessage}>{item.message}</p>
-                    {item.assignedBy && (
-                      <span className={styles.assignedByText}>
-                        Assigned by: {item.assignedBy}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {/* Panel Footer: View All Notifications Link */}
-          <div className={styles.panelFooter}>
-            <Link
-              href="/dashboard/notifications"
-              onClick={() => setIsOpen(false)}
-              className={styles.viewAllLink}
-            >
-              <span>View All Notifications</span>
-              <ChevronRight size={14} />
-            </Link>
-          </div>
-        </div>
-      )}
+      {/* Notification Dropdown Panel via Portal */}
+      {isOpen && mounted && createPortal(dropdownPanelElement, document.body)}
     </div>
   );
 };
