@@ -118,3 +118,43 @@
     height: calc(100dvh - 65px);
   }
 }
+
+/* ─── FLOW EDITOR SPECIFIC OVERRIDES ────────────────────────────────────────── */
+.floatingTriggerFlow {
+  right: auto !important;
+  left: 280px !important;
+  bottom: 16px !important;
+  padding: 0.5rem !important;
+  border-radius: 50% !important;
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px !important;
+  justify-content: center !important;
+  z-index: 35 !important;
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3) !important;
+}
+
+.floatingTriggerFlow .triggerText {
+  display: none !important;
+}
+
+.floatingWindowFlow {
+  right: auto !important;
+  left: 280px !important;
+  bottom: 64px !important;
+  z-index: 35 !important;
+}
+
+@media (max-width: 1024px) {
+  .floatingTriggerFlow {
+    left: 16px !important;
+    bottom: 16px !important;
+  }
+
+  .floatingWindowFlow {
+    left: 12px !important;
+    right: 12px !important;
+    width: calc(100vw - 24px) !important;
+  }
+}
+

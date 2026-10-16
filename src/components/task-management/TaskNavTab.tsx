@@ -11,6 +11,7 @@ import {
   Calendar,
   FolderKanban,
   BarChart3,
+  Workflow,
 } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 
@@ -44,6 +45,11 @@ export function TaskNavTab() {
       name: 'Calendar',
       href: '/dashboard/task-management/calendar',
       icon: Calendar,
+    },
+    {
+      name: 'Flow',
+      href: '/dashboard/task-management/flow',
+      icon: Workflow,
     },
     ...(isAdmin
       ? [

@@ -48,6 +48,8 @@ model User {
   notifications       UserNotification[]   @relation("UserNotifications")
   accounts            Account[]            @relation("UserAccounts")
   pushSubscriptions   PushSubscription[]   @relation("UserPushSubscriptions")
+  createdFlows        Flow[]               @relation("FlowCreator")
+  updatedFlows        Flow[]               @relation("FlowUpdater")
 
   @@index([roleId], map: "users_role_id_fkey")
   @@map("users")
@@ -207,6 +209,7 @@ model Project {
   tasks               Task[]
   categories          TaskCategory[]
   payment             ProjectPayment?             @relation("ProjectPayment")
+  flows               Flow[]
 
   @@index([ownerUserId])
   @@map("projects")
@@ -479,5 +482,29 @@ model PushSubscription {
 
   @@index([userId])
   @@map("push_subscriptions")
+}
+
+model Flow {
+  id          Int       @id @default(autoincrement())
+  projectId   Int       @map("project_id")
+  name        String
+  description String?   @db.Text
+  data        Json
+  version     Int       @default(1)
+  thumbnail   String?   @db.LongText
+  createdById Int       @map("created_by_id")
+  updatedById Int       @map("updated_by_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  deletedAt   DateTime? @map("deleted_at")
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User    @relation("FlowCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  updatedBy User    @relation("FlowUpdater", fields: [updatedById], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([deletedAt])
+  @@index([createdById])
+  @@map("flows")
 }
 

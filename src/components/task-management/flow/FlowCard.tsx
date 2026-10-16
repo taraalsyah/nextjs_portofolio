@@ -1,0 +1,152 @@
+'use client';
+
+import React, { useState, useRef, useEffect } from 'react';
+import { MoreVertical, Copy, Edit2, Trash2, Workflow, Clock, User } from 'lucide-react';
+import { FlowListItem } from '@/types/flow';
+import styles from './flowComponents.module.css';
+
+interface FlowCardProps {
+  flow: FlowListItem;
+  onOpen: (flow: FlowListItem) => void;
+  onRename: (flow: FlowListItem) => void;
+  onDuplicate: (flow: FlowListItem) => void;
+  onDelete: (flow: FlowListItem) => void;
+  readOnly?: boolean;
+}
+
+export function FlowCard({
+  flow,
+  onOpen,
+  onRename,
+  onDuplicate,
+  onDelete,
+  readOnly = false,
+}: FlowCardProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      window.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => window.removeEventListener('mousedown', handleOutsideClick);
+  }, [isMenuOpen]);
+
+  const formattedDate = new Date(flow.updatedAt).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  });
+
+  return (
+    <div className={styles.flowCard} onClick={() => onOpen(flow)}>
+      {/* Thumbnail area */}
+      <div className={styles.cardThumbnail}>
+        {flow.thumbnail ? (
+          <img src={flow.thumbnail} alt={flow.name} className={styles.thumbnailImg} />
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, color: 'var(--muted-foreground)' }}>
+            <Workflow size={36} opacity={0.4} />
+            <span style={{ fontSize: 11, fontWeight: 500, opacity: 0.6 }}>Pratinjau Diagram</span>
+          </div>
+        )}
+
+        {/* Menu 3-dots */}
+        {!readOnly && (
+          <div ref={menuRef} onClick={(e) => e.stopPropagation()}>
+            <button
+              type="button"
+              className={styles.cardMenuBtn}
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              title="Opsi Diagram"
+            >
+              <MoreVertical size={15} />
+            </button>
+
+            {isMenuOpen && (
+              <div
+                className={styles.contextMenu}
+                style={{ position: 'absolute', top: 38, right: 8, zIndex: 50 }}
+              >
+                <button
+                  type="button"
+                  className={styles.contextMenuItem}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onRename(flow);
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Edit2 size={13} />
+                    <span>Ubah Nama</span>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  className={styles.contextMenuItem}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onDuplicate(flow);
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Copy size={13} />
+                    <span>Duplikat</span>
+                  </span>
+                </button>
+
+                <div className={styles.contextMenuDivider} />
+
+                <button
+                  type="button"
+                  className={styles.contextMenuItem}
+                  style={{ color: 'var(--error)' }}
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    onDelete(flow);
+                  }}
+                >
+                  <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <Trash2 size={13} />
+                    <span>Hapus Diagram</span>
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Card Body */}
+      <div className={styles.cardBody}>
+        <div className={styles.cardTitle}>{flow.name}</div>
+        {flow.description ? (
+          <div className={styles.cardDesc}>{flow.description}</div>
+        ) : (
+          <div className={styles.cardDesc} style={{ fontStyle: 'italic', opacity: 0.6 }}>
+            Tidak ada deskripsi
+          </div>
+        )}
+      </div>
+
+      {/* Card Footer */}
+      <div className={styles.cardFooter}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <Clock size={12} />
+          <span>{formattedDate}</span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+          <User size={12} />
+          <span>{flow.createdBy?.name || 'Anonim'}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
