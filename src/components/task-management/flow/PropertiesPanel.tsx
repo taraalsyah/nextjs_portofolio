@@ -21,6 +21,7 @@ import {
   Activity,
 } from 'lucide-react';
 import { AppNode, AppEdge, LineType, StrokeStyle, ArrowMarkerType } from '@/types/flow';
+import { getArrowMarkerType } from '@/lib/flow/edgeMarkers';
 import styles from './flowComponents.module.css';
 
 interface ProjectTaskOption {
@@ -85,6 +86,13 @@ export function PropertiesPanel({
 
   const nodeData = selectedNode?.data;
   const edgeData = selectedEdge?.data;
+
+  const activeMarkerEnd: ArrowMarkerType =
+    (edgeData?.markerEnd as ArrowMarkerType | undefined) ||
+    getArrowMarkerType(selectedEdge?.markerEnd, 'arrowclosed');
+  const activeMarkerStart: ArrowMarkerType =
+    (edgeData?.markerStart as ArrowMarkerType | undefined) ||
+    getArrowMarkerType(selectedEdge?.markerStart, 'none');
 
   const filteredTasks = useMemo(() => {
     if (!taskSearch.trim()) return projectTasks;
@@ -692,7 +700,7 @@ export function PropertiesPanel({
                 <span className={styles.propLabel}>Panah Akhir</span>
                 <select
                   className={styles.propInput}
-                  value={edgeData?.markerEnd || 'arrowclosed'}
+                  value={activeMarkerEnd}
                   onChange={(e) =>
                     onUpdateEdgeData(selectedEdge.id, {
                       markerEnd: e.target.value as ArrowMarkerType,
@@ -710,7 +718,7 @@ export function PropertiesPanel({
                 <span className={styles.propLabel}>Panah Awal</span>
                 <select
                   className={styles.propInput}
-                  value={edgeData?.markerStart || 'none'}
+                  value={activeMarkerStart}
                   onChange={(e) =>
                     onUpdateEdgeData(selectedEdge.id, {
                       markerStart: e.target.value as ArrowMarkerType,

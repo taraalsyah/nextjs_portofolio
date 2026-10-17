@@ -26,6 +26,9 @@ export const edgeSchema = z.object({
   data: z.record(z.string(), z.unknown()).optional(),
   label: z.string().optional(),
   animated: z.boolean().optional(),
+  markerStart: z.unknown().optional(),
+  markerEnd: z.unknown().optional(),
+  style: z.record(z.string(), z.unknown()).optional(),
 }).passthrough();
 
 export const viewportSchema = z.object({

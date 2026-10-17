@@ -19,6 +19,7 @@ import '@xyflow/react/dist/style.css';
 import { AppNode, AppEdge } from '@/types/flow';
 import { nodeTypes } from './nodes';
 import { edgeTypes } from './edges';
+import { sanitizeColorToId } from '@/lib/flow/edgeMarkers';
 import styles from './flowComponents.module.css';
 
 interface FlowCanvasProps {
@@ -89,6 +90,20 @@ export function FlowCanvas({
     event.dataTransfer.dropEffect = 'move';
   }, []);
 
+  // Dynamic SVG defs for custom circle markers based on active edge colors
+  const circleMarkers = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const edge of edges) {
+      const data = edge.data;
+      const stroke = (data?.stroke as string) || (edge.style?.stroke as string) || '#64748b';
+      if (data?.markerEnd === 'circle' || data?.markerStart === 'circle') {
+        const id = `flow-circle-${sanitizeColorToId(stroke)}`;
+        map.set(id, stroke);
+      }
+    }
+    return Array.from(map.entries()).map(([id, color]) => ({ id, color }));
+  }, [edges]);
+
   return (
     <div
       ref={reactFlowWrapper}
@@ -98,6 +113,36 @@ export function FlowCanvas({
       onDragOver={onDragOver}
       onDoubleClick={onDoubleClickPane}
     >
+      {circleMarkers.length > 0 && (
+        <svg
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 0,
+            height: 0,
+            pointerEvents: 'none',
+          }}
+          aria-hidden="true"
+        >
+          <defs>
+            {circleMarkers.map(({ id, color }) => (
+              <marker
+                key={id}
+                id={id}
+                viewBox="-6 -6 12 12"
+                refX="0"
+                refY="0"
+                markerWidth={10}
+                markerHeight={10}
+                orient="auto"
+              >
+                <circle cx="0" cy="0" r="3.5" fill={color} stroke={color} strokeWidth="1" />
+              </marker>
+            ))}
+          </defs>
+        </svg>
+      )}
       <ReactFlow
         nodes={nodes}
         edges={edges}

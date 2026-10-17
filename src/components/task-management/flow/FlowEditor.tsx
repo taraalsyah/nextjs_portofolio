@@ -19,13 +19,18 @@ import {
   RefreshCw,
   Eye,
 } from 'lucide-react';
-import { AppNode, AppEdge, FlowData, FlowDetail } from '@/types/flow';
+import { AppNode, AppEdge, FlowData, FlowDetail, ArrowMarkerType } from '@/types/flow';
 import { useFlowHistory } from '@/hooks/flow/useFlowHistory';
 import { useFlowClipboard } from '@/hooks/flow/useFlowClipboard';
 import { useFlowShortcuts } from '@/hooks/flow/useFlowShortcuts';
 import { useFlowAutosave } from '@/hooks/flow/useFlowAutosave';
 import { getAutoLayout, alignNodes, distributeNodes, AlignmentType, DistributionType, LayoutDirection } from '@/lib/flow/layout';
 import { generateThumbnail } from '@/lib/flow/export';
+import {
+  normalizeEdges,
+  buildEdgeMarker,
+  getArrowMarkerType,
+} from '@/lib/flow/edgeMarkers';
 import { FlowToolbar } from './FlowToolbar';
 import { ShapePalette } from './ShapePalette';
 import { PropertiesPanel } from './PropertiesPanel';
@@ -65,7 +70,9 @@ function FlowEditorInner({
   const [flowName, setFlowName] = useState(initialFlow.name);
   const [version, setVersion] = useState(initialFlow.version);
   const [nodes, setNodes] = useState<AppNode[]>(initialFlow.data?.nodes || []);
-  const [edges, setEdges] = useState<AppEdge[]>(initialFlow.data?.edges || []);
+  const [edges, setEdges] = useState<AppEdge[]>(() =>
+    normalizeEdges(initialFlow.data?.edges || [])
+  );
 
   // Track initialized flowId to prevent canvas reset when parent re-renders
   const initializedFlowIdRef = useRef<number | null>(initialFlow.id);
@@ -76,7 +83,7 @@ function FlowEditorInner({
       setFlowName(initialFlow.name);
       setVersion(initialFlow.version);
       setNodes(initialFlow.data?.nodes || []);
-      setEdges(initialFlow.data?.edges || []);
+      setEdges(normalizeEdges(initialFlow.data?.edges || []));
       if (initialFlow.data?.gridSize) setGridSize(initialFlow.data.gridSize);
       if (initialFlow.data?.snapToGrid !== undefined) setSnapToGrid(initialFlow.data.snapToGrid);
       if (initialFlow.data?.showGrid !== undefined) setShowGrid(initialFlow.data.showGrid);
@@ -321,15 +328,26 @@ function FlowEditorInner({
 
   const onConnect = useCallback(
     (connection: Connection) => {
+      const defaultStroke = '#64748b';
+      const defaultStrokeWidth = 2;
+      const defaultMarkerEnd: ArrowMarkerType = 'arrowclosed';
+
       const newEdge: AppEdge = {
         ...connection,
         id: `e_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
         type: 'customEdge',
         data: {
           lineType: 'smoothstep',
-          stroke: '#64748b',
-          strokeWidth: 2,
-          markerEnd: 'arrowclosed',
+          stroke: defaultStroke,
+          strokeWidth: defaultStrokeWidth,
+          markerEnd: defaultMarkerEnd,
+          markerStart: 'none',
+        },
+        markerEnd: buildEdgeMarker(defaultMarkerEnd, defaultStroke, defaultStrokeWidth),
+        markerStart: undefined,
+        style: {
+          stroke: defaultStroke,
+          strokeWidth: defaultStrokeWidth,
         },
       } as AppEdge;
 
@@ -734,11 +752,61 @@ function FlowEditorInner({
     [fetchTasks, toastCtx]
   );
 
+  // Edge property updates with marker synchronization & history snapshot
+  const handleUpdateEdgeData = useCallback(
+    (id: string, partial: Record<string, unknown>) => {
+      setEdges((eds) => {
+        const nextEdges = eds.map((e) => {
+          if (e.id !== id) return e;
+
+          const nextData = { ...e.data, ...partial };
+          const stroke =
+            (nextData.stroke as string) ||
+            (e.style?.stroke as string) ||
+            '#64748b';
+          const strokeWidth =
+            Number(nextData.strokeWidth) ||
+            Number(e.style?.strokeWidth) ||
+            2;
+
+          const markerEndType =
+            (nextData.markerEnd as ArrowMarkerType | undefined) ??
+            getArrowMarkerType(e.markerEnd, 'none');
+
+          const markerStartType =
+            (nextData.markerStart as ArrowMarkerType | undefined) ??
+            getArrowMarkerType(e.markerStart, 'none');
+
+          const markerEnd = buildEdgeMarker(markerEndType, stroke, strokeWidth);
+          const markerStart = buildEdgeMarker(markerStartType, stroke, strokeWidth);
+
+          return {
+            ...e,
+            label: typeof nextData.label === 'string' ? nextData.label : e.label,
+            data: nextData,
+            markerEnd,
+            markerStart,
+            animated: Boolean(nextData.animated),
+            style: {
+              ...e.style,
+              stroke,
+              strokeWidth,
+            },
+          };
+        });
+
+        takeSnapshot(nodes, nextEdges, true);
+        return nextEdges;
+      });
+    },
+    [nodes, takeSnapshot]
+  );
+
   // Template chosen
   const handleApplyTemplate = useCallback(
     (template: any) => {
       setNodes(template.data.nodes || []);
-      setEdges(template.data.edges || []);
+      setEdges(normalizeEdges(template.data.edges || []));
       takeSnapshot(template.data.nodes || [], template.data.edges || [], true);
       setTimeout(() => fitView({ padding: 0.2 }), 50);
       toastCtx?.showToast(`Template "${template.name}" berhasil dimuat`, 'success');
@@ -750,7 +818,7 @@ function FlowEditorInner({
   const handleApplyImport = useCallback(
     (importedData: FlowData) => {
       setNodes(importedData.nodes || []);
-      setEdges(importedData.edges || []);
+      setEdges(normalizeEdges(importedData.edges || []));
       if (importedData.gridSize) setGridSize(importedData.gridSize);
       if (importedData.snapToGrid !== undefined) setSnapToGrid(importedData.snapToGrid);
       if (importedData.showGrid !== undefined) setShowGrid(importedData.showGrid);
@@ -763,8 +831,17 @@ function FlowEditorInner({
     [takeSnapshot, fitView, toastCtx]
   );
 
-  const selectedNode = selectedNodes.length === 1 ? selectedNodes[0] : null;
-  const selectedEdge = selectedEdges.length === 1 ? selectedEdges[0] : null;
+  const selectedNode = React.useMemo(() => {
+    if (selectedNodes.length !== 1) return null;
+    const currentId = selectedNodes[0].id;
+    return nodes.find((n) => n.id === currentId) || selectedNodes[0];
+  }, [selectedNodes, nodes]);
+
+  const selectedEdge = React.useMemo(() => {
+    if (selectedEdges.length !== 1) return null;
+    const currentId = selectedEdges[0].id;
+    return edges.find((e) => e.id === currentId) || selectedEdges[0];
+  }, [selectedEdges, edges]);
 
   return (
     <div className={styles.editorContainer} ref={editorRef}>
@@ -946,13 +1023,7 @@ function FlowEditorInner({
               )
             );
           }}
-          onUpdateEdgeData={(id, partial) => {
-            setEdges((eds) =>
-              eds.map((e) =>
-                e.id === id ? { ...e, data: { ...e.data, ...partial } } : e
-              )
-            );
-          }}
+          onUpdateEdgeData={handleUpdateEdgeData}
           onDeleteSelected={handleDeleteSelected}
           onZOrderChange={handleZOrderChange}
           onConvertNodeToTask={(node) => setNodeToTaskConvert(node)}
