@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -48,28 +48,61 @@ const MENU_ITEMS: MenuItem[] = [
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ];
 
+const FLOW_BASE_PATH = '/dashboard/task-management/flow';
+const FLOW_PARAM_KEY = 'flowId';
+
+/**
+ * Determines whether the sidebar should be forced collapsed and locked.
+ * - Flow list page (/dashboard/task-management/flow without flowId): sidebar is UNLOCKED (false).
+ * - Flow editor page (/dashboard/task-management/flow?flowId=...): sidebar is LOCKED & COLLAPSED (true).
+ */
+export function shouldLockSidebar(
+  pathname: string | null,
+  searchParams: { get: (key: string) => string | null } | null
+): boolean {
+  if (!pathname) return false;
+
+  const isFlowRoute =
+    pathname === FLOW_BASE_PATH || pathname.startsWith(`${FLOW_BASE_PATH}/`);
+  if (!isFlowRoute) return false;
+
+  const rawFlowId = searchParams?.get(FLOW_PARAM_KEY)?.trim();
+  const hasFlowId = Boolean(rawFlowId && rawFlowId.length > 0);
+
+  return hasFlowId;
+}
+
 function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const router = useRouter();
+
+  // Determine if sidebar should be forced collapsed and locked based on route & flowId query param
+  const isSidebarLocked = shouldLockSidebar(pathname, searchParams);
 
   const { isSwitching, optimisticProject } = useProjectContext();
 
-  // Sidebar states
-  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
+  // Sidebar states: userCollapsed stores persistent user preference,
+  // isCollapsed computes effective state (forced collapsed if locked on Flow page)
+  const [userCollapsed, setUserCollapsed] = useState<boolean>(false);
   const [isMobileOpen, setIsMobileOpen] = useState<boolean>(false);
+
+  // Effective collapse state
+  const isCollapsed = isSidebarLocked ? true : userCollapsed;
 
   // Load sidebar collapsed state from localStorage on mount
   useEffect(() => {
     const saved = localStorage.getItem('sidebar-collapsed');
     if (saved !== null) {
-      setIsCollapsed(saved === 'true');
+      setUserCollapsed(saved === 'true');
     }
   }, []);
 
-  // Sync state changes with localStorage
+  // Sync state changes with localStorage (guarded against locked state)
   const toggleCollapse = () => {
-    setIsCollapsed((prev) => {
+    if (isSidebarLocked) return;
+    setUserCollapsed((prev) => {
       const next = !prev;
       localStorage.setItem('sidebar-collapsed', String(next));
       return next;
@@ -133,8 +166,21 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
           </div>
           <button
             onClick={toggleCollapse}
-            className={`${styles.menuToggle} hidden-mobile`}
-            aria-label="Collapse sidebar"
+            disabled={isSidebarLocked}
+            aria-disabled={isSidebarLocked}
+            className={`${styles.menuToggle} hidden-mobile ${
+              isSidebarLocked ? styles.toggleDisabled : ''
+            }`}
+            aria-label={
+              isSidebarLocked
+                ? 'Sidebar dikunci saat mengedit flow'
+                : 'Collapse sidebar'
+            }
+            title={
+              isSidebarLocked
+                ? 'Sidebar dikunci saat mengedit flow'
+                : undefined
+            }
             style={{ padding: '0.25rem' }}
           >
             <ChevronLeft size={16} className={styles.collapseHeaderIcon} />
@@ -205,9 +251,25 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
           <button
             onClick={toggleCollapse}
-            className={styles.collapseBtn}
-            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            title={isCollapsed && !isMobileOpen ? 'Tampilkan sidebar' : undefined}
+            disabled={isSidebarLocked}
+            aria-disabled={isSidebarLocked}
+            className={`${styles.collapseBtn} ${
+              isSidebarLocked ? styles.toggleDisabled : ''
+            }`}
+            aria-label={
+              isSidebarLocked
+                ? 'Sidebar dikunci saat mengedit flow'
+                : isCollapsed
+                ? 'Expand sidebar'
+                : 'Collapse sidebar'
+            }
+            title={
+              isSidebarLocked
+                ? 'Sidebar dikunci saat mengedit flow'
+                : isCollapsed && !isMobileOpen
+                ? 'Tampilkan sidebar'
+                : undefined
+            }
           >
             <ChevronLeft size={16} className={styles.collapseFooterIcon} />
             <span className={styles.collapseLabel}>Sembunyikan</span>
@@ -224,6 +286,7 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
         <AuthenticatedNavbar
           pageTitle={pageTitle}
           session={session}
+          isSidebarLocked={isSidebarLocked}
           onToggleMenu={
             typeof window !== 'undefined' && window.innerWidth <= 768
               ? () => setIsMobileOpen(!isMobileOpen)
@@ -265,7 +328,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <ToastProvider>
       <ProjectProvider>
-        <DashboardLayoutInner>{children}</DashboardLayoutInner>
+        <Suspense fallback={<FullPageLoader label="Memuat dashboard..." />}>
+          <DashboardLayoutInner>{children}</DashboardLayoutInner>
+        </Suspense>
       </ProjectProvider>
     </ToastProvider>
   );

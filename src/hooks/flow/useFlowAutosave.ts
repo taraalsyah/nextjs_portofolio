@@ -12,6 +12,38 @@ interface UseFlowAutosaveOptions {
   enabled?: boolean;
 }
 
+/**
+ * Computes a deterministic JSON fingerprint of meaningful diagram content.
+ * Ephemeral properties like selection state are omitted to avoid false dirty states.
+ */
+function computeDataFingerprint(name: string, data: FlowData): string {
+  if (!data) return '';
+  return JSON.stringify({
+    name: name?.trim() || '',
+    nodes: (data.nodes || []).map((n) => ({
+      id: n.id,
+      type: n.type,
+      x: Math.round(n.position?.x ?? 0),
+      y: Math.round(n.position?.y ?? 0),
+      w: n.width,
+      h: n.height,
+      data: n.data,
+    })),
+    edges: (data.edges || []).map((e) => ({
+      id: e.id,
+      source: e.source,
+      target: e.target,
+      sourceHandle: e.sourceHandle,
+      targetHandle: e.targetHandle,
+      data: e.data,
+    })),
+    gridSize: data.gridSize,
+    snapToGrid: data.snapToGrid,
+    showGrid: data.showGrid,
+    backgroundColor: data.backgroundColor,
+  });
+}
+
 export function useFlowAutosave({
   flowId,
   flowData,
@@ -28,8 +60,11 @@ export function useFlowAutosave({
   const latestDataRef = useRef(flowData);
   const latestNameRef = useRef(flowName);
   const onSaveRef = useRef(onSave);
-  const isInitialMount = useRef(true);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Baseline fingerprint tracking
+  const lastSavedFingerprintRef = useRef<string>('');
+  const isInitializedRef = useRef<boolean>(false);
 
   useEffect(() => {
     latestDataRef.current = flowData;
@@ -40,10 +75,18 @@ export function useFlowAutosave({
   const triggerSave = useCallback(async () => {
     if (!enabled || !flowId) return;
 
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+
     setStatus('saving');
     try {
-      const success = await onSaveRef.current(latestDataRef.current, latestNameRef.current);
+      const dataToSave = latestDataRef.current;
+      const nameToSave = latestNameRef.current;
+      const success = await onSaveRef.current(dataToSave, nameToSave);
       if (success) {
+        lastSavedFingerprintRef.current = computeDataFingerprint(nameToSave, dataToSave);
         setStatus('saved');
         setIsDirty(false);
         setLastSavedAt(new Date());
@@ -56,16 +99,25 @@ export function useFlowAutosave({
     }
   }, [enabled, flowId]);
 
-  // Track data / name changes and schedule autosave
+  // Track real data/name changes via deterministic fingerprint
   useEffect(() => {
     if (!enabled || !flowId) return;
 
-    // Skip trigger on first render load
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
+    const currentFingerprint = computeDataFingerprint(flowName, flowData);
+
+    // Initial load: store baseline fingerprint without triggering save
+    if (!isInitializedRef.current) {
+      isInitializedRef.current = true;
+      lastSavedFingerprintRef.current = currentFingerprint;
       return;
     }
 
+    // If data matches last saved state, diagram is clean: DO NOT trigger save
+    if (currentFingerprint === lastSavedFingerprintRef.current) {
+      return;
+    }
+
+    // Real modification detected
     setIsDirty(true);
     setStatus('idle');
 
@@ -96,6 +148,15 @@ export function useFlowAutosave({
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isDirty]);
+
+  // Cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
 
   return {
     status,

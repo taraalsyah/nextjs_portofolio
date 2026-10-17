@@ -23,6 +23,7 @@ import {
   Triangle,
 } from 'lucide-react';
 import { FlowShapeType } from '@/types/flow';
+import { Tooltip } from '@/components/ui/Tooltip';
 import styles from './flowComponents.module.css';
 
 // Miniature SVG Shape Previews
@@ -325,14 +326,31 @@ interface ShapePaletteProps {
   onAddNode: (item: ShapeItemDef) => void;
   isDrawerOpen?: boolean;
   onCloseDrawer?: () => void;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export function ShapePalette({
   onAddNode,
   isDrawerOpen = false,
   onCloseDrawer,
+  isCollapsed: controlledCollapsed,
+  onToggleCollapse,
 }: ShapePaletteProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [internalCollapsed, setInternalCollapsed] = useState(false);
+  const isCollapsed = controlledCollapsed !== undefined ? controlledCollapsed : internalCollapsed;
+
+  const handleToggle = () => {
+    if (isDrawerOpen && onCloseDrawer) {
+      onCloseDrawer();
+    } else if (onToggleCollapse) {
+      onToggleCollapse();
+    } else {
+      setInternalCollapsed((prev) => !prev);
+    }
+  };
+
+  const isRail = isCollapsed && !isDrawerOpen;
   const [search, setSearch] = useState('');
 
   const filteredShapes = useMemo(() => {
@@ -361,71 +379,124 @@ export function ShapePalette({
     { key: 'project', label: 'Integrasi Proyek' },
   ] as const;
 
-  if (isCollapsed && !isDrawerOpen) {
-    return (
-      <aside className={`${styles.paletteSidebar} ${styles.paletteCollapsed}`}>
-        <div style={{ padding: '0.75rem', display: 'flex', justifyContent: 'center' }}>
-          <button
-            type="button"
-            className={styles.toolbarBtn}
-            onClick={() => setIsCollapsed(false)}
-            title="Buka Panel Bentuk"
-            aria-label="Buka Panel Bentuk"
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      </aside>
-    );
-  }
-
   return (
     <aside
       className={`${styles.paletteSidebar} ${
-        isDrawerOpen ? styles.paletteSidebarOpen : ''
-      }`}
+        isRail ? styles.paletteCollapsed : ''
+      } ${isDrawerOpen ? styles.paletteSidebarOpen : ''}`}
     >
-      <div className={styles.paletteHeader}>
-        <span>Panel Bentuk</span>
-        <button
-          type="button"
-          className={styles.toolbarBtn}
-          onClick={() => {
-            if (isDrawerOpen && onCloseDrawer) {
-              onCloseDrawer();
-            } else {
-              setIsCollapsed(true);
-            }
-          }}
-          title="Tutup Panel Bentuk"
-          aria-label="Tutup Panel Bentuk"
-        >
-          <ChevronLeft size={16} />
-        </button>
-      </div>
+      {/* 1. RAIL VIEW (when collapsed into a 48px rail) */}
+      {isRail && (
+        <>
+          <div className={styles.railHeader}>
+            <Tooltip position="right" delay={200} content="Tampilkan panel">
+              <button
+                type="button"
+                className={styles.toolbarBtn}
+                onClick={handleToggle}
+                title="Tampilkan panel"
+                aria-label="Tampilkan panel bentuk"
+                aria-expanded={false}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </Tooltip>
+          </div>
 
-      <div className={styles.paletteSearch}>
-        <div style={{ position: 'relative' }}>
-          <input
-            type="text"
-            className={styles.paletteSearchInput}
-            placeholder="Cari bentuk..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <Search
-            size={14}
-            style={{
-              position: 'absolute',
-              right: 8,
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--muted-foreground)',
-              pointerEvents: 'none',
-            }}
-          />
+          <div className={styles.railCategories}>
+            <Tooltip position="right" delay={200} content="Flowchart - Klik untuk buka">
+              <button
+                type="button"
+                className={styles.railCategoryBtn}
+                onClick={handleToggle}
+                aria-label="Kategori Flowchart"
+              >
+                <Layers size={16} />
+              </button>
+            </Tooltip>
+            <Tooltip position="right" delay={200} content="Bentuk Dasar - Klik untuk buka">
+              <button
+                type="button"
+                className={styles.railCategoryBtn}
+                onClick={handleToggle}
+                aria-label="Kategori Bentuk Dasar"
+              >
+                <Square size={16} />
+              </button>
+            </Tooltip>
+            <Tooltip position="right" delay={200} content="Anotasi & Kontainer - Klik untuk buka">
+              <button
+                type="button"
+                className={styles.railCategoryBtn}
+                onClick={handleToggle}
+                aria-label="Kategori Anotasi & Kontainer"
+              >
+                <StickyNote size={16} />
+              </button>
+            </Tooltip>
+            <Tooltip position="right" delay={200} content="Integrasi Proyek - Klik untuk buka">
+              <button
+                type="button"
+                className={styles.railCategoryBtn}
+                onClick={handleToggle}
+                aria-label="Kategori Integrasi Proyek"
+              >
+                <UserCheck size={16} />
+              </button>
+            </Tooltip>
+          </div>
+        </>
+      )}
+
+      {/* 2. FULL VIEW (when expanded, kept in DOM to preserve search input & scroll position) */}
+      <div
+        style={{
+          display: isRail ? 'none' : 'flex',
+          flexDirection: 'column',
+          height: '100%',
+          width: '100%',
+          minWidth: 0,
+          overflow: 'hidden',
+        }}
+      >
+        <div className={styles.paletteHeader}>
+          <span>Panel Bentuk</span>
+          <Tooltip position="right" delay={200} content="Sembunyikan panel">
+            <button
+              type="button"
+              className={styles.toolbarBtn}
+              onClick={handleToggle}
+              title="Sembunyikan panel"
+              aria-label="Sembunyikan panel bentuk"
+              aria-expanded={true}
+            >
+              <ChevronLeft size={16} />
+            </button>
+          </Tooltip>
         </div>
-      </div>
+
+        <div className={styles.paletteSearch}>
+          <div style={{ position: 'relative' }}>
+            <input
+              type="text"
+              className={styles.paletteSearchInput}
+              placeholder="Cari bentuk..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <Search
+              size={14}
+              style={{
+                position: 'absolute',
+                right: 8,
+                top: '50%',
+                transform: 'translateY(-50%)',
+                color: 'var(--muted-foreground)',
+                pointerEvents: 'none',
+              }}
+            />
+          </div>
+        </div>
 
       <div className={styles.paletteContent}>
         {categories.map((cat) => {
@@ -439,23 +510,48 @@ export function ShapePalette({
                 {shapes.map((item) => {
                   const Icon = item.icon;
                   return (
-                    <div
+                    <Tooltip
                       key={item.shapeType}
-                      className={styles.shapeItem}
-                      draggable
-                      onDragStart={(e) => onDragStart(e, item)}
-                      onClick={() => onAddNode(item)}
-                      title={`Tarik ke kanvas atau klik untuk menambah ${item.label}`}
+                      position="right"
+                      delay={400}
+                      maxWidth={200}
+                      content={
+                        <div>
+                          <div style={{ fontWeight: 600, color: 'var(--foreground)' }}>
+                            {item.label}
+                          </div>
+                          <div style={{ color: 'var(--muted-foreground)', fontSize: '11px', marginTop: 1 }}>
+                            Tarik ke kanvas atau klik untuk menambah
+                          </div>
+                        </div>
+                      }
                     >
-                      <Icon size={18} />
-                      <span className={styles.shapeItemLabel}>{item.label}</span>
-                    </div>
+                      <div
+                        className={styles.shapeItem}
+                        draggable
+                        tabIndex={0}
+                        role="button"
+                        aria-label={item.label}
+                        onDragStart={(e) => onDragStart(e, item)}
+                        onClick={() => onAddNode(item)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onAddNode(item);
+                          }
+                        }}
+                      >
+                        <Icon size={18} />
+                        <span className={styles.shapeItemLabel}>{item.label}</span>
+                      </div>
+                    </Tooltip>
                   );
                 })}
               </div>
             </div>
           );
         })}
+      </div>
       </div>
     </aside>
   );

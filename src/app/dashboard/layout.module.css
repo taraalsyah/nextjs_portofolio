@@ -196,12 +196,32 @@
   border-color: var(--primary);
 }
 
+/* Sidebar locked state indicators */
+.toggleDisabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+}
+
+.toggleDisabled:hover {
+  background: var(--surface-muted) !important;
+  border-color: var(--border) !important;
+  color: var(--muted-foreground) !important;
+}
+
+@media (min-width: 769px) {
+  .navbarToggleLocked {
+    opacity: 0.45 !important;
+    cursor: not-allowed !important;
+  }
+}
+
 /* ─── MAIN CONTENT AREA ──────────────────────────────────────────────────────── */
 .mainWrapper {
   flex: 1;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 0;
   transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -404,6 +424,7 @@
   z-index: 10;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
+  min-width: 0;
 }
 
 /* Mobile Drawer Overlay */

@@ -9,12 +9,14 @@ interface AuthenticatedNavbarProps {
   pageTitle: string;
   session: any;
   onToggleMenu: () => void;
+  isSidebarLocked?: boolean;
 }
 
 export const AuthenticatedNavbar: React.FC<AuthenticatedNavbarProps> = ({
   pageTitle,
   session,
   onToggleMenu,
+  isSidebarLocked = false,
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -45,9 +47,14 @@ export const AuthenticatedNavbar: React.FC<AuthenticatedNavbarProps> = ({
     <header className={styles.topbar}>
       <div className={styles.leftSection}>
         <button
+          type="button"
           onClick={onToggleMenu}
-          className={styles.menuToggle}
-          aria-label="Toggle menu"
+          className={`${styles.menuToggle} ${
+            isSidebarLocked ? styles.navbarToggleLocked : ''
+          }`}
+          aria-label={isSidebarLocked ? 'Sidebar dikunci saat mengedit flow' : 'Toggle menu'}
+          title={isSidebarLocked ? 'Sidebar dikunci saat mengedit flow' : undefined}
+          aria-disabled={isSidebarLocked}
         >
           <Menu size={16} />
         </button>

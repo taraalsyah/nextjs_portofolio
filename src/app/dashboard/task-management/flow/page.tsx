@@ -44,10 +44,16 @@ const DynamicFlowEditor = dynamic(
 );
 
 export default function FlowPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
   const toastCtx = useSafeToast();
+  const toastCtxRef = useRef(toastCtx);
+
+  useEffect(() => {
+    toastCtxRef.current = toastCtx;
+  }, [toastCtx]);
+
   const { activeProject } = useProjectContext();
   const activeProjectId = activeProject?.projectId;
   const currentUserId = parseInt((session?.user as any)?.id || '0', 10);
@@ -63,21 +69,33 @@ export default function FlowPage() {
   const [activeFlowDetail, setActiveFlowDetail] = useState<FlowDetail | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(false);
 
-  // Sync URL when activeFlowId changes
+  // Keep track of loaded flow ID to prevent redundant network fetches
+  const loadedFlowIdRef = useRef<number | null>(null);
+
+  // Explicit user-driven navigation handlers with smooth URL replace
+  const handleOpenFlow = useCallback(
+    (id: number) => {
+      setActiveFlowId(id);
+      router.replace(`/dashboard/task-management/flow?flowId=${id}`, { scroll: false });
+    },
+    [router]
+  );
+
+  const handleBack = useCallback(() => {
+    setActiveFlowId(null);
+    setActiveFlowDetail(null);
+    loadedFlowIdRef.current = null;
+    router.replace('/dashboard/task-management/flow', { scroll: false });
+  }, [router]);
+
+  // Sync state if URL query param is modified externally (e.g. browser back/forward)
   useEffect(() => {
     const currentParam = searchParams.get('flowId');
     const paramNum = currentParam ? parseInt(currentParam, 10) : null;
-
-    if (activeFlowId !== paramNum) {
-      if (activeFlowId) {
-        router.push(`/dashboard/task-management/flow?flowId=${activeFlowId}`, {
-          scroll: false,
-        });
-      } else {
-        router.push('/dashboard/task-management/flow', { scroll: false });
-      }
+    if (paramNum !== activeFlowId) {
+      setActiveFlowId(paramNum);
     }
-  }, [activeFlowId, router, searchParams]);
+  }, [searchParams, activeFlowId]);
 
   // Fetch Categories for Task form modal
   useEffect(() => {
@@ -92,34 +110,42 @@ export default function FlowPage() {
       .catch(() => setCategories([]));
   }, [activeProjectId]);
 
-  // Fetch flow detail when activeFlowId is set
+  // Fetch flow detail only once per flowId
   const fetchFlowDetail = useCallback(async (id: number) => {
+    if (loadedFlowIdRef.current === id) return;
+
     setIsLoadingDetail(true);
     try {
       const res = await fetch(`/api/flows/${id}`);
       if (res.ok) {
         const data = await res.json();
+        loadedFlowIdRef.current = id;
         setActiveFlowDetail(data.flow);
       } else {
-        toastCtx?.showToast('Diagram tidak ditemukan atau telah dihapus.', 'error');
+        loadedFlowIdRef.current = null;
+        toastCtxRef.current?.showToast('Diagram tidak ditemukan atau telah dihapus.', 'error');
         setActiveFlowId(null);
         setActiveFlowDetail(null);
       }
     } catch (err) {
       console.error('Failed to load flow detail:', err);
-      toastCtx?.showToast('Gagal memuat diagram alur.', 'error');
+      loadedFlowIdRef.current = null;
+      toastCtxRef.current?.showToast('Gagal memuat diagram alur.', 'error');
       setActiveFlowId(null);
       setActiveFlowDetail(null);
     } finally {
       setIsLoadingDetail(false);
     }
-  }, [toastCtx]);
+  }, []);
 
   useEffect(() => {
     if (activeFlowId) {
-      fetchFlowDetail(activeFlowId);
+      if (loadedFlowIdRef.current !== activeFlowId) {
+        fetchFlowDetail(activeFlowId);
+      }
     } else {
       setActiveFlowDetail(null);
+      loadedFlowIdRef.current = null;
     }
   }, [activeFlowId, fetchFlowDetail]);
 
@@ -139,10 +165,7 @@ export default function FlowPage() {
         <DynamicFlowEditor
           key={activeFlowDetail!.id}
           initialFlow={activeFlowDetail!}
-          onBack={() => {
-            setActiveFlowId(null);
-            setActiveFlowDetail(null);
-          }}
+          onBack={handleBack}
           readOnly={isViewer}
           categories={categories}
           users={users}
@@ -166,7 +189,7 @@ export default function FlowPage() {
       ) : (
         <FlowList
           activeProjectId={activeProjectId}
-          onOpenFlow={(id) => setActiveFlowId(id)}
+          onOpenFlow={handleOpenFlow}
           readOnly={isViewer}
         />
       )}

@@ -40,6 +40,7 @@ interface FlowCanvasProps {
   canvasBg: string;
   showMinimap: boolean;
   readOnly?: boolean;
+  defaultViewport?: { x: number; y: number; zoom: number };
 }
 
 export function FlowCanvas({
@@ -61,6 +62,7 @@ export function FlowCanvas({
   canvasBg,
   showMinimap,
   readOnly = false,
+  defaultViewport,
 }: FlowCanvasProps) {
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
 
@@ -110,7 +112,8 @@ export function FlowCanvas({
         onPaneContextMenu={onPaneContextMenu}
         onNodeContextMenu={readOnly ? undefined : (onNodeContextMenu as any)}
         onEdgeContextMenu={readOnly ? undefined : (onEdgeContextMenu as any)}
-        fitView
+        defaultViewport={defaultViewport}
+        fitView={!defaultViewport}
         fitViewOptions={{ padding: 0.2 }}
         snapToGrid={snapToGrid}
         snapGrid={[gridSize, gridSize]}

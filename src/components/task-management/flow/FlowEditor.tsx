@@ -67,6 +67,23 @@ function FlowEditorInner({
   const [nodes, setNodes] = useState<AppNode[]>(initialFlow.data?.nodes || []);
   const [edges, setEdges] = useState<AppEdge[]>(initialFlow.data?.edges || []);
 
+  // Track initialized flowId to prevent canvas reset when parent re-renders
+  const initializedFlowIdRef = useRef<number | null>(initialFlow.id);
+
+  useEffect(() => {
+    if (initializedFlowIdRef.current !== initialFlow.id) {
+      initializedFlowIdRef.current = initialFlow.id;
+      setFlowName(initialFlow.name);
+      setVersion(initialFlow.version);
+      setNodes(initialFlow.data?.nodes || []);
+      setEdges(initialFlow.data?.edges || []);
+      if (initialFlow.data?.gridSize) setGridSize(initialFlow.data.gridSize);
+      if (initialFlow.data?.snapToGrid !== undefined) setSnapToGrid(initialFlow.data.snapToGrid);
+      if (initialFlow.data?.showGrid !== undefined) setShowGrid(initialFlow.data.showGrid);
+      if (initialFlow.data?.backgroundColor) setCanvasBg(initialFlow.data.backgroundColor);
+    }
+  }, [initialFlow.id, initialFlow.name, initialFlow.version, initialFlow.data]);
+
   // Canvas settings
   const [gridSize, setGridSize] = useState<number>(initialFlow.data?.gridSize || 15);
   const [snapToGrid, setSnapToGrid] = useState<boolean>(initialFlow.data?.snapToGrid ?? true);
@@ -92,26 +109,45 @@ function FlowEditorInner({
   const [isRightDrawerOpen, setIsRightDrawerOpen] = useState<boolean>(false);
   const isDrawerMode = containerWidth < 1024;
 
-  // Track container width and trigger debounced fitView on resize
-  const resizeTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Shape Palette Collapse State (persisted in localStorage)
+  const [isPaletteCollapsed, setIsPaletteCollapsed] = useState<boolean>(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('flow-shape-panel-collapsed');
+      if (saved !== null) {
+        setIsPaletteCollapsed(saved === 'true');
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  const togglePaletteCollapse = useCallback(() => {
+    setIsPaletteCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('flow-shape-panel-collapsed', String(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  }, []);
+
+  // Track container width for responsive drawer mode without resetting canvas viewport/zoom
   useEffect(() => {
     if (!editorRef.current) return;
     const ro = new ResizeObserver((entries) => {
       for (const entry of entries) {
-        const w = entry.contentRect.width;
-        setContainerWidth(w);
-        if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
-        resizeTimerRef.current = setTimeout(() => {
-          fitView({ padding: 0.2 });
-        }, 300);
+        setContainerWidth(entry.contentRect.width);
       }
     });
     ro.observe(editorRef.current);
     return () => {
       ro.disconnect();
-      if (resizeTimerRef.current) clearTimeout(resizeTimerRef.current);
     };
-  }, [fitView]);
+  }, []);
 
   // Selection
   const [selectedNodes, setSelectedNodes] = useState<AppNode[]>([]);
@@ -387,6 +423,34 @@ function FlowEditorInner({
     takeSnapshot(nextNodes, nextEdges, true);
   }, [selectedNodes, selectedEdges, nodes, edges, takeSnapshot]);
 
+  const handleSelectAll = useCallback(() => {
+    setNodes((nds) => nds.map((n) => ({ ...n, selected: true })));
+  }, []);
+
+  const handleFitView = useCallback(() => {
+    fitView({ padding: 0.2 });
+  }, [fitView]);
+
+  const handleZoomIn = useCallback(() => {
+    zoomIn();
+  }, [zoomIn]);
+
+  const handleZoomOut = useCallback(() => {
+    zoomOut();
+  }, [zoomOut]);
+
+  const handleNudge = useCallback((dx: number, dy: number) => {
+    if (selectedNodes.length === 0) return;
+    const selIds = new Set(selectedNodes.map((n) => n.id));
+    setNodes((nds) =>
+      nds.map((n) =>
+        selIds.has(n.id)
+          ? { ...n, position: { x: n.position.x + dx, y: n.position.y + dy } }
+          : n
+      )
+    );
+  }, [selectedNodes]);
+
   // Keyboard Shortcuts Hook
   useFlowShortcuts({
     onUndo: handleUndo,
@@ -396,24 +460,12 @@ function FlowEditorInner({
     onPaste: handlePaste,
     onDuplicate: handleDuplicate,
     onDelete: handleDeleteSelected,
-    onSelectAll: () => {
-      setNodes((nds) => nds.map((n) => ({ ...n, selected: true })));
-    },
+    onSelectAll: handleSelectAll,
     onSave: triggerManualSave,
-    onFitView: () => fitView({ padding: 0.2 }),
-    onZoomIn: () => zoomIn(),
-    onZoomOut: () => zoomOut(),
-    onNudge: (dx, dy) => {
-      if (selectedNodes.length === 0) return;
-      const selIds = new Set(selectedNodes.map((n) => n.id));
-      setNodes((nds) =>
-        nds.map((n) =>
-          selIds.has(n.id)
-            ? { ...n, position: { x: n.position.x + dx, y: n.position.y + dy } }
-            : n
-        )
-      );
-    },
+    onFitView: handleFitView,
+    onZoomIn: handleZoomIn,
+    onZoomOut: handleZoomOut,
+    onNudge: handleNudge,
     enabled: !readOnly,
   });
 
@@ -846,6 +898,8 @@ function FlowEditorInner({
           onAddNode={(item) => handleAddNodeFromDef(item)}
           isDrawerOpen={isLeftDrawerOpen}
           onCloseDrawer={() => setIsLeftDrawerOpen(false)}
+          isCollapsed={isPaletteCollapsed}
+          onToggleCollapse={togglePaletteCollapse}
         />
 
         <FlowCanvas
@@ -867,6 +921,7 @@ function FlowEditorInner({
           canvasBg={canvasBg}
           showMinimap={showMinimap}
           readOnly={readOnly}
+          defaultViewport={initialFlow.data?.viewport}
         />
 
         <PropertiesPanel

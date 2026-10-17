@@ -6,7 +6,7 @@ import { CapacitorProvider } from '@/components/capacitor/CapacitorProvider';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider>
+    <SessionProvider refetchOnWindowFocus={false}>
       <CapacitorProvider>{children}</CapacitorProvider>
     </SessionProvider>
   );

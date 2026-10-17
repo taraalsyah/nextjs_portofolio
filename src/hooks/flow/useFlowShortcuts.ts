@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface ShortcutHandlers {
   onUndo?: () => void;
@@ -19,24 +19,14 @@ interface ShortcutHandlers {
   enabled?: boolean;
 }
 
-export function useFlowShortcuts({
-  onUndo,
-  onRedo,
-  onCopy,
-  onCut,
-  onPaste,
-  onDuplicate,
-  onDelete,
-  onSelectAll,
-  onSave,
-  onFitView,
-  onZoomIn,
-  onZoomOut,
-  onGroup,
-  onUngroup,
-  onNudge,
-  enabled = true,
-}: ShortcutHandlers) {
+export function useFlowShortcuts(handlers: ShortcutHandlers) {
+  const { enabled = true } = handlers;
+  const handlersRef = useRef(handlers);
+
+  useEffect(() => {
+    handlersRef.current = handlers;
+  });
+
   useEffect(() => {
     if (!enabled) return;
 
@@ -55,11 +45,12 @@ export function useFlowShortcuts({
 
       const isMac = typeof navigator !== 'undefined' && /Mac|iPod|iPhone|iPad/.test(navigator.platform);
       const isCmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+      const h = handlersRef.current;
 
       // Save: Ctrl/Cmd + S
       if (isCmdOrCtrl && e.key.toLowerCase() === 's') {
         e.preventDefault();
-        onSave?.();
+        h.onSave?.();
         return;
       }
 
@@ -67,9 +58,9 @@ export function useFlowShortcuts({
       if (isCmdOrCtrl && e.key.toLowerCase() === 'z') {
         e.preventDefault();
         if (e.shiftKey) {
-          onRedo?.();
+          h.onRedo?.();
         } else {
-          onUndo?.();
+          h.onUndo?.();
         }
         return;
       }
@@ -77,39 +68,42 @@ export function useFlowShortcuts({
       // Redo alternative: Ctrl + Y (Windows)
       if (isCmdOrCtrl && e.key.toLowerCase() === 'y') {
         e.preventDefault();
-        onRedo?.();
+        h.onRedo?.();
         return;
       }
 
       // Copy: Ctrl/Cmd + C
       if (isCmdOrCtrl && e.key.toLowerCase() === 'c') {
-        onCopy?.();
+        e.preventDefault();
+        h.onCopy?.();
         return;
       }
 
       // Cut: Ctrl/Cmd + X
       if (isCmdOrCtrl && e.key.toLowerCase() === 'x') {
-        onCut?.();
+        e.preventDefault();
+        h.onCut?.();
         return;
       }
 
       // Paste: Ctrl/Cmd + V
       if (isCmdOrCtrl && e.key.toLowerCase() === 'v') {
-        onPaste?.();
+        e.preventDefault();
+        h.onPaste?.();
         return;
       }
 
       // Duplicate: Ctrl/Cmd + D
       if (isCmdOrCtrl && e.key.toLowerCase() === 'd') {
         e.preventDefault();
-        onDuplicate?.();
+        h.onDuplicate?.();
         return;
       }
 
       // Select All: Ctrl/Cmd + A
       if (isCmdOrCtrl && e.key.toLowerCase() === 'a') {
         e.preventDefault();
-        onSelectAll?.();
+        h.onSelectAll?.();
         return;
       }
 
@@ -117,9 +111,9 @@ export function useFlowShortcuts({
       if (isCmdOrCtrl && e.key.toLowerCase() === 'g') {
         e.preventDefault();
         if (e.shiftKey) {
-          onUngroup?.();
+          h.onUngroup?.();
         } else {
-          onGroup?.();
+          h.onGroup?.();
         }
         return;
       }
@@ -127,28 +121,28 @@ export function useFlowShortcuts({
       // Delete / Backspace
       if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault();
-        onDelete?.();
+        h.onDelete?.();
         return;
       }
 
       // Fit View: Ctrl/Cmd + 0
       if (isCmdOrCtrl && e.key === '0') {
         e.preventDefault();
-        onFitView?.();
+        h.onFitView?.();
         return;
       }
 
       // Zoom In: Ctrl/Cmd + '=' or '+'
       if (isCmdOrCtrl && (e.key === '=' || e.key === '+')) {
         e.preventDefault();
-        onZoomIn?.();
+        h.onZoomIn?.();
         return;
       }
 
       // Zoom Out: Ctrl/Cmd + '-'
       if (isCmdOrCtrl && e.key === '-') {
         e.preventDefault();
-        onZoomOut?.();
+        h.onZoomOut?.();
         return;
       }
 
@@ -162,29 +156,12 @@ export function useFlowShortcuts({
         if (e.key === 'ArrowDown') dy = step;
         if (e.key === 'ArrowLeft') dx = -step;
         if (e.key === 'ArrowRight') dx = step;
-        onNudge?.(dx, dy);
+        h.onNudge?.(dx, dy);
         return;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
-    enabled,
-    onUndo,
-    onRedo,
-    onCopy,
-    onCut,
-    onPaste,
-    onDuplicate,
-    onDelete,
-    onSelectAll,
-    onSave,
-    onFitView,
-    onZoomIn,
-    onZoomOut,
-    onGroup,
-    onUngroup,
-    onNudge,
-  ]);
+  }, [enabled]);
 }
