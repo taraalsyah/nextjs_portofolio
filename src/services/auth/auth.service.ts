@@ -4,9 +4,10 @@ import { generateOTP } from '@/utils/otp';
 import { emailService } from '../email/email.service';
 import { otpService } from '../otp/otp.service';
 import { addMinutesUTC } from '@/lib/date';
+import { TERMS_VERSION } from '@/content/terms';
 
 export class AuthService {
-  async registerUser(name: string, email: string, passwordText: string) {
+  async registerUser(name: string, email: string, passwordText: string, termsVersion: string = TERMS_VERSION) {
     // 1. Cek apakah email sudah terdaftar
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -48,6 +49,8 @@ export class AuthService {
           status: 'PENDING',
           roleId: operationRole.id,
           role: operationRole.name,
+          acceptedTermsAt: new Date(),
+          acceptedTermsVersion: termsVersion,
         },
       });
 

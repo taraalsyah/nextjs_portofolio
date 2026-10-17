@@ -26,6 +26,8 @@ model User {
   otpSoftBlockCount   Int                  @default(0) @map("otp_soft_block_count")
   otpSoftBlockUntil   DateTime?            @map("otp_soft_block_until")
   apiToken            String?              @unique @map("api_token")
+  acceptedTermsAt     DateTime?            @map("accepted_terms_at")
+  acceptedTermsVersion String?             @map("accepted_terms_version")
   activityLogs        ActivityLog[]
   verifications       EmailVerification[]
   passwordResets      PasswordResetToken[]

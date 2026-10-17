@@ -1,8 +1,9 @@
-// Force Next.js HMR rebuild for POST /api/payments/create with draft project fields
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { PaymentService } from '@/services/payment/payment.service';
+import { prisma } from '@/lib/prisma';
+import { TERMS_VERSION } from '@/content/terms';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,11 +20,27 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { paymentMethod = 'qris', projectName, description, visibility } = body;
+    const { paymentMethod = 'qris', projectName, description, visibility, agreeTerms } = body;
+
+    if (!agreeTerms) {
+      return NextResponse.json(
+        { error: 'Anda wajib menyetujui Syarat & Ketentuan serta Kebijakan Privasi sebelum melakukan pembayaran.' },
+        { status: 400 }
+      );
+    }
 
     if (!projectName || !projectName.trim()) {
       return NextResponse.json({ error: 'Nama proyek wajib diisi sebelum pembayaran.' }, { status: 400 });
     }
+
+    // Rekam persetujuan T&C versi saat ini pada user
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        acceptedTermsAt: new Date(),
+        acceptedTermsVersion: TERMS_VERSION,
+      },
+    });
 
     const payment = await PaymentService.createProjectPayment({
       userId,

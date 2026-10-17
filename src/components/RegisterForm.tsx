@@ -20,10 +20,16 @@ export default function RegisterForm() {
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      agreeTerms: false,
+    },
   });
+
+  const agreeTerms = watch('agreeTerms');
 
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true);
@@ -40,6 +46,7 @@ export default function RegisterForm() {
           email: data.email,
           password: data.password,
           confirmPassword: data.confirmPassword,
+          agreeTerms: data.agreeTerms,
         }),
       });
 
@@ -150,10 +157,46 @@ export default function RegisterForm() {
           {...register('confirmPassword')}
         />
 
+        <div className={styles.checkboxGroup}>
+          <div className={styles.checkboxWrapper}>
+            <input
+              type="checkbox"
+              id="agreeTerms"
+              className={styles.checkbox}
+              disabled={isLoading}
+              {...register('agreeTerms')}
+            />
+            <label htmlFor="agreeTerms" className={styles.checkboxLabel}>
+              Saya telah membaca dan menyetujui{' '}
+              <Link
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.termsLink}
+              >
+                Syarat & Ketentuan
+              </Link>{' '}
+              dan{' '}
+              <Link
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className={styles.termsLink}
+              >
+                Kebijakan Privasi
+              </Link>
+            </label>
+          </div>
+          {errors.agreeTerms && (
+            <span className={styles.fieldError}>{errors.agreeTerms.message}</span>
+          )}
+        </div>
+
         <button
           type="submit"
           className={styles.submitBtn}
-          disabled={isLoading}
+          disabled={isLoading || !agreeTerms}
+          title={!agreeTerms ? 'Centang persetujuan Syarat & Ketentuan untuk melanjutkan' : undefined}
         >
           {isLoading ? (
             <span className={styles.spinner} />

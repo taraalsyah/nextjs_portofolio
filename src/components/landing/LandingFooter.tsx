@@ -60,8 +60,8 @@ const LandingFooter = () => {
           <div>
             <h3 className={styles.footerColTitle}>Legal</h3>
             <ul className={styles.footerLinks}>
-              <li><Link href="/#privacy">Privacy Policy</Link></li>
-              <li><Link href="/#terms">Terms of Service</Link></li>
+              <li><Link href="/privacy">Kebijakan Privasi</Link></li>
+              <li><Link href="/terms">Syarat & Ketentuan</Link></li>
               <li><Link href="/#security">Security</Link></li>
             </ul>
           </div>
@@ -73,8 +73,8 @@ const LandingFooter = () => {
             © {new Date().getFullYear()} Tasktuntas SaaS Project Management. All rights reserved.
           </div>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
-            <Link href="/#privacy">Privacy</Link>
-            <Link href="/#terms">Terms</Link>
+            <Link href="/privacy">Privasi</Link>
+            <Link href="/terms">Syarat & Ketentuan</Link>
             <Link href="/#contact">Contact</Link>
           </div>
         </div>

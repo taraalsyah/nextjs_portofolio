@@ -9,9 +9,10 @@ export async function POST(request: Request) {
     // 1. Validasi input menggunakan Zod
     const validation = registerSchema.safeParse(body);
     if (!validation.success) {
+      const firstErrorMessage = validation.error.issues[0]?.message || 'Validasi input gagal.';
       return NextResponse.json(
         { 
-          message: 'Validasi input gagal.', 
+          message: firstErrorMessage, 
           errors: validation.error.format() 
         },
         { status: 400 }

@@ -30,6 +30,7 @@ import { ProjectProvider, useProjectContext } from '@/context/ProjectContext';
 import AuthenticatedNavbar from '@/components/layout/AuthenticatedNavbar';
 import NotificationBell from '@/components/layout/NotificationBell';
 import { FloatingAIChat } from '@/components/ai-chat/FloatingAIChat';
+import TermsUpdateModal from '@/components/terms/TermsUpdateModal';
 
 interface MenuItem {
   name: string;
@@ -320,6 +321,9 @@ function DashboardLayoutInner({ children }: { children: React.ReactNode }) {
 
       {/* Persistent Global Floating AI Chat Widget */}
       <FloatingAIChat />
+
+      {/* Global Terms of Service Update Modal */}
+      <TermsUpdateModal />
     </div>
   );
 }

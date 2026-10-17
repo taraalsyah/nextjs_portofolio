@@ -49,6 +49,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
   const [isSimulating, setIsSimulating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copiedVa, setCopiedVa] = useState(false);
+  const [agreePaymentTerms, setAgreePaymentTerms] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -84,6 +85,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       setProjectName('');
       setDescription('');
       setVisibility('PRIVATE');
+      setAgreePaymentTerms(false);
       setError(null);
     }
   }, [isOpen, checkActiveUnusedPayment]);
@@ -135,6 +137,11 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
       return;
     }
 
+    if (!agreePaymentTerms) {
+      setError('Anda wajib menyetujui Syarat & Ketentuan serta Kebijakan Privasi.');
+      return;
+    }
+
     setIsLoadingPayment(true);
     setError(null);
 
@@ -147,6 +154,7 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
           projectName: projectName.trim(),
           description: description.trim() || null,
           visibility,
+          agreeTerms: true,
         }),
       });
 
@@ -517,6 +525,65 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                   />
                 </div>
               </div>
+
+              {/* Terms and Privacy Checkbox */}
+              <div
+                style={{
+                  marginTop: '1.25rem',
+                  padding: '0.85rem 1rem',
+                  background: 'var(--surface-muted)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '8px',
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.65rem',
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="checkoutAgreeTerms"
+                  checked={agreePaymentTerms}
+                  onChange={(e) => setAgreePaymentTerms(e.target.checked)}
+                  style={{
+                    width: '16px',
+                    height: '16px',
+                    marginTop: '2px',
+                    accentColor: 'var(--primary)',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                />
+                <label
+                  htmlFor="checkoutAgreeTerms"
+                  style={{
+                    fontSize: '0.8rem',
+                    color: 'var(--secondary-text)',
+                    lineHeight: 1.45,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  Saya telah membaca dan menyetujui{' '}
+                  <a
+                    href="/terms"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--primary)', textDecoration: 'underline' }}
+                  >
+                    Syarat & Ketentuan
+                  </a>{' '}
+                  dan{' '}
+                  <a
+                    href="/privacy"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ color: 'var(--primary)', textDecoration: 'underline' }}
+                  >
+                    Kebijakan Privasi
+                  </a>{' '}
+                  terkait pembayaran produk digital dan pembuatan proyek.
+                </label>
+              </div>
             </div>
           )}
 
@@ -726,8 +793,9 @@ export function CreateProjectModal({ isOpen, onClose, onSuccess }: CreateProject
                 type="button"
                 onClick={handleInitiatePayment}
                 className={styles.submitBtn}
-                disabled={isLoadingPayment}
-                style={{ opacity: isLoadingPayment ? 0.6 : 1 }}
+                disabled={isLoadingPayment || !agreePaymentTerms}
+                style={{ opacity: (isLoadingPayment || !agreePaymentTerms) ? 0.6 : 1 }}
+                title={!agreePaymentTerms ? 'Centang persetujuan Syarat & Ketentuan untuk melanjutkan' : undefined}
               >
                 {isLoadingPayment ? <InlineSpinner size={15} /> : <CreditCard size={16} />}
                 {isLoadingPayment ? 'Memproses...' : 'Bayar & Buat Proyek (Rp30.000)'}

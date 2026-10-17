@@ -11,6 +11,9 @@ export const registerSchema = z
       .regex(/[a-z]/, { message: 'Password harus mengandung minimal 1 huruf kecil' })
       .regex(/[0-9]/, { message: 'Password harus mengandung minimal 1 angka' }),
     confirmPassword: z.string().min(1, { message: 'Konfirmasi password wajib diisi' }),
+    agreeTerms: z.boolean().refine((val) => val === true, {
+      message: 'Anda wajib membaca dan menyetujui Syarat & Ketentuan serta Kebijakan Privasi',
+    }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: 'Konfirmasi password harus sama dengan password',
