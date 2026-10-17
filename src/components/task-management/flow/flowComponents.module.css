@@ -72,9 +72,15 @@
   white-space: nowrap;
 }
 
-.backBtn:hover {
+.backBtn:hover:not(:disabled) {
   color: var(--foreground);
   background: var(--surface-hover);
+}
+
+.backBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .flowTitleInput {
@@ -554,6 +560,12 @@
   border-color: var(--primary);
 }
 
+.propInput:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  background: var(--surface-muted);
+}
+
 .colorPickerGroup {
   display: flex;
   align-items: center;
@@ -885,6 +897,52 @@
 .cardMenuBtn:hover {
   opacity: 1;
   background: var(--surface-hover);
+}
+
+/* Card Action Buttons (Lihat & Edit) */
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0 1rem 0.65rem 1rem;
+}
+
+.cardActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.76rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: var(--transition);
+  line-height: 1.2;
+}
+
+.cardActionBtn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-hover, var(--border));
+}
+
+.cardActionBtnEdit {
+  color: var(--primary);
+  border-color: var(--primary-glow, var(--border));
+  background: var(--primary-soft, var(--surface-muted));
+}
+
+.cardActionBtnEdit:hover:not(:disabled) {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.cardActionBtnDisabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 .emptyState {

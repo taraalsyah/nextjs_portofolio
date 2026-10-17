@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { FlowService } from '@/services/flow/flow.service';
 import { createFlowSchema, validatePayloadSize } from '@/lib/flow/validation';
+import { assertCanCreateFlow } from '@/lib/flow/permissions';
 
 export async function GET(req: NextRequest) {
   try {
@@ -46,11 +47,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
     }
 
-    // 🔒 Authorization check: VIEWER cannot create flows
-    if (activeProject.memberRole === 'VIEWER') {
+    // 🔒 Authorization check: Only project Owner and Admin can create flows
+    const perm = await assertCanCreateFlow(sessionUserId, activeProject.projectId);
+    if (!perm.allowed) {
       return NextResponse.json(
-        { error: 'Akses ditolak. Peran Viewer hanya memiliki hak akses baca.' },
-        { status: 403 }
+        { error: perm.error || 'Akses ditolak. Hanya Owner dan Admin proyek yang dapat membuat diagram alur.' },
+        { status: perm.status }
       );
     }
 

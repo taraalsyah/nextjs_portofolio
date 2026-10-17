@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { FlowService } from '@/services/flow/flow.service';
+import { assertCanEditFlow } from '@/lib/flow/permissions';
 
 export async function POST(
   req: NextRequest,
@@ -21,21 +22,17 @@ export async function POST(
     }
 
     const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
-    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
-    if (!activeProject) {
-      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
-    }
-
-    // 🔒 Authorization check: VIEWER cannot duplicate/create flows
-    if (activeProject.memberRole === 'VIEWER') {
+    // 🔒 Authorization check: Only project Owner and Admin can duplicate/create flows
+    const editPerm = await assertCanEditFlow(sessionUserId, flowId);
+    if (!editPerm.allowed) {
       return NextResponse.json(
-        { error: 'Akses ditolak. Peran Viewer hanya memiliki hak akses baca.' },
-        { status: 403 }
+        { error: editPerm.error || 'Akses ditolak. Hanya Owner dan Admin proyek yang dapat menduplikasi diagram ini.' },
+        { status: editPerm.status }
       );
     }
 
-    const result = await FlowService.duplicateFlow(flowId, activeProject.projectId, sessionUserId);
+    const result = await FlowService.duplicateFlow(flowId, editPerm.projectId!, sessionUserId);
     if (result.status === 404) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }

@@ -18,6 +18,7 @@ import {
   AlertCircle,
   RefreshCw,
   Eye,
+  Edit2,
 } from 'lucide-react';
 import { AppNode, AppEdge, FlowData, FlowDetail, ArrowMarkerType } from '@/types/flow';
 import { useFlowHistory } from '@/hooks/flow/useFlowHistory';
@@ -48,6 +49,9 @@ interface FlowEditorProps {
   initialFlow: FlowDetail;
   onBack: () => void;
   readOnly?: boolean;
+  canEdit?: boolean;
+  mode?: 'view' | 'edit';
+  onToggleMode?: (targetMode: 'view' | 'edit') => void;
   categories: { id: number; name: string }[];
   users: { id: number; name: string }[];
   activeProjectId?: number;
@@ -58,6 +62,9 @@ function FlowEditorInner({
   initialFlow,
   onBack,
   readOnly = false,
+  canEdit = false,
+  mode = 'edit',
+  onToggleMode,
   categories,
   users,
   activeProjectId,
@@ -254,6 +261,15 @@ function FlowEditorInner({
           }),
         });
 
+        if (res.status === 403) {
+          toastCtx?.showToast(
+            'Anda tidak memiliki izin mengedit flow ini.',
+            'error'
+          );
+          onToggleMode?.('view');
+          return false;
+        }
+
         if (res.status === 409) {
           toastCtx?.showToast(
             'Konflik Versi: Diagram telah diperbarui oleh sesi lain. Harap muat ulang halaman.',
@@ -278,7 +294,7 @@ function FlowEditorInner({
         return false;
       }
     },
-    [initialFlow.id, version, readOnly, toastCtx]
+    [initialFlow.id, version, readOnly, toastCtx, onToggleMode]
   );
 
   // Autosave
@@ -472,20 +488,20 @@ function FlowEditorInner({
 
   // Keyboard Shortcuts Hook
   useFlowShortcuts({
-    onUndo: handleUndo,
-    onRedo: handleRedo,
+    onUndo: readOnly ? undefined : handleUndo,
+    onRedo: readOnly ? undefined : handleRedo,
     onCopy: handleCopy,
-    onCut: handleCut,
-    onPaste: handlePaste,
-    onDuplicate: handleDuplicate,
-    onDelete: handleDeleteSelected,
+    onCut: readOnly ? undefined : handleCut,
+    onPaste: readOnly ? undefined : handlePaste,
+    onDuplicate: readOnly ? undefined : handleDuplicate,
+    onDelete: readOnly ? undefined : handleDeleteSelected,
     onSelectAll: handleSelectAll,
-    onSave: triggerManualSave,
+    onSave: readOnly ? undefined : triggerManualSave,
     onFitView: handleFitView,
     onZoomIn: handleZoomIn,
     onZoomOut: handleZoomOut,
-    onNudge: handleNudge,
-    enabled: !readOnly,
+    onNudge: readOnly ? undefined : handleNudge,
+    enabled: true,
   });
 
   // Adding node from Palette drag or click
@@ -864,10 +880,22 @@ function FlowEditorInner({
           />
 
           {readOnly ? (
-            <span className={styles.autosaveIndicator}>
+            <span
+              className={styles.autosaveIndicator}
+              style={{
+                background: 'rgba(59, 130, 246, 0.1)',
+                color: 'var(--primary)',
+                border: '1px solid rgba(59, 130, 246, 0.25)',
+                fontWeight: 600,
+                padding: '3px 8px',
+                borderRadius: '4px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+              }}
+            >
               <Eye size={12} />
-              <span className={styles.autosaveTextLong}>Hanya Lihat</span>
-              <span className={styles.autosaveTextShort}>Lihat</span>
+              <span>Mode Lihat</span>
             </span>
           ) : (
             <div className={styles.autosaveIndicator}>
@@ -905,7 +933,54 @@ function FlowEditorInner({
           )}
         </div>
 
-        <div className={styles.headerRight} />
+        <div className={styles.headerRight}>
+          {canEdit && (
+            readOnly ? (
+              <button
+                type="button"
+                className={styles.backBtn}
+                style={{
+                  background: 'var(--primary)',
+                  color: '#ffffff',
+                  borderColor: 'var(--primary-hover)',
+                  fontWeight: 600,
+                  gap: 6,
+                }}
+                onClick={() => onToggleMode?.('edit')}
+                title="Beralih ke Mode Edit"
+                aria-label="Beralih ke Mode Edit"
+              >
+                <Edit2 size={13} />
+                <span>Edit Diagram</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className={styles.backBtn}
+                style={{
+                  gap: 6,
+                }}
+                onClick={async () => {
+                  if (isDirty) {
+                    const confirmLeave = window.confirm(
+                      'Ada perubahan yang belum tersimpan. Simpan sebelum beralih ke Mode Lihat?'
+                    );
+                    if (confirmLeave) {
+                      const saved = await triggerManualSave();
+                      if (!saved) return;
+                    }
+                  }
+                  onToggleMode?.('view');
+                }}
+                title="Beralih ke Mode Lihat"
+                aria-label="Beralih ke Mode Lihat"
+              >
+                <Eye size={13} />
+                <span>Mode Lihat</span>
+              </button>
+            )
+          )}
+        </div>
       </header>
 
       {/* Top Toolbar */}
@@ -972,13 +1047,15 @@ function FlowEditorInner({
           />
         )}
 
-        <ShapePalette
-          onAddNode={(item) => handleAddNodeFromDef(item)}
-          isDrawerOpen={isLeftDrawerOpen}
-          onCloseDrawer={() => setIsLeftDrawerOpen(false)}
-          isCollapsed={isPaletteCollapsed}
-          onToggleCollapse={togglePaletteCollapse}
-        />
+        {!readOnly && (
+          <ShapePalette
+            onAddNode={(item) => handleAddNodeFromDef(item)}
+            isDrawerOpen={isLeftDrawerOpen}
+            onCloseDrawer={() => setIsLeftDrawerOpen(false)}
+            isCollapsed={isPaletteCollapsed}
+            onToggleCollapse={togglePaletteCollapse}
+          />
+        )}
 
         <FlowCanvas
           nodes={nodes}
@@ -1039,11 +1116,12 @@ function FlowEditorInner({
           onCanvasBgChange={setCanvasBg}
           isDrawerOpen={isRightDrawerOpen}
           onCloseDrawer={() => setIsRightDrawerOpen(false)}
+          readOnly={readOnly}
         />
       </div>
 
       {/* Context Menu */}
-      {contextMenu && (
+      {contextMenu && !readOnly && (
         <FlowContextMenu
           position={contextMenu}
           onClose={() => setContextMenu(null)}
@@ -1086,29 +1164,35 @@ function FlowEditorInner({
       />
 
       {/* Import Dialog */}
-      <ImportDialog
-        isOpen={isImportOpen}
-        onClose={() => setIsImportOpen(false)}
-        onImport={handleApplyImport}
-      />
+      {!readOnly && (
+        <ImportDialog
+          isOpen={isImportOpen}
+          onClose={() => setIsImportOpen(false)}
+          onImport={handleApplyImport}
+        />
+      )}
 
       {/* Template Modal */}
-      <FlowTemplateModal
-        isOpen={isTemplateModalOpen}
-        onClose={() => setIsTemplateModalOpen(false)}
-        onSelectTemplate={handleApplyTemplate}
-      />
+      {!readOnly && (
+        <FlowTemplateModal
+          isOpen={isTemplateModalOpen}
+          onClose={() => setIsTemplateModalOpen(false)}
+          onSelectTemplate={handleApplyTemplate}
+        />
+      )}
 
       {/* Create Task From Node Modal */}
-      <CreateTaskFromNodeModal
-        isOpen={nodeToTaskConvert !== null}
-        node={nodeToTaskConvert}
-        onClose={() => setNodeToTaskConvert(null)}
-        onSuccess={handleTaskCreatedFromNode}
-        categories={categories}
-        users={users}
-        activeProjectId={activeProjectId}
-      />
+      {!readOnly && (
+        <CreateTaskFromNodeModal
+          isOpen={nodeToTaskConvert !== null}
+          node={nodeToTaskConvert}
+          onClose={() => setNodeToTaskConvert(null)}
+          onSuccess={handleTaskCreatedFromNode}
+          categories={categories}
+          users={users}
+          activeProjectId={activeProjectId}
+        />
+      )}
 
       {/* Task Detail Modal (opens when user clicks "Buka" in TaskNode) */}
       <TaskDetailModal

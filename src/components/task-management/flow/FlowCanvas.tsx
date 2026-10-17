@@ -13,7 +13,6 @@ import {
   OnEdgesChange,
   BackgroundVariant,
   useReactFlow,
-  Panel,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { AppNode, AppEdge } from '@/types/flow';
@@ -104,14 +103,30 @@ export function FlowCanvas({
     return Array.from(map.entries()).map(([id, color]) => ({ id, color }));
   }, [edges]);
 
+  // When in read-only mode, render nodes with locked & readOnly flags to disable resizers & inline text editing
+  const renderedNodes = React.useMemo(() => {
+    if (!readOnly) return nodes;
+    return nodes.map((node) => ({
+      ...node,
+      draggable: false,
+      connectable: false,
+      selectable: true,
+      data: {
+        ...node.data,
+        locked: true,
+        readOnly: true,
+      },
+    }));
+  }, [nodes, readOnly]);
+
   return (
     <div
       ref={reactFlowWrapper}
       className={styles.canvasArea}
       style={{ backgroundColor: canvasBg }}
-      onDrop={onDropFromPalette}
-      onDragOver={onDragOver}
-      onDoubleClick={onDoubleClickPane}
+      onDrop={readOnly ? undefined : onDropFromPalette}
+      onDragOver={readOnly ? undefined : onDragOver}
+      onDoubleClick={readOnly ? undefined : onDoubleClickPane}
     >
       {circleMarkers.length > 0 && (
         <svg
@@ -144,7 +159,7 @@ export function FlowCanvas({
         </svg>
       )}
       <ReactFlow
-        nodes={nodes}
+        nodes={renderedNodes}
         edges={edges}
         onNodesChange={readOnly ? undefined : onNodesChange}
         onEdgesChange={readOnly ? undefined : onEdgesChange}
@@ -154,7 +169,7 @@ export function FlowCanvas({
         edgeTypes={edgeTypes as any}
         onSelectionChange={onSelectionChange as any}
         onPaneClick={onPaneClick}
-        onPaneContextMenu={onPaneContextMenu}
+        onPaneContextMenu={readOnly ? undefined : onPaneContextMenu}
         onNodeContextMenu={readOnly ? undefined : (onNodeContextMenu as any)}
         onEdgeContextMenu={readOnly ? undefined : (onEdgeContextMenu as any)}
         defaultViewport={defaultViewport}
@@ -164,13 +179,14 @@ export function FlowCanvas({
         snapGrid={[gridSize, gridSize]}
         deleteKeyCode={readOnly ? null : ['Delete', 'Backspace']}
         multiSelectionKeyCode={['Shift', 'Meta', 'Control']}
-        selectionOnDrag={true}
+        selectionOnDrag={!readOnly}
         panOnDrag={[1, 2]} // Mouse wheel click or drag
         panOnScroll={true}
         zoomOnScroll={true}
-        elementsSelectable={!readOnly}
+        elementsSelectable={true}
         nodesDraggable={!readOnly}
         nodesConnectable={!readOnly}
+        edgesReconnectable={!readOnly}
         minZoom={0.1}
         maxZoom={3}
       >
@@ -221,24 +237,6 @@ export function FlowCanvas({
           />
         )}
 
-        {readOnly && (
-          <Panel position="top-center">
-            <div
-              style={{
-                background: 'var(--warning-subtle)',
-                color: 'var(--warning)',
-                border: '1px solid var(--warning)',
-                borderRadius: 6,
-                padding: '6px 14px',
-                fontSize: 12,
-                fontWeight: 600,
-                boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-              }}
-            >
-              Mode Hanya Lihat (Read-Only) — Anda tidak memiliki izin untuk mengedit diagram ini.
-            </div>
-          </Panel>
-        )}
       </ReactFlow>
     </div>
   );

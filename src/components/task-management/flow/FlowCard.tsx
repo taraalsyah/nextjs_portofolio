@@ -1,25 +1,32 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { MoreVertical, Copy, Edit2, Trash2, Workflow, Clock, User } from 'lucide-react';
+import { MoreVertical, Copy, Edit2, Edit3, Trash2, Workflow, Clock, User, Eye } from 'lucide-react';
 import { FlowListItem } from '@/types/flow';
+import { Tooltip } from '@/components/ui/Tooltip';
 import styles from './flowComponents.module.css';
 
 interface FlowCardProps {
   flow: FlowListItem;
   onOpen: (flow: FlowListItem) => void;
+  onView: (flow: FlowListItem) => void;
+  onEdit: (flow: FlowListItem) => void;
   onRename: (flow: FlowListItem) => void;
   onDuplicate: (flow: FlowListItem) => void;
   onDelete: (flow: FlowListItem) => void;
+  canEdit?: boolean;
   readOnly?: boolean;
 }
 
 export function FlowCard({
   flow,
   onOpen,
+  onView,
+  onEdit,
   onRename,
   onDuplicate,
   onDelete,
+  canEdit = false,
   readOnly = false,
 }: FlowCardProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -43,8 +50,16 @@ export function FlowCard({
     year: 'numeric',
   });
 
+  const handleCardClick = () => {
+    if (canEdit) {
+      onEdit(flow);
+    } else {
+      onView(flow);
+    }
+  };
+
   return (
-    <div className={styles.flowCard} onClick={() => onOpen(flow)}>
+    <div className={styles.flowCard} onClick={handleCardClick}>
       {/* Thumbnail area */}
       <div className={styles.cardThumbnail}>
         {flow.thumbnail ? (
@@ -56,14 +71,15 @@ export function FlowCard({
           </div>
         )}
 
-        {/* Menu 3-dots */}
-        {!readOnly && (
+        {/* Menu 3-dots: Only for Owner & Admin */}
+        {canEdit && !readOnly && (
           <div ref={menuRef} onClick={(e) => e.stopPropagation()}>
             <button
               type="button"
               className={styles.cardMenuBtn}
               onClick={() => setIsMenuOpen((prev) => !prev)}
               title="Opsi Diagram"
+              aria-label={`Opsi diagram ${flow.name}`}
             >
               <MoreVertical size={15} />
             </button>
@@ -80,6 +96,7 @@ export function FlowCard({
                     setIsMenuOpen(false);
                     onRename(flow);
                   }}
+                  aria-label={`Ubah nama flow ${flow.name}`}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Edit2 size={13} />
@@ -94,6 +111,7 @@ export function FlowCard({
                     setIsMenuOpen(false);
                     onDuplicate(flow);
                   }}
+                  aria-label={`Duplikat flow ${flow.name}`}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Copy size={13} />
@@ -111,6 +129,7 @@ export function FlowCard({
                     setIsMenuOpen(false);
                     onDelete(flow);
                   }}
+                  aria-label={`Hapus flow ${flow.name}`}
                 >
                   <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
                     <Trash2 size={13} />
@@ -132,6 +151,47 @@ export function FlowCard({
           <div className={styles.cardDesc} style={{ fontStyle: 'italic', opacity: 0.6 }}>
             Tidak ada deskripsi
           </div>
+        )}
+      </div>
+
+      {/* Action Buttons: Lihat (all members) & Edit (Owner/Admin only) */}
+      <div className={styles.cardActions} onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className={styles.cardActionBtn}
+          onClick={() => onView(flow)}
+          aria-label={`Lihat flow ${flow.name}`}
+          title="Lihat Diagram"
+        >
+          <Eye size={13} />
+          <span>Lihat</span>
+        </button>
+
+        {canEdit ? (
+          <button
+            type="button"
+            className={`${styles.cardActionBtn} ${styles.cardActionBtnEdit}`}
+            onClick={() => onEdit(flow)}
+            aria-label={`Edit flow ${flow.name}`}
+            title="Edit Diagram"
+          >
+            <Edit3 size={13} />
+            <span>Edit</span>
+          </button>
+        ) : (
+          <Tooltip position="top" content="Hanya Owner dan Admin yang dapat mengedit">
+            <span style={{ display: 'inline-flex' }}>
+              <button
+                type="button"
+                className={`${styles.cardActionBtn} ${styles.cardActionBtnDisabled}`}
+                disabled
+                aria-label={`Edit flow ${flow.name} (Hanya Owner dan Admin yang dapat mengedit)`}
+              >
+                <Edit3 size={13} />
+                <span>Edit</span>
+              </button>
+            </span>
+          </Tooltip>
         )}
       </div>
 

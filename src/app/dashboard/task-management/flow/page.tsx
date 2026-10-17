@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { useSession } from 'next-auth/react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -9,6 +9,7 @@ import { FlowList } from '@/components/task-management/flow/FlowList';
 import { FlowDetail } from '@/types/flow';
 import { useProjectContext } from '@/context/ProjectContext';
 import { useProjectMembers } from '@/hooks/useProjectMembers';
+import { useFlowPermissions } from '@/hooks/flow/useFlowPermissions';
 import { useSafeToast } from '@/components/ui/Toast';
 import { InlineSpinner } from '@/components/ui/loading';
 import taskStyles from '@/app/dashboard/task-management/task.module.css';
@@ -57,7 +58,9 @@ export default function FlowPage() {
   const { activeProject } = useProjectContext();
   const activeProjectId = activeProject?.projectId;
   const currentUserId = parseInt((session?.user as any)?.id || '0', 10);
-  const isViewer = activeProject?.memberRole === 'VIEWER';
+
+  // Project-level role permission resolution
+  const { canEdit, canView, isLoading: isRoleLoading } = useFlowPermissions(activeProjectId);
 
   const { users } = useProjectMembers();
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
@@ -72,13 +75,68 @@ export default function FlowPage() {
   // Keep track of loaded flow ID to prevent redundant network fetches
   const loadedFlowIdRef = useRef<number | null>(null);
 
+  // Mode query parameter ('view' | 'edit')
+  const modeParam = searchParams.get('mode');
+
+  // Compute effective editor mode:
+  // - mode=edit: allowed if canEdit is true, otherwise falls back to view
+  // - mode=view: always view mode
+  // - URL without mode (e.g. ?flowId=X): backward-compatible default (edit for Owner/Admin, view for others)
+  const effectiveMode: 'view' | 'edit' = useMemo(() => {
+    if (modeParam === 'edit') {
+      return canEdit ? 'edit' : 'view';
+    }
+    if (modeParam === 'view') {
+      return 'view';
+    }
+    // Backward compatibility for existing URLs without explicit mode
+    return canEdit ? 'edit' : 'view';
+  }, [modeParam, canEdit]);
+
+  // Non-intrusive notification when a non-editor opens a URL with ?mode=edit directly
+  const warnedUnauthorizedEditRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (
+      !isRoleLoading &&
+      modeParam === 'edit' &&
+      !canEdit &&
+      activeFlowId &&
+      warnedUnauthorizedEditRef.current !== activeFlowId
+    ) {
+      warnedUnauthorizedEditRef.current = activeFlowId;
+      toastCtxRef.current?.showToast(
+        'Hanya Owner dan Admin yang dapat mengedit. Menampilkan dalam mode lihat.',
+        'info'
+      );
+    }
+  }, [isRoleLoading, modeParam, canEdit, activeFlowId]);
+
   // Explicit user-driven navigation handlers with smooth URL replace
   const handleOpenFlow = useCallback(
-    (id: number) => {
+    (id: number, mode?: 'view' | 'edit') => {
       setActiveFlowId(id);
-      router.replace(`/dashboard/task-management/flow?flowId=${id}`, { scroll: false });
+      const chosenMode = mode || (canEdit ? 'edit' : 'view');
+      router.replace(`/dashboard/task-management/flow?flowId=${id}&mode=${chosenMode}`, { scroll: false });
     },
-    [router]
+    [router, canEdit]
+  );
+
+  const handleToggleMode = useCallback(
+    (targetMode: 'view' | 'edit') => {
+      if (!activeFlowId) return;
+      if (targetMode === 'edit' && !canEdit) {
+        toastCtxRef.current?.showToast(
+          'Hanya Owner dan Admin yang dapat mengedit diagram ini.',
+          'error'
+        );
+        return;
+      }
+      router.replace(
+        `/dashboard/task-management/flow?flowId=${activeFlowId}&mode=${targetMode}`,
+        { scroll: false }
+      );
+    },
+    [activeFlowId, canEdit, router]
   );
 
   const handleBack = useCallback(() => {
@@ -123,7 +181,7 @@ export default function FlowPage() {
         setActiveFlowDetail(data.flow);
       } else {
         loadedFlowIdRef.current = null;
-        toastCtxRef.current?.showToast('Diagram tidak ditemukan atau telah dihapus.', 'error');
+        toastCtxRef.current?.showToast('Diagram tidak ditemukan atau Anda tidak memiliki akses.', 'error');
         setActiveFlowId(null);
         setActiveFlowDetail(null);
       }
@@ -166,7 +224,10 @@ export default function FlowPage() {
           key={activeFlowDetail!.id}
           initialFlow={activeFlowDetail!}
           onBack={handleBack}
-          readOnly={isViewer}
+          readOnly={effectiveMode === 'view'}
+          canEdit={canEdit}
+          mode={effectiveMode}
+          onToggleMode={handleToggleMode}
           categories={categories}
           users={users}
           activeProjectId={activeProjectId}
@@ -190,7 +251,9 @@ export default function FlowPage() {
         <FlowList
           activeProjectId={activeProjectId}
           onOpenFlow={handleOpenFlow}
-          readOnly={isViewer}
+          canEdit={canEdit}
+          canView={canView}
+          readOnly={!canEdit}
         />
       )}
     </div>

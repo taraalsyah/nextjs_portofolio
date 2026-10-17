@@ -56,6 +56,7 @@ interface PropertiesPanelProps {
   onCanvasBgChange: (bg: string) => void;
   isDrawerOpen?: boolean;
   onCloseDrawer?: () => void;
+  readOnly?: boolean;
 }
 
 export function PropertiesPanel({
@@ -79,6 +80,7 @@ export function PropertiesPanel({
   onCanvasBgChange,
   isDrawerOpen = false,
   onCloseDrawer,
+  readOnly = false,
 }: PropertiesPanelProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isTipsOpen, setIsTipsOpen] = useState(false);
@@ -154,6 +156,27 @@ export function PropertiesPanel({
       </div>
 
       <div className={styles.propertiesContent}>
+        {readOnly && (
+          <div
+            style={{
+              padding: '6px 12px',
+              margin: '0 0 10px 0',
+              borderRadius: '6px',
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              background: 'var(--surface-muted)',
+              color: 'var(--muted-foreground)',
+              border: '1px solid var(--border)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+            }}
+          >
+            <Lock size={12} />
+            <span>Mode Lihat — Properti hanya untuk dibaca</span>
+          </div>
+        )}
+
         {/* 1. NODE PROPERTIES */}
         {selectedNode && nodeData && (
           <>
@@ -168,10 +191,12 @@ export function PropertiesPanel({
                     placeholder="Cari task proyek..."
                     value={taskSearch}
                     onChange={(e) => setTaskSearch(e.target.value)}
+                    disabled={readOnly}
                   />
                   <select
                     className={styles.propInput}
                     value={nodeData.taskId || ''}
+                    disabled={readOnly}
                     onChange={(e) => {
                       const tId = parseInt(e.target.value, 10);
                       const t = projectTasks.find((item) => item.id === tId);
@@ -219,7 +244,7 @@ export function PropertiesPanel({
             )}
 
             {/* If regular node, allow converting to task */}
-            {selectedNode.type !== 'taskNode' && (
+            {selectedNode.type !== 'taskNode' && !readOnly && (
               <div className={styles.propSection}>
                 <button
                   type="button"
@@ -239,6 +264,7 @@ export function PropertiesPanel({
               </div>
             )}
 
+            <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 'inherit' }}>
             {/* Label input */}
             <div className={styles.propSection}>
               <div className={styles.propSectionTitle}>Label / Teks</div>
@@ -597,12 +623,13 @@ export function PropertiesPanel({
                 </button>
               </div>
             </div>
+            </fieldset>
           </>
         )}
 
         {/* 2. EDGE PROPERTIES */}
         {selectedEdge && (
-          <>
+          <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 'inherit' }}>
             <div className={styles.propSection}>
               <div className={styles.propSectionTitle}>Label Garis</div>
               <input
@@ -780,12 +807,13 @@ export function PropertiesPanel({
                 <span>Hapus Garis</span>
               </button>
             </div>
-          </>
+          </fieldset>
         )}
 
         {/* 3. CANVAS SETTINGS (when nothing is selected) */}
         {!selectedNode && !selectedEdge && (
           <>
+            <fieldset disabled={readOnly} style={{ border: 'none', padding: 0, margin: 0, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 'inherit' }}>
             <div className={styles.propSection}>
               <div className={styles.propSectionTitle}>Kisi-kisi (Grid)</div>
               <div className={styles.propRow}>
@@ -840,6 +868,7 @@ export function PropertiesPanel({
                 </div>
               </div>
             </div>
+            </fieldset>
 
             <div className={styles.propSection}>
               <button

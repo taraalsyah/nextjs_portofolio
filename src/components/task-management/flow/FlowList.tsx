@@ -17,18 +17,23 @@ import { FlowCard } from './FlowCard';
 import { FlowTemplateModal } from './FlowTemplateModal';
 import { ConfirmDeleteModal } from '@/components/ui/ConfirmDeleteModal';
 import { useSafeToast } from '@/components/ui/Toast';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { FlowTemplate } from '@/lib/flow/templates';
 import styles from './flowComponents.module.css';
 
 interface FlowListProps {
   activeProjectId?: number;
-  onOpenFlow: (flowId: number) => void;
+  onOpenFlow: (flowId: number, mode?: 'view' | 'edit') => void;
+  canEdit?: boolean;
+  canView?: boolean;
   readOnly?: boolean;
 }
 
 export function FlowList({
   activeProjectId,
   onOpenFlow,
+  canEdit = false,
+  canView = true,
   readOnly = false,
 }: FlowListProps) {
   const toastCtx = useSafeToast();
@@ -82,6 +87,10 @@ export function FlowList({
 
   // Handle Create from Template
   const handleCreateFromTemplate = async (template: FlowTemplate) => {
+    if (!canEdit) {
+      toastCtx?.showToast('Hanya Owner dan Admin yang dapat membuat diagram alur.', 'error');
+      return;
+    }
     if (!activeProjectId) return;
     setIsSubmitting(true);
     try {
@@ -102,7 +111,7 @@ export function FlowList({
 
       const data = await res.json();
       toastCtx?.showToast('Diagram berhasil dibuat!', 'success');
-      onOpenFlow(data.flow.id);
+      onOpenFlow(data.flow.id, 'edit');
     } catch (err: any) {
       console.error('Failed to create flow:', err);
       toastCtx?.showToast(err?.message || 'Gagal membuat diagram.', 'error');
@@ -113,6 +122,10 @@ export function FlowList({
 
   // Handle Duplicate
   const handleDuplicate = async (flow: FlowListItem) => {
+    if (!canEdit) {
+      toastCtx?.showToast('Hanya Owner dan Admin yang dapat menduplikasi diagram alur.', 'error');
+      return;
+    }
     try {
       const res = await fetch(`/api/flows/${flow.id}/duplicate`, {
         method: 'POST',
@@ -130,6 +143,10 @@ export function FlowList({
   // Handle Rename
   const handleRenameSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!canEdit) {
+      toastCtx?.showToast('Hanya Owner dan Admin yang dapat mengubah nama diagram alur.', 'error');
+      return;
+    }
     if (!flowToRename || !newFlowName.trim()) return;
 
     setIsSubmitting(true);
@@ -163,6 +180,10 @@ export function FlowList({
 
   // Handle Delete
   const handleDeleteConfirm = async () => {
+    if (!canEdit) {
+      toastCtx?.showToast('Hanya Owner dan Admin yang dapat menghapus diagram alur.', 'error');
+      return;
+    }
     if (!flowToDelete) return;
     try {
       const res = await fetch(`/api/flows/${flowToDelete.id}`, {
@@ -209,7 +230,7 @@ export function FlowList({
             />
           </div>
 
-          {!readOnly && (
+          {canEdit ? (
             <button
               type="button"
               className={styles.backBtn}
@@ -221,10 +242,30 @@ export function FlowList({
                 padding: '0.55rem 0.95rem',
               }}
               onClick={() => setIsTemplateModalOpen(true)}
+              aria-label="Buat Flow Baru"
             >
               <Plus size={16} />
               <span>Buat Flow Baru</span>
             </button>
+          ) : (
+            <Tooltip position="bottom" content="Hanya Owner dan Admin yang dapat membuat diagram">
+              <span style={{ display: 'inline-flex' }}>
+                <button
+                  type="button"
+                  className={styles.backBtn}
+                  style={{
+                    opacity: 0.5,
+                    cursor: 'not-allowed',
+                    padding: '0.55rem 0.95rem',
+                  }}
+                  disabled
+                  aria-label="Buat Flow Baru (Hanya Owner dan Admin yang dapat membuat diagram)"
+                >
+                  <Plus size={16} />
+                  <span>Buat Flow Baru</span>
+                </button>
+              </span>
+            </Tooltip>
           )}
         </div>
       </div>
@@ -257,7 +298,7 @@ export function FlowList({
               ? `Tidak ditemukan diagram dengan kata kunci "${search}".`
               : 'Mulai dengan membuat diagram alur pertama untuk memetakan alur kerja tim dan proses proyek Anda.'}
           </div>
-          {!readOnly && !search.trim() && (
+          {canEdit && !search.trim() && (
             <button
               type="button"
               className={styles.backBtn}
@@ -269,6 +310,7 @@ export function FlowList({
                 marginTop: 6,
               }}
               onClick={() => setIsTemplateModalOpen(true)}
+              aria-label="Buat Diagram Sekarang"
             >
               <Plus size={15} />
               <span>Buat Diagram Sekarang</span>
@@ -282,14 +324,21 @@ export function FlowList({
               <FlowCard
                 key={flow.id}
                 flow={flow}
-                onOpen={(f) => onOpenFlow(f.id)}
+                onOpen={(f) => onOpenFlow(f.id, canEdit ? 'edit' : 'view')}
+                onView={(f) => onOpenFlow(f.id, 'view')}
+                onEdit={(f) => onOpenFlow(f.id, 'edit')}
                 onRename={(f) => {
+                  if (!canEdit) return;
                   setFlowToRename(f);
                   setNewFlowName(f.name);
                 }}
                 onDuplicate={handleDuplicate}
-                onDelete={(f) => setFlowToDelete(f)}
-                readOnly={readOnly}
+                onDelete={(f) => {
+                  if (!canEdit) return;
+                  setFlowToDelete(f);
+                }}
+                canEdit={canEdit}
+                readOnly={!canEdit}
               />
             ))}
           </div>

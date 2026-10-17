@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/auth';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { FlowService } from '@/services/flow/flow.service';
 import { updateFlowSchema, validatePayloadSize } from '@/lib/flow/validation';
+import { assertCanViewFlow, assertCanEditFlow } from '@/lib/flow/permissions';
 
 export async function GET(
   req: NextRequest,
@@ -22,13 +23,14 @@ export async function GET(
     }
 
     const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
-    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
-    if (!activeProject) {
-      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    // 🔒 Authorization check: User must be a member of the project owning this flow
+    const viewPerm = await assertCanViewFlow(sessionUserId, flowId);
+    if (!viewPerm.allowed) {
+      return NextResponse.json({ error: viewPerm.error }, { status: viewPerm.status });
     }
 
-    const flow = await FlowService.getFlowById(flowId, activeProject.projectId);
+    const flow = await FlowService.getFlowById(flowId, viewPerm.projectId!);
     if (!flow) {
       return NextResponse.json({ error: 'Diagram alur tidak ditemukan.' }, { status: 404 });
     }
@@ -57,17 +59,13 @@ export async function PUT(
     }
 
     const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
-    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
-    if (!activeProject) {
-      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
-    }
-
-    // 🔒 Authorization check: VIEWER cannot update flows
-    if (activeProject.memberRole === 'VIEWER') {
+    // 🔒 Authorization check: Only project Owner and Admin can update flows
+    const editPerm = await assertCanEditFlow(sessionUserId, flowId);
+    if (!editPerm.allowed) {
       return NextResponse.json(
-        { error: 'Akses ditolak. Peran Viewer hanya memiliki hak akses baca.' },
-        { status: 403 }
+        { error: editPerm.error || 'Akses ditolak. Hanya Owner dan Admin proyek yang dapat mengedit diagram ini.' },
+        { status: editPerm.status }
       );
     }
 
@@ -90,7 +88,7 @@ export async function PUT(
 
     const result = await FlowService.updateFlow(
       flowId,
-      activeProject.projectId,
+      editPerm.projectId!,
       sessionUserId,
       parsed.data as any
     );
@@ -130,21 +128,17 @@ export async function DELETE(
     }
 
     const sessionUserId = parseInt(String((session.user as any).id || '0'), 10);
-    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
 
-    if (!activeProject) {
-      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
-    }
-
-    // 🔒 Authorization check: VIEWER cannot delete flows
-    if (activeProject.memberRole === 'VIEWER') {
+    // 🔒 Authorization check: Only project Owner and Admin can delete flows
+    const editPerm = await assertCanEditFlow(sessionUserId, flowId);
+    if (!editPerm.allowed) {
       return NextResponse.json(
-        { error: 'Akses ditolak. Peran Viewer hanya memiliki hak akses baca.' },
-        { status: 403 }
+        { error: editPerm.error || 'Akses ditolak. Hanya Owner dan Admin proyek yang dapat menghapus diagram ini.' },
+        { status: editPerm.status }
       );
     }
 
-    const result = await FlowService.deleteFlow(flowId, activeProject.projectId, sessionUserId);
+    const result = await FlowService.deleteFlow(flowId, editPerm.projectId!, sessionUserId);
     if (result.status === 404) {
       return NextResponse.json({ error: result.error }, { status: 404 });
     }
