@@ -41,6 +41,7 @@ export type FlowShapeType =
 export type LineType = 'straight' | 'step' | 'smoothstep' | 'bezier';
 export type StrokeStyle = 'solid' | 'dashed' | 'dotted';
 export type ArrowMarkerType = 'none' | 'arrow' | 'arrowclosed' | 'circle';
+export type EdgeAnimationMode = 'oneway' | 'reverse' | 'pingpong';
 
 export interface FlowNodeData {
   label: string;
@@ -95,6 +96,7 @@ export interface FlowEdgeData {
   markerStart?: ArrowMarkerType;
   markerEnd?: ArrowMarkerType;
   animated?: boolean;
+  animationMode?: EdgeAnimationMode;
   [key: string]: unknown;
 }
 

@@ -1,5 +1,5 @@
 import { MarkerType, type EdgeMarker } from '@xyflow/react';
-import { ArrowMarkerType, AppEdge, FlowEdgeData } from '@/types/flow';
+import { ArrowMarkerType, AppEdge, FlowEdgeData, EdgeAnimationMode } from '@/types/flow';
 
 /**
  * Sanitizes a color string (e.g. #64748b) to be safely used in an SVG ID.
@@ -118,6 +118,10 @@ export function normalizeEdge(edge: AppEdge): AppEdge {
       strokeWidth,
       markerEnd: markerEndType,
       markerStart: markerStartType,
+      animationMode:
+        data.animationMode === 'reverse' || data.animationMode === 'pingpong'
+          ? data.animationMode
+          : 'oneway',
     },
     markerEnd: buildEdgeMarker(markerEndType, stroke, strokeWidth),
     markerStart: buildEdgeMarker(markerStartType, stroke, strokeWidth),
@@ -135,4 +139,50 @@ export function normalizeEdge(edge: AppEdge): AppEdge {
  */
 export function normalizeEdges(edges: AppEdge[]): AppEdge[] {
   return edges.map(normalizeEdge);
+}
+
+export interface EdgeAnimationProps {
+  className?: string;
+  style?: React.CSSProperties;
+}
+
+/**
+ * Returns the CSS class and animation style for an animated edge based on mode.
+ * - 'oneway': moves forward (source to target)
+ * - 'reverse': moves backward (target to source)
+ * - 'pingpong': moves back-and-forth smoothly
+ */
+export function getEdgeAnimationProps(
+  isAnimated: boolean,
+  mode: EdgeAnimationMode = 'oneway'
+): EdgeAnimationProps {
+  if (!isAnimated) {
+    return {};
+  }
+
+  if (mode === 'reverse') {
+    return {
+      className: 'edge-animated-reverse',
+      style: {
+        animation: 'dashdraw-reverse 0.5s linear infinite',
+      },
+    };
+  }
+
+  if (mode === 'pingpong') {
+    return {
+      className: 'edge-animated-pingpong',
+      style: {
+        animation: 'dashdraw-pingpong 0.8s ease-in-out infinite alternate',
+      },
+    };
+  }
+
+  // Default 'oneway'
+  return {
+    className: 'edge-animated-oneway',
+    style: {
+      animation: 'dashdraw 0.5s linear infinite',
+    },
+  };
 }

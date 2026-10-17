@@ -983,3 +983,43 @@
   }
 }
 
+/* ─── PING-PONG / BOLAK-BALIK EDGE ANIMATION ──────────────────────────── */
+:global(.react-flow__edge.animated path.edge-animated-pingpong),
+:global(.react-flow__edge.animated.edge-animated-pingpong path) {
+  animation: dashdraw-pingpong 0.8s ease-in-out infinite alternate !important;
+}
+
+@keyframes dashdraw-pingpong {
+  0% {
+    stroke-dashoffset: 14;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* ─── REVERSE / TERBALIK EDGE ANIMATION ────────────────────────────────── */
+:global(.react-flow__edge.animated path.edge-animated-reverse),
+:global(.react-flow__edge.animated.edge-animated-reverse path) {
+  animation: dashdraw-reverse 0.5s linear infinite !important;
+}
+
+@keyframes dashdraw-reverse {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 10;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :global(.react-flow__edge.animated path.edge-animated-pingpong),
+  :global(.react-flow__edge.animated.edge-animated-pingpong path),
+  :global(.react-flow__edge.animated path.edge-animated-reverse),
+  :global(.react-flow__edge.animated.edge-animated-reverse path) {
+    animation: none !important;
+  }
+}
+
+

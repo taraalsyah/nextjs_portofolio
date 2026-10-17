@@ -20,7 +20,7 @@ import {
   PlusCircle,
   Activity,
 } from 'lucide-react';
-import { AppNode, AppEdge, LineType, StrokeStyle, ArrowMarkerType } from '@/types/flow';
+import { AppNode, AppEdge, LineType, StrokeStyle, ArrowMarkerType, EdgeAnimationMode } from '@/types/flow';
 import { getArrowMarkerType } from '@/lib/flow/edgeMarkers';
 import styles from './flowComponents.module.css';
 
@@ -744,6 +744,25 @@ export function PropertiesPanel({
                   }
                 />
               </div>
+
+              {Boolean(edgeData?.animated) && (
+                <div className={styles.propRow}>
+                  <span className={styles.propLabel}>Arah Animasi</span>
+                  <select
+                    className={styles.propInput}
+                    value={edgeData?.animationMode || 'oneway'}
+                    onChange={(e) =>
+                      onUpdateEdgeData(selectedEdge.id, {
+                        animationMode: e.target.value as EdgeAnimationMode,
+                      })
+                    }
+                  >
+                    <option value="oneway">Satu arah</option>
+                    <option value="reverse">Terbalik</option>
+                    <option value="pingpong">Bolak-balik</option>
+                  </select>
+                </div>
+              )}
 
               <button
                 type="button"

@@ -342,6 +342,7 @@ function FlowEditorInner({
           strokeWidth: defaultStrokeWidth,
           markerEnd: defaultMarkerEnd,
           markerStart: 'none',
+          animationMode: 'oneway',
         },
         markerEnd: buildEdgeMarker(defaultMarkerEnd, defaultStroke, defaultStrokeWidth),
         markerStart: undefined,

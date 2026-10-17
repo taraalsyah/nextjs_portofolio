@@ -10,7 +10,8 @@ import {
   EdgeLabelRenderer,
   useReactFlow,
 } from '@xyflow/react';
-import { FlowEdgeData } from '@/types/flow';
+import { FlowEdgeData, EdgeAnimationMode } from '@/types/flow';
+import { getEdgeAnimationProps } from '@/lib/flow/edgeMarkers';
 
 export const CustomEdge: React.FC<EdgeProps> = memo(
   ({
@@ -26,6 +27,7 @@ export const CustomEdge: React.FC<EdgeProps> = memo(
     markerEnd,
     markerStart,
     selected,
+    animated,
   }) => {
     const edgeData = (data || {}) as FlowEdgeData;
     const { setEdges } = useReactFlow();
@@ -77,11 +79,21 @@ export const CustomEdge: React.FC<EdgeProps> = memo(
     const stroke = edgeData.stroke || style.stroke || '#64748b';
     const strokeWidth = edgeData.strokeWidth || style.strokeWidth || 2;
 
+    const isAnimated = Boolean(edgeData.animated ?? animated);
+    const animationMode: EdgeAnimationMode =
+      edgeData.animationMode === 'reverse' || edgeData.animationMode === 'pingpong'
+        ? edgeData.animationMode
+        : 'oneway';
+
+    const animProps = getEdgeAnimationProps(isAnimated, animationMode);
+    const activeStrokeDasharray = strokeDasharray || (isAnimated ? '5' : undefined);
+
     const edgeStyle: React.CSSProperties = {
       ...style,
       stroke: selected ? 'var(--primary)' : stroke,
       strokeWidth: selected ? Number(strokeWidth) + 1 : strokeWidth,
-      strokeDasharray,
+      strokeDasharray: activeStrokeDasharray,
+      ...animProps.style,
     };
 
     const commitLabel = useCallback(() => {
@@ -108,6 +120,7 @@ export const CustomEdge: React.FC<EdgeProps> = memo(
           markerEnd={markerEnd}
           markerStart={markerStart}
           style={edgeStyle}
+          className={animProps.className}
         />
 
         <EdgeLabelRenderer>
