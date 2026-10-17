@@ -7,9 +7,16 @@ interface UseFlowAutosaveOptions {
   flowId: number | null;
   flowData: FlowData;
   flowName: string;
-  version: number;
+  version?: number;
   onSave: (data: FlowData, name: string) => Promise<boolean>;
   enabled?: boolean;
+}
+
+export interface UseFlowAutosaveReturn {
+  status: AutosaveStatus;
+  lastSavedAt: Date | null;
+  isDirty: boolean;
+  triggerManualSave: () => Promise<boolean>;
 }
 
 /**
@@ -48,10 +55,9 @@ export function useFlowAutosave({
   flowId,
   flowData,
   flowName,
-  version,
   onSave,
   enabled = true,
-}: UseFlowAutosaveOptions) {
+}: UseFlowAutosaveOptions): UseFlowAutosaveReturn {
   const [status, setStatus] = useState<AutosaveStatus>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [isDirty, setIsDirty] = useState<boolean>(false);
@@ -72,8 +78,8 @@ export function useFlowAutosave({
     onSaveRef.current = onSave;
   }, [flowData, flowName, onSave]);
 
-  const triggerSave = useCallback(async () => {
-    if (!enabled || !flowId) return;
+  const triggerSave = useCallback(async (): Promise<boolean> => {
+    if (!enabled || !flowId) return true;
 
     if (timerRef.current) {
       clearTimeout(timerRef.current);
@@ -90,12 +96,15 @@ export function useFlowAutosave({
         setStatus('saved');
         setIsDirty(false);
         setLastSavedAt(new Date());
+        return true;
       } else {
         setStatus('error');
+        return false;
       }
     } catch (err) {
       console.error('Autosave error:', err);
       setStatus('error');
+      return false;
     }
   }, [enabled, flowId]);
 

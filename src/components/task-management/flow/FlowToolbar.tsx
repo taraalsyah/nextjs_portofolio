@@ -68,7 +68,7 @@ interface FlowToolbarProps {
   onToggleSnap: () => void;
   showMinimap: boolean;
   onToggleMinimap: () => void;
-  onSave: () => void;
+  onSave: () => void | Promise<boolean>;
   onOpenExport: () => void;
   onOpenImport: () => void;
   onOpenTemplates: () => void;

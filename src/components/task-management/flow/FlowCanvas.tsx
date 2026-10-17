@@ -8,11 +8,9 @@ import {
   MiniMap,
   Connection,
   Edge,
-  Node,
   OnNodesChange,
   OnEdgesChange,
   BackgroundVariant,
-  useReactFlow,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import { AppNode, AppEdge } from '@/types/flow';

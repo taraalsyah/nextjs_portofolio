@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import { getActiveProjectContext } from '@/lib/active-project';
 import { FlowService } from '@/services/flow/flow.service';
 import { updateFlowSchema, validatePayloadSize } from '@/lib/flow/validation';
 import { assertCanViewFlow, assertCanEditFlow } from '@/lib/flow/permissions';

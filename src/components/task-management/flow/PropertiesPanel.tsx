@@ -18,7 +18,6 @@ import {
   ArrowDown,
   ExternalLink,
   PlusCircle,
-  Activity,
 } from 'lucide-react';
 import { AppNode, AppEdge, LineType, StrokeStyle, ArrowMarkerType, EdgeAnimationMode } from '@/types/flow';
 import { getArrowMarkerType } from '@/lib/flow/edgeMarkers';

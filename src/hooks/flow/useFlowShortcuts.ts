@@ -9,7 +9,7 @@ interface ShortcutHandlers {
   onDuplicate?: () => void;
   onDelete?: () => void;
   onSelectAll?: () => void;
-  onSave?: () => void;
+  onSave?: () => void | Promise<boolean>;
   onFitView?: () => void;
   onZoomIn?: () => void;
   onZoomOut?: () => void;

@@ -8,7 +8,7 @@ import styles from './flowComponents.module.css';
 
 interface FlowCardProps {
   flow: FlowListItem;
-  onOpen: (flow: FlowListItem) => void;
+  onOpen?: (flow: FlowListItem) => void;
   onView: (flow: FlowListItem) => void;
   onEdit: (flow: FlowListItem) => void;
   onRename: (flow: FlowListItem) => void;
@@ -20,7 +20,6 @@ interface FlowCardProps {
 
 export function FlowCard({
   flow,
-  onOpen,
   onView,
   onEdit,
   onRename,

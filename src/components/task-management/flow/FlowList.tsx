@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus,
   Search,
@@ -8,7 +8,6 @@ import {
   ChevronLeft,
   ChevronRight,
   RefreshCw,
-  FolderPlus,
   X,
   Check,
 } from 'lucide-react';
@@ -33,8 +32,6 @@ export function FlowList({
   activeProjectId,
   onOpenFlow,
   canEdit = false,
-  canView = true,
-  readOnly = false,
 }: FlowListProps) {
   const toastCtx = useSafeToast();
 

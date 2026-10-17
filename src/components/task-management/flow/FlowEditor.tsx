@@ -916,7 +916,9 @@ function FlowEditorInner({
                 <span
                   className={styles.autosaveError}
                   style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-                  onClick={triggerManualSave}
+                  onClick={() => {
+                    void triggerManualSave();
+                  }}
                 >
                   <AlertCircle size={11} />
                   <span className={styles.autosaveTextLong}>Gagal menyimpan (coba lagi)</span>
