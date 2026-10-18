@@ -817,19 +817,40 @@
   white-space: normal !important;
 }
 
+/* Modifier class to center Title column (header and body cell) on All Tasks */
+.taskTitleCenter {
+  text-align: center !important;
+}
+
+.taskTitleCenter .taskTitleCell {
+  text-align: center;
+}
+
+/* Shared typography for body cell text (Assignee & Title) */
+.taskCellBody,
 .taskTitleCell {
-  font-weight: 600;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--foreground);
+  line-height: 1.4;
+  letter-spacing: normal;
+}
+
+.taskTitleCell {
   cursor: pointer;
-  color: var(--fg-color);
   word-break: break-word;
   overflow-wrap: break-word;
   word-wrap: break-word;
   white-space: normal !important;
-  line-height: 1.4;
   display: block;
   width: 100%;
   max-width: 195px;
   transition: color 0.15s ease;
+}
+
+.taskTitleCell:hover {
+  color: var(--primary);
 }
 
 .actionColTd {
@@ -892,10 +913,6 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-}
-
-.taskTitleCell:hover {
-  color: var(--primary);
 }
 
 /* Badges */

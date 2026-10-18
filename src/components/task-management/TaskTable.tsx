@@ -4,6 +4,9 @@ import React from 'react';
 import { Eye, Edit3, Trash2, Calendar, User, Tag, ChevronLeft, ChevronRight } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import InlineSpinner from '@/components/ui/loading/InlineSpinner';
+import { TASK_TABLE_PAGE_SIZE } from '@/lib/task-constants';
+
+export { TASK_TABLE_PAGE_SIZE };
 
 export interface TaskItem {
   id: number;
@@ -36,6 +39,8 @@ interface TaskTableProps {
   currentPage: number;
   totalPages: number;
   totalItems: number;
+  pageSize?: number;
+  centerTitle?: boolean;
   onPageChange: (page: number) => void;
 }
 
@@ -50,6 +55,8 @@ export function TaskTable({
   currentPage,
   totalPages,
   totalItems,
+  pageSize = TASK_TABLE_PAGE_SIZE,
+  centerTitle = false,
   onPageChange,
 }: TaskTableProps) {
   const getStatusBadge = (status: string) => {
@@ -148,7 +155,7 @@ export function TaskTable({
               <th className={styles.taskNumberTh}>
                 TASK<br />NUMBER
               </th>
-              <th className={styles.taskTitleTd}>Title</th>
+              <th className={`${styles.taskTitleTd} ${centerTitle ? styles.taskTitleCenter : ''}`}>Title</th>
               <th>Status</th>
               <th>Priority</th>
               <th>Category</th>
@@ -201,11 +208,21 @@ export function TaskTable({
                     <td className={styles.taskNumberTd}>
                       <span className={styles.taskNumber}>{task.taskNumber}</span>
                     </td>
-                    <td className={styles.taskTitleTd}>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0, width: '100%' }}>
+                    <td className={`${styles.taskTitleTd} ${centerTitle ? styles.taskTitleCenter : ''}`}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.2rem',
+                          minWidth: 0,
+                          width: '100%',
+                          alignItems: centerTitle ? 'center' : 'flex-start',
+                          textAlign: centerTitle ? 'center' : 'left',
+                        }}
+                      >
                         <span
                           onClick={() => onView(task)}
-                          className={styles.taskTitleCell}
+                          className={`${styles.taskCellBody} ${styles.taskTitleCell}`}
                         >
                           {task.title}
                         </span>
@@ -226,7 +243,7 @@ export function TaskTable({
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                         <User size={13} style={{ color: 'var(--muted-foreground)' }} />
-                        <span style={{ fontSize: '0.8rem' }}>
+                        <span className={styles.taskCellBody}>
                           {task.assignee?.name || 'Unassigned'}
                         </span>
                       </div>

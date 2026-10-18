@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { redirect, useRouter } from 'next/navigation';
+import { redirect, useRouter, useSearchParams } from 'next/navigation';
 import { ListTodo, Plus } from 'lucide-react';
 import styles from './task.module.css';
+import { TASK_TABLE_PAGE_SIZE } from '@/lib/task-constants';
 import { TaskNavTab } from '@/components/task-management/TaskNavTab';
 import { TaskFilterBar } from '@/components/task-management/TaskFilterBar';
 import { TaskTable, TaskItem } from '@/components/task-management/TaskTable';
@@ -36,11 +37,30 @@ export default function AllTasksPage() {
     tasksRef.current = tasks;
   }, [tasks]);
 
+  const searchParams = useSearchParams();
+  const pageFromUrl = parseInt(searchParams?.get('page') || '1', 10);
+  const initialPage = !isNaN(pageFromUrl) && pageFromUrl > 0 ? pageFromUrl : 1;
+
+  const rawLimit = searchParams?.get('limit');
+  const parsedLimit = rawLimit ? parseInt(rawLimit, 10) : NaN;
+  const activeLimit = !isNaN(parsedLimit) && parsedLimit > 0 ? parsedLimit : TASK_TABLE_PAGE_SIZE;
+
   // Pagination & Filter state
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [filterParams, setFilterParams] = useState<Record<string, string>>({});
+
+  // Sync currentPage if page parameter in URL changes
+  useEffect(() => {
+    const rawPage = searchParams?.get('page');
+    if (rawPage) {
+      const p = parseInt(rawPage, 10);
+      if (!isNaN(p) && p > 0 && p !== currentPage) {
+        setCurrentPage(p);
+      }
+    }
+  }, [searchParams]);
 
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -111,7 +131,7 @@ export default function AllTasksPage() {
       const query = new URLSearchParams({
         mode: 'all',
         page: String(currentPage),
-        limit: '10',
+        limit: String(activeLimit),
         ...filterParams,
       });
 
@@ -120,9 +140,14 @@ export default function AllTasksPage() {
 
       if (res.ok) {
         const data = await res.json();
+        const newTotalPages = data.totalPages || 1;
         setTasks(data.tasks || []);
-        setTotalPages(data.totalPages || 1);
+        setTotalPages(newTotalPages);
         setTotalItems(data.totalItems || 0);
+
+        if (currentPage > newTotalPages && newTotalPages >= 1) {
+          setCurrentPage(newTotalPages);
+        }
       } else {
         if (tasksRef.current.length === 0) {
           setTasks([]);
@@ -144,7 +169,7 @@ export default function AllTasksPage() {
         setIsFetching(false);
       }
     }
-  }, [status, activeProjectId, currentPage, filterParams]);
+  }, [status, activeProjectId, currentPage, activeLimit, filterParams]);
 
   const handleFilterChange = useCallback((params: Record<string, string>) => {
     setFilterParams((prev) => {
@@ -286,6 +311,8 @@ export default function AllTasksPage() {
           currentPage={currentPage}
           totalPages={totalPages}
           totalItems={totalItems}
+          pageSize={activeLimit}
+          centerTitle={true}
           onPageChange={(page) => setCurrentPage(page)}
         />
       </div>

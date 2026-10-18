@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
-import { generateNextTaskNumber, logTaskActivity } from '@/lib/task';
+import { generateNextTaskNumber, logTaskActivity, TASK_TABLE_PAGE_SIZE, TASK_TABLE_MAX_PAGE_SIZE } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
 import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
@@ -27,7 +27,11 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const mode = searchParams.get('mode') || 'all'; // 'all' | 'my' | 'kanban' | 'calendar'
     const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1);
-    const limit = Math.max(parseInt(searchParams.get('limit') || '10', 10), 1);
+    const rawLimit = parseInt(searchParams.get('limit') || String(TASK_TABLE_PAGE_SIZE), 10);
+    const limit = Math.min(
+      Math.max(!isNaN(rawLimit) ? rawLimit : TASK_TABLE_PAGE_SIZE, 1),
+      TASK_TABLE_MAX_PAGE_SIZE
+    );
     const search = searchParams.get('search') || '';
     const status = searchParams.get('status') || '';
     const priority = searchParams.get('priority') || '';
