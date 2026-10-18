@@ -1,11 +1,14 @@
-/* Flow Editor Component Styles — Enterprise UI */
-
+/* Flow Editor Component Styles — Enterprise UI
+   Tinggi editorPageWrapper disesuaikan dengan posisi tabNav baru:
+   tabNav naik sebesar 1.25rem (20px), sehingga ruang vertikal yang tersedia bertambah 1.25rem:
+   calc(100dvh - 52px (topbar) - 2.5rem (padding contentContainer) + 1.25rem (offset tabNav)) = calc(100dvh - 52px - 1.25rem)
+*/
 .editorPageWrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: calc(100dvh - 52px - 2.5rem);
-  max-height: calc(100dvh - 52px - 2.5rem);
+  height: calc(100dvh - 52px - 1.25rem);
+  max-height: calc(100dvh - 52px - 1.25rem);
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -1077,6 +1080,13 @@
   :global(.react-flow__edge.animated path.edge-animated-reverse),
   :global(.react-flow__edge.animated.edge-animated-reverse path) {
     animation: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .editorPageWrapper {
+    height: calc(100dvh - 52px - 2.5rem);
+    max-height: calc(100dvh - 52px - 2.5rem);
   }
 }
 

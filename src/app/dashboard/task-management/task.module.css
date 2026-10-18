@@ -19,7 +19,15 @@
   box-sizing: border-box;
 }
 
-/* Submenu Bar Navigation — Clean Underline Indicator */
+/* Submenu Bar Navigation — Clean Underline Indicator
+   Keselarasan vertikal: Tepi bawah tabNav diselaraskan secara vertikal dengan
+   tepi bawah kartu proyek (project switcher) di sidebar kiri desktop:
+   - Sidebar: header (48px) + switcher padding-top (8px / 0.5rem) + kartu proyek (54px) = 110px.
+   - Header topbar (52px) + contentContainer padding-top (20px / 1.25rem) = 72px.
+   - Tinggi tabNav: padding-top (12px / 0.75rem) + tabItem (~41px) + padding-bottom (8px / 0.5rem) + border-bottom (1px) = 62px.
+   - Untuk mencapai target 110px: 110px - (52px + 20px + 62px) = -24px (-1.5rem margin-top).
+   - Selisih yang dikoreksi: dari -0.25rem (-4px) ke -1.5rem (-24px), bergeser naik sebesar 20px (1.25rem).
+*/
 .tabNav {
   display: flex;
   align-items: center;
@@ -28,11 +36,11 @@
   margin-bottom: 1rem;
   overflow-x: auto;
   position: sticky;
-  top: -1.25rem;
+  top: -1.5rem;
   z-index: 30;
   background: var(--background);
   padding: 0.75rem 0 0.5rem 0;
-  margin-top: -0.25rem;
+  margin-top: -1.5rem;
 }
 
 .tabItem {
@@ -1750,6 +1758,11 @@
 }
 
 @media (max-width: 768px) {
+  .tabNav {
+    margin-top: -0.25rem;
+    top: -1.25rem;
+  }
+
   .filterBar {
     display: flex;
     flex-direction: column;
