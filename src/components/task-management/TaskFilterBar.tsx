@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Search, X } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
+import { FilterCollapseToggle } from './FilterCollapseToggle';
 
 interface TaskFilterBarProps {
   onFilterChange: (filters: Record<string, string>) => void;
@@ -13,6 +14,7 @@ interface TaskFilterBarProps {
   hideAssigneeFilter?: boolean;
   hideSearchFilter?: boolean;
   hideSortFilter?: boolean;
+  collapsible?: boolean;
 }
 
 const STATUS_FILTER_OPTIONS: CustomDropdownOption[] = [
@@ -47,6 +49,7 @@ export function TaskFilterBar({
   hideAssigneeFilter = false,
   hideSearchFilter = false,
   hideSortFilter = false,
+  collapsible = true,
 }: TaskFilterBarProps) {
   const [search, setSearch] = useState(initialFilters.search || '');
   const [status, setStatus] = useState(initialFilters.status || '');
@@ -55,6 +58,51 @@ export function TaskFilterBar({
   const [assigneeId, setAssigneeId] = useState(initialFilters.assigneeId || '');
   const [sortBy, setSortBy] = useState(initialFilters.sortBy || 'createdAt');
   const [sortOrder, setSortOrder] = useState(initialFilters.sortOrder || 'desc');
+
+  // Collapse state & transition tracking
+  const [isOpen, setIsOpen] = useState(true);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [enableTransition, setEnableTransition] = useState(false);
+
+  // Read saved collapse preference from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('task-filters-collapsed');
+      if (saved !== null) {
+        const isCollapsed = JSON.parse(saved);
+        if (typeof isCollapsed === 'boolean') {
+          setIsOpen(!isCollapsed);
+        }
+      }
+    } catch {
+      // Graceful fallback for environments with restricted storage
+    }
+
+    const raf = requestAnimationFrame(() => {
+      setEnableTransition(true);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  const handleToggle = useCallback(() => {
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!prefersReducedMotion) {
+      setIsTransitioning(true);
+    }
+
+    setIsOpen((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem('task-filters-collapsed', JSON.stringify(!next));
+      } catch {
+        // Graceful fallback
+      }
+      return next;
+    });
+  }, []);
 
   // Ref to hold current onFilterChange callback without triggering effect restarts
   const onFilterChangeRef = useRef(onFilterChange);
@@ -123,7 +171,11 @@ export function TaskFilterBar({
     { value: 'unassigned', label: 'Unassigned', dotColor: '#94a3b8' },
   ];
 
-  return (
+  const controlsId = 'task-filter-controls-wrapper';
+  const isOverflowVisible = isOpen && !isTransitioning;
+  const isContentVisible = isOpen || isTransitioning;
+
+  const filterContent = (
     <div className={styles.filterBar}>
       {!hideSearchFilter && (
         <div className={`${styles.filterItem} ${styles.filterItemSearch}`}>
@@ -208,5 +260,46 @@ export function TaskFilterBar({
         </div>
       )}
     </div>
+  );
+
+  if (!collapsible) {
+    return filterContent;
+  }
+
+  return (
+    <>
+      <FilterCollapseToggle
+        isOpen={isOpen}
+        onToggle={handleToggle}
+        controlsId={controlsId}
+      />
+
+      <div
+        id={controlsId}
+        className={`${styles.filterCollapseOuter} ${
+          !isOpen ? styles.filterCollapseOuterCollapsed : ''
+        } ${!enableTransition ? styles.noTransition : ''}`}
+        onTransitionEnd={(e) => {
+          if (
+            e.target === e.currentTarget &&
+            e.propertyName === 'grid-template-rows'
+          ) {
+            setIsTransitioning(false);
+          }
+        }}
+        aria-hidden={!isOpen}
+        inert={!isOpen ? true : undefined}
+      >
+        <div
+          className={`${styles.filterCollapseInner} ${
+            isOverflowVisible
+              ? styles.filterCollapseInnerVisible
+              : styles.filterCollapseInnerHidden
+          } ${!isContentVisible ? styles.filterCollapseInnerInvisible : ''}`}
+        >
+          {filterContent}
+        </div>
+      </div>
+    </>
   );
 }
