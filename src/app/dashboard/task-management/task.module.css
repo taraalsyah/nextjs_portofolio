@@ -1465,6 +1465,30 @@
   box-sizing: border-box;
 }
 
+/* Modifiers for Task Form Modal (Create Task & Edit Task) */
+.taskModalOverlay {
+  padding-top: calc(52px + 1rem);
+  padding-bottom: 1.25rem;
+}
+
+.taskModalContent {
+  max-height: calc(100vh - 52px - 2.25rem);
+  max-height: calc(100dvh - 52px - 2.25rem);
+}
+
+.taskModalHeader {
+  padding: 0.75rem 1.25rem;
+}
+
+.taskModalHeader .modalTitle {
+  font-size: 1.15rem;
+}
+
+.taskModalHeader .closeBtn {
+  width: 32px;
+  height: 32px;
+}
+
 .modalHeader {
   display: flex;
   justify-content: space-between;
@@ -1586,17 +1610,22 @@
   flex-direction: column;
   overflow: hidden;
   flex: 1;
+  min-height: 0;
+  margin-top: 0;
+  padding-top: 0;
 }
 
 .formBody {
   --form-field-gap: 12px;
-  padding: 1.5rem;
+  --form-control-height: 36px;
+  --form-control-pad-y: 0.45rem;
+  padding: 0.625rem 1.25rem 1.15rem 1.25rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: var(--form-field-gap);
   flex: 1;
-  max-height: calc(90vh - 135px);
+  min-height: 0;
   scrollbar-width: thin;
   scrollbar-color: var(--border) transparent;
 }
@@ -1616,6 +1645,8 @@
 
 .formGrid {
   --form-field-gap: 12px;
+  --form-control-height: 36px;
+  --form-control-pad-y: 0.45rem;
   display: flex;
   flex-direction: column;
   gap: var(--form-field-gap);
@@ -1627,6 +1658,7 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
+  min-width: 0;
 }
 
 .formGroupFull {
@@ -1634,6 +1666,26 @@
   flex-direction: column;
   gap: 0.5rem;
   width: 100%;
+  min-width: 0;
+}
+
+.formRowTwoCols,
+.dateTimeGridRow {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--form-field-gap, 12px);
+  width: 100%;
+}
+
+/* Solid Opaque Dropdown Panel for formRowTwoCols */
+.formRowTwoCols div[style*="position: absolute"] {
+  background: var(--surface, #ffffff) !important;
+  background-color: #ffffff !important;
+  opacity: 1 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid var(--border, #e2e8f0) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.06), 0 0 0 1px var(--border, #e2e8f0) !important;
 }
 
 .label {
@@ -1741,6 +1793,17 @@
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
+.formBody .input,
+.formBody .select,
+.formGrid .input,
+.formGrid .select {
+  height: var(--form-control-height, 36px);
+  min-height: var(--form-control-height, 36px);
+  padding: var(--form-control-pad-y, 0.45rem) 0.85rem;
+  font-size: 0.875rem;
+  border-radius: var(--radius-md, 8px);
+}
+
 .input::placeholder,
 .textarea::placeholder {
   color: var(--muted-foreground);
@@ -1827,6 +1890,27 @@
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
 }
 
+/* Compact Footer Modifier for Task Form Modal */
+.modalFooterCompact {
+  padding: 0.75rem 1.25rem;
+  gap: 0.5rem;
+}
+
+.modalFooterCompact .modalCancelBtn {
+  height: 36px;
+  padding: 0 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.modalFooterCompact .modalSubmitBtn {
+  height: 36px;
+  padding: 0 1.15rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  gap: 0.4rem;
+}
+
 /* Responsive Rules */
 @media (max-width: 1023px) {
   .kanbanGrid {
@@ -1905,9 +1989,30 @@
     padding: 1rem 1.15rem;
   }
 
+  .taskModalOverlay {
+    padding-top: calc(52px + 0.65rem);
+    padding-bottom: 0.75rem;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  .taskModalContent {
+    max-height: calc(100dvh - 52px - 1.5rem);
+  }
+
+  .taskModalHeader {
+    padding: 0.65rem 1rem;
+  }
+
+  .taskModalHeader .modalTitle {
+    font-size: 1.05rem;
+  }
+
   .formBody {
     --form-field-gap: 10px;
-    padding: 1.15rem;
+    --form-control-height: 36px;
+    --form-control-pad-y: 0.45rem;
+    padding: 0.5rem 1rem 1rem 1rem;
     gap: var(--form-field-gap);
   }
 
@@ -1922,8 +2027,22 @@
     justify-content: center;
   }
 
+  .modalFooterCompact {
+    padding: 0.6rem 1rem;
+    gap: 0.5rem;
+  }
+
+  .modalFooterCompact .modalCancelBtn,
+  .modalFooterCompact .modalSubmitBtn {
+    height: 36px;
+    padding: 0 0.85rem;
+    font-size: 0.8125rem;
+  }
+
   .formGrid {
     --form-field-gap: 10px;
+    --form-control-height: 36px;
+    --form-control-pad-y: 0.45rem;
     gap: var(--form-field-gap);
   }
 
@@ -1935,6 +2054,12 @@
   .formGroupFull,
   .infoCardFull {
     grid-column: span 1;
+  }
+
+  .formRowTwoCols,
+  .dateTimeGridRow {
+    grid-template-columns: 1fr;
+    gap: var(--form-field-gap, 10px);
   }
 
   .calendarGrid {

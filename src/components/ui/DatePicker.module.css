@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.55rem 0.85rem;
+  padding: var(--form-control-pad-y, 0.45rem) 0.85rem;
   background: #ffffff;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
@@ -19,7 +19,7 @@
   cursor: pointer;
   outline: none;
   transition: var(--transition);
-  height: 38px;
+  height: var(--form-control-height, 36px);
 }
 
 .triggerInput:hover:not(:disabled) {

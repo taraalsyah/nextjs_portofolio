@@ -57,7 +57,7 @@ export function CustomDropdown({
   const dotColor = selectedOption?.dotColor || (selectedOption?.value ? '#3B82F6' : 'var(--muted-foreground)');
 
   return (
-    <div ref={dropdownRef} style={{ position: 'relative', width, minWidth }}>
+    <div ref={dropdownRef} style={{ position: 'relative', width: width || '100%', minWidth, zIndex: isOpen ? 50 : 1 }}>
       <button
         type="button"
         onClick={() => !disabled && setIsOpen((prev) => !prev)}
@@ -68,8 +68,8 @@ export function CustomDropdown({
           justifyContent: 'space-between',
           gap: '0.5rem',
           width: '100%',
-          height: '36px',
-          padding: '0.45rem 0.75rem',
+          height: 'var(--form-control-height, 36px)',
+          padding: 'var(--form-control-pad-y, 0.45rem) 0.75rem',
           borderRadius: 'var(--radius-md)',
           background: activeBg,
           border: `1px solid ${activeBorder}`,
@@ -81,7 +81,7 @@ export function CustomDropdown({
           transition: 'var(--transition)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', minWidth: 0 }}>
           <span
             style={{
               width: '8px',
@@ -113,13 +113,15 @@ export function CustomDropdown({
             top: 'calc(100% + 4px)',
             left: 0,
             width: '100%',
-            minWidth: '170px',
+            minWidth: '100%',
+            boxSizing: 'border-box',
             maxHeight: '240px',
             overflowY: 'auto',
-            background: 'var(--surface-elevated)',
+            background: 'var(--surface-elevated, var(--surface, #ffffff))',
+            backgroundColor: '#ffffff',
             border: '1px solid var(--border)',
             borderRadius: 'var(--radius-md)',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.08)',
+            boxShadow: '0 8px 24px -4px rgba(0, 0, 0, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.06)',
             padding: '0.3rem',
             zIndex: 100,
             display: 'flex',
@@ -149,8 +151,8 @@ export function CustomDropdown({
                   padding: '0.45rem 0.65rem',
                   borderRadius: 'var(--radius-sm)',
                   border: isSelected ? `1px solid ${opt.borderColor || 'var(--primary)'}` : '1px solid transparent',
-                  background: isSelected ? (opt.bgColor || 'var(--info-subtle)') : 'transparent',
-                  color: isOptionDisabled ? 'var(--muted-foreground)' : (opt.color || (isSelected ? 'var(--primary)' : 'var(--foreground)')),
+                  background: isSelected ? (opt.bgColor || 'var(--info-subtle, #eff6ff)') : 'transparent',
+                  color: isOptionDisabled ? 'var(--muted-foreground)' : (opt.color || (isSelected ? 'var(--primary, #2563eb)' : 'var(--foreground, #0f172a)')),
                   fontSize: '0.8rem',
                   fontWeight: isSelected ? 600 : 500,
                   cursor: isOptionDisabled ? 'not-allowed' : 'pointer',
@@ -160,7 +162,7 @@ export function CustomDropdown({
                 }}
                 onMouseEnter={(e) => {
                   if (!isSelected && !isOptionDisabled) {
-                    e.currentTarget.style.background = 'var(--secondary)';
+                    e.currentTarget.style.background = 'var(--secondary, #f1f5f9)';
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -169,7 +171,7 @@ export function CustomDropdown({
                   }
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0, flex: 1 }}>
                   <span
                     style={{
                       width: '7px',
@@ -179,7 +181,7 @@ export function CustomDropdown({
                       flexShrink: 0,
                     }}
                   />
-                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{opt.label}</span>
+                  <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{opt.label}</span>
                 </div>
                 {isSelected && <Check size={14} style={{ color: itemDot, flexShrink: 0 }} />}
               </button>

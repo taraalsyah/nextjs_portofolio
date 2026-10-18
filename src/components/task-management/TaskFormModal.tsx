@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Check } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
-import { DatePicker } from '@/components/ui/DatePicker';
-import { TimePicker } from '@/components/ui/TimePicker';
+import { DateTimePicker } from '@/components/ui/DateTimePicker';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
 
 interface TaskFormModalProps {
@@ -18,23 +17,23 @@ interface TaskFormModalProps {
 }
 
 const STATUS_FORM_OPTIONS: CustomDropdownOption[] = [
-  { value: 'BACKLOG', label: 'Backlog', dotColor: '#94a3b8', color: 'hsl(215, 20%, 85%)', bgColor: 'hsla(215, 20%, 65%, 0.15)', borderColor: 'hsla(215, 20%, 65%, 0.3)' },
-  { value: 'OPEN', label: 'Open', dotColor: '#38bdf8', color: 'hsl(210, 90%, 82%)', bgColor: 'hsla(210, 90%, 65%, 0.15)', borderColor: 'hsla(210, 90%, 65%, 0.3)' },
-  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 95%, 55%, 0.18)', borderColor: 'hsla(38, 95%, 55%, 0.35)' },
-  { value: 'DONE', label: 'Done', dotColor: '#10b981', color: 'hsl(145, 80%, 78%)', bgColor: 'hsla(145, 80%, 45%, 0.15)', borderColor: 'hsla(145, 80%, 45%, 0.3)' },
+  { value: 'BACKLOG', label: 'Backlog', dotColor: '#64748b', color: '#475569', bgColor: '#f1f5f9', borderColor: '#cbd5e1' },
+  { value: 'OPEN', label: 'Open', dotColor: '#2563eb', color: '#2563eb', bgColor: '#eff6ff', borderColor: '#bfdbfe' },
+  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#d97706', color: '#d97706', bgColor: '#fffbeb', borderColor: '#fde68a' },
+  { value: 'DONE', label: 'Done', dotColor: '#16a34a', color: '#16a34a', bgColor: '#f0fdf4', borderColor: '#bbf7d0' },
 ];
 
 const PRIORITY_FORM_OPTIONS: CustomDropdownOption[] = [
-  { value: 'LOW', label: 'Low', dotColor: '#38bdf8', color: 'hsl(210, 90%, 80%)', bgColor: 'hsla(210, 80%, 55%, 0.12)', borderColor: 'hsla(210, 80%, 55%, 0.25)' },
-  { value: 'MEDIUM', label: 'Medium', dotColor: '#f59e0b', color: 'hsl(38, 95%, 80%)', bgColor: 'hsla(38, 90%, 55%, 0.15)', borderColor: 'hsla(38, 90%, 55%, 0.25)' },
-  { value: 'HIGH', label: 'High', dotColor: '#f97316', color: 'hsl(15, 95%, 80%)', bgColor: 'hsla(15, 90%, 60%, 0.18)', borderColor: 'hsla(15, 90%, 60%, 0.3)' },
-  { value: 'CRITICAL', label: 'Critical', dotColor: '#f43f5e', color: 'hsl(350, 95%, 82%)', bgColor: 'hsla(350, 90%, 60%, 0.2)', borderColor: 'hsla(350, 90%, 60%, 0.35)' },
+  { value: 'LOW', label: 'Low', dotColor: '#64748b', color: '#475569', bgColor: '#f1f5f9', borderColor: '#cbd5e1' },
+  { value: 'MEDIUM', label: 'Medium', dotColor: '#2563eb', color: '#2563eb', bgColor: '#eff6ff', borderColor: '#bfdbfe' },
+  { value: 'HIGH', label: 'High', dotColor: '#d97706', color: '#d97706', bgColor: '#fffbeb', borderColor: '#fde68a' },
+  { value: 'CRITICAL', label: 'Critical', dotColor: '#dc2626', color: '#dc2626', bgColor: '#fef2f2', borderColor: '#fca5a5' },
 ];
 
-function parseDateParts(dateInput?: string | null): { dateStr: string; timeStr: string } {
-  if (!dateInput) return { dateStr: '', timeStr: '' };
+function parseToDateTimeValue(dateInput?: string | null, fallbackTime?: string): string {
+  if (!dateInput) return '';
   const d = new Date(dateInput);
-  if (isNaN(d.getTime())) return { dateStr: '', timeStr: '' };
+  if (isNaN(d.getTime())) return '';
 
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -42,10 +41,8 @@ function parseDateParts(dateInput?: string | null): { dateStr: string; timeStr: 
   const hh = String(d.getHours()).padStart(2, '0');
   const min = String(d.getMinutes()).padStart(2, '0');
 
-  return {
-    dateStr: `${yyyy}-${mm}-${dd}`,
-    timeStr: `${hh}:${min}`,
-  };
+  const timeStr = hh === '00' && min === '00' && fallbackTime ? fallbackTime : `${hh}:${min}`;
+  return `${yyyy}-${mm}-${dd}T${timeStr}`;
 }
 
 export function TaskFormModal({
@@ -64,9 +61,7 @@ export function TaskFormModal({
   const [categoryId, setCategoryId] = useState('');
   const [tags, setTags] = useState('');
   const [startDate, setStartDate] = useState('');
-  const [startTime, setStartTime] = useState('09:00');
   const [dueDate, setDueDate] = useState('');
-  const [dueTime, setDueTime] = useState('17:00');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -83,13 +78,8 @@ export function TaskFormModal({
       setCategoryId(initialData.categoryId ? String(initialData.categoryId) : defaultCatId);
       setTags(initialData.tags || '');
 
-      const startParts = parseDateParts(initialData.startDate);
-      setStartDate(startParts.dateStr);
-      setStartTime(startParts.timeStr || '09:00');
-
-      const dueParts = parseDateParts(initialData.dueDate);
-      setDueDate(dueParts.dateStr);
-      setDueTime(dueParts.timeStr || '17:00');
+      setStartDate(initialData.startDate ? parseToDateTimeValue(initialData.startDate, '09:00') : '');
+      setDueDate(initialData.dueDate ? parseToDateTimeValue(initialData.dueDate, '17:00') : '');
     } else {
       setTitle('');
       setDescription('');
@@ -99,9 +89,7 @@ export function TaskFormModal({
       setCategoryId(defaultCatId);
       setTags('');
       setStartDate('');
-      setStartTime('09:00');
       setDueDate('');
-      setDueTime('17:00');
     }
     setError(null);
   }, [initialData, isOpen, categories]);
@@ -130,18 +118,16 @@ export function TaskFormModal({
 
     let fullStartDate: string | null = null;
     if (startDate) {
-      const timeComp = startTime || '09:00';
-      fullStartDate = new Date(`${startDate}T${timeComp}:00`).toISOString();
+      fullStartDate = new Date(startDate).toISOString();
     }
 
     let fullDueDate: string | null = null;
     if (dueDate) {
-      const timeComp = dueTime || '17:00';
-      fullDueDate = new Date(`${dueDate}T${timeComp}:00`).toISOString();
+      fullDueDate = new Date(dueDate).toISOString();
     }
 
     if (fullStartDate && fullDueDate && new Date(fullDueDate) < new Date(fullStartDate)) {
-      setError('Tanggal & jam deadline (Due Date) tidak boleh lebih awal dari Start Date.');
+      setError('Tanggal & jam deadline (End Date) tidak boleh lebih awal dari Start Date.');
       return;
     }
 
@@ -185,7 +171,7 @@ export function TaskFormModal({
   ];
 
   const assigneeOptions: CustomDropdownOption[] = [
-    { value: '', label: 'Pilih Assignee', dotColor: 'hsla(0, 0%, 100%, 0.4)' },
+    { value: '', label: 'Pilih Assignee', dotColor: '#94a3b8' },
     ...users.map((u) => ({
       value: String(u.id),
       label: u.name,
@@ -194,9 +180,9 @@ export function TaskFormModal({
   ];
 
   return (
-    <div className={styles.modalOverlay} onClick={onClose}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.modalHeader}>
+    <div className={`${styles.modalOverlay} ${styles.taskModalOverlay}`} onClick={onClose}>
+      <div className={`${styles.modalContent} ${styles.taskModalContent}`} onClick={(e) => e.stopPropagation()}>
+        <div className={`${styles.modalHeader} ${styles.taskModalHeader}`}>
           <h3 className={styles.modalTitle}>
             {initialData ? `Edit Task ${initialData.taskNumber || ''}` : 'Buat Task Baru'}
           </h3>
@@ -259,82 +245,77 @@ export function TaskFormModal({
               />
             </div>
 
-            <div className={styles.formGroupFull}>
-              <label className={styles.label}>Status Workflow</label>
-              <CustomDropdown
-                value={status}
-                options={STATUS_FORM_OPTIONS}
-                onChange={(val) => setStatus(val)}
-                disabled={isSubmitting}
-                minWidth="100%"
-              />
-            </div>
-
-            <div className={styles.formGroupFull}>
-              <label className={styles.label}>Prioritas</label>
-              <CustomDropdown
-                value={priority}
-                options={PRIORITY_FORM_OPTIONS}
-                onChange={(val) => setPriority(val)}
-                disabled={isSubmitting}
-                minWidth="100%"
-              />
-            </div>
-
-            <div className={styles.formGroupFull}>
-              <label className={styles.label}>Kategori</label>
-              <CustomDropdown
-                value={categoryId}
-                options={categoryOptions}
-                onChange={(val) => setCategoryId(val)}
-                disabled={isSubmitting}
-                minWidth="100%"
-              />
-            </div>
-
-            <div className={styles.formGroupFull}>
-              <label className={styles.label}>Penugasan (Assignee)</label>
-              <CustomDropdown
-                value={assigneeId}
-                options={assigneeOptions}
-                onChange={(val) => setAssigneeId(val)}
-                disabled={isSubmitting}
-                minWidth="100%"
-              />
-            </div>
-
-            <div className={styles.formGroupFull}>
-              <label className={styles.label}>Start Date & Jam Mulai</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 115px', gap: '0.5rem' }}>
-                <DatePicker
-                  value={startDate}
-                  onChange={(val) => setStartDate(val)}
-                  placeholder="Pilih Tanggal Mulai"
-                  disabled={isSubmitting || isTaskDone}
+            {/* Row 1: Status Workflow (left) & Prioritas (right) */}
+            <div className={styles.formRowTwoCols}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Status Workflow</label>
+                <CustomDropdown
+                  value={status}
+                  options={STATUS_FORM_OPTIONS}
+                  onChange={(val) => setStatus(val)}
+                  disabled={isSubmitting}
+                  minWidth="100%"
                 />
-                <TimePicker
-                  value={startTime}
-                  onChange={(val) => setStartTime(val)}
-                  placeholder="09:00"
-                  disabled={isSubmitting || isTaskDone}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Prioritas</label>
+                <CustomDropdown
+                  value={priority}
+                  options={PRIORITY_FORM_OPTIONS}
+                  onChange={(val) => setPriority(val)}
+                  disabled={isSubmitting}
+                  minWidth="100%"
                 />
               </div>
             </div>
 
-            <div className={styles.formGroupFull}>
-              <label className={styles.label}>Due Date & Jam Tenggat (Deadline)</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 115px', gap: '0.5rem' }}>
-                <DatePicker
-                  value={dueDate}
-                  onChange={(val) => setDueDate(val)}
-                  minDate={startDate || undefined}
-                  placeholder="Pilih Tanggal Tenggat"
+            {/* Row 2: Kategori (left) & Penugasan (Assignee) (right) */}
+            <div className={styles.formRowTwoCols}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Kategori</label>
+                <CustomDropdown
+                  value={categoryId}
+                  options={categoryOptions}
+                  onChange={(val) => setCategoryId(val)}
+                  disabled={isSubmitting}
+                  minWidth="100%"
+                />
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Penugasan (Assignee)</label>
+                <CustomDropdown
+                  value={assigneeId}
+                  options={assigneeOptions}
+                  onChange={(val) => setAssigneeId(val)}
+                  disabled={isSubmitting}
+                  minWidth="100%"
+                />
+              </div>
+            </div>
+
+            {/* Row 3: Start Date & Time and End Date & Time */}
+            <div className={styles.formRowTwoCols}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Start Date & Time</label>
+                <DateTimePicker
+                  value={startDate}
+                  onChange={(val) => setStartDate(val)}
+                  defaultTime="09:00"
+                  placeholder="Pilih Tanggal & Jam Mulai"
                   disabled={isSubmitting || isTaskDone}
                 />
-                <TimePicker
-                  value={dueTime}
-                  onChange={(val) => setDueTime(val)}
-                  placeholder="17:00"
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>End Date & Time</label>
+                <DateTimePicker
+                  value={dueDate}
+                  onChange={(val) => setDueDate(val)}
+                  defaultTime="17:00"
+                  minDate={startDate ? startDate.substring(0, 10) : undefined}
+                  placeholder="Pilih Tanggal & Jam Selesai"
                   disabled={isSubmitting || isTaskDone}
                 />
               </div>
@@ -352,7 +333,7 @@ export function TaskFormModal({
             </div>
           </div>
 
-          <div className={styles.modalFooter}>
+          <div className={`${styles.modalFooter} ${styles.modalFooterCompact}`}>
             <button
               type="button"
               onClick={onClose}
@@ -367,7 +348,7 @@ export function TaskFormModal({
               disabled={isSubmitting}
               style={{ opacity: isSubmitting ? 0.6 : 1 }}
             >
-              <Check size={16} />
+              <Check size={15} />
               {isSubmitting ? 'Menyimpan...' : initialData ? 'Perbarui Task' : 'Simpan Task'}
             </button>
           </div>
