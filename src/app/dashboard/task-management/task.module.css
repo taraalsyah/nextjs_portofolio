@@ -5,7 +5,7 @@
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--content-gutter, 1.25rem);
   width: 100%;
 }
 
@@ -20,20 +20,25 @@
 }
 
 /* Submenu Bar Navigation — Clean Underline Indicator
-   Keselarasan vertikal: Tepi bawah tabNav diselaraskan secara vertikal dengan
-   tepi bawah kartu proyek (project switcher) di sidebar kiri desktop:
-   - Sidebar: header (48px) + switcher padding-top (8px / 0.5rem) + kartu proyek (54px) = 110px.
-   - Header topbar (52px) + contentContainer padding-top (20px / 1.25rem) = 72px.
-   - Tinggi tabNav: padding-top (12px / 0.75rem) + tabItem (~41px) + padding-bottom (8px / 0.5rem) + border-bottom (1px) = 62px.
-   - Untuk mencapai target 110px: 110px - (52px + 20px + 62px) = -24px (-1.5rem margin-top).
-   - Selisih yang dikoreksi: dari -0.25rem (-4px) ke -1.5rem (-24px), bergeser naik sebesar 20px (1.25rem).
+   1. Keselarasan vertikal atas: Tepi bawah tabNav diselaraskan secara vertikal dengan
+      tepi bawah kartu proyek (project switcher) di sidebar kiri desktop:
+      - Sidebar: header (48px) + switcher padding-top (8px / 0.5rem) + kartu proyek (54px) = 110px.
+      - Header topbar (52px) + contentContainer padding-top (20px / 1.25rem) = 72px.
+      - Tinggi tabNav: padding-top (12px / 0.75rem) + tabItem (~41px) + padding-bottom (8px / 0.5rem) + border-bottom (1px) = 62px.
+      - Untuk mencapai target 110px: 110px - (52px + 20px + 62px) = -24px (-1.5rem margin-top).
+   2. Keselarasan jarak bawah tabNav:
+      - Jarak vertikal antara garis bawah tabNav (border-bottom) dan tepi atas kartu konten
+        disamakan PERSIS dengan jarak horizontal antara sidebar dan kartu konten (20px / 1.25rem).
+      - Jarak dikontrol oleh gap .container (var(--content-gutter, 1.25rem)) dengan margin-bottom: 0 pada tabNav.
+      - Selisih yang dikoreksi: dari 32px (1rem gap + 1rem margin-bottom) menjadi 20px (1.25rem),
+        sehingga kartu konten dan seluruh elemen di bawahnya naik sebesar 12px (0.75rem).
 */
 .tabNav {
   display: flex;
   align-items: center;
   gap: 1.25rem;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 1rem;
+  margin-bottom: 0;
   overflow-x: auto;
   position: sticky;
   top: -1.5rem;

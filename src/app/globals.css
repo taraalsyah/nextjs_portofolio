@@ -67,8 +67,17 @@
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
+  /* Layout Spacing Tokens */
+  --content-gutter: 1.25rem;
+
   /* Transitions */
   --transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@media (max-width: 768px) {
+  :root {
+    --content-gutter: 1rem;
+  }
 }
 
 * {

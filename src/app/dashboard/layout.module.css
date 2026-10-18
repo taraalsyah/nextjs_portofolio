@@ -418,7 +418,7 @@
 /* ─── CONTENT AREA ───────────────────────────────────────────────────────────── */
 .contentContainer {
   flex: 1;
-  padding: 1.25rem;
+  padding: var(--content-gutter, 1.25rem);
   margin-top: 52px;
   position: relative;
   z-index: 10;
@@ -492,7 +492,7 @@
 
   .contentContainer {
     margin-top: calc(56px + env(safe-area-inset-top, 0px));
-    padding: 1.25rem max(1rem, env(safe-area-inset-left, 0px)) calc(2rem + env(safe-area-inset-bottom, 0px)) max(1rem, env(safe-area-inset-right, 0px));
+    padding: var(--content-gutter, 1rem) max(var(--content-gutter, 1rem), env(safe-area-inset-left, 0px)) calc(2rem + env(safe-area-inset-bottom, 0px)) max(var(--content-gutter, 1rem), env(safe-area-inset-right, 0px));
     width: 100%;
     box-sizing: border-box;
   }
