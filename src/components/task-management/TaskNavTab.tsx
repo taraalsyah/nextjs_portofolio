@@ -9,6 +9,7 @@ import {
   UserCheck,
   Kanban,
   Calendar,
+  GanttChart,
   FolderKanban,
   BarChart3,
   Workflow,
@@ -45,6 +46,11 @@ export function TaskNavTab() {
       name: 'Calendar',
       href: '/dashboard/task-management/calendar',
       icon: Calendar,
+    },
+    {
+      name: 'Timeline',
+      href: '/dashboard/task-management/timeline',
+      icon: GanttChart,
     },
     {
       name: 'Flow',

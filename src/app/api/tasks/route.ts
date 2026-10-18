@@ -8,10 +8,12 @@ import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
 import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
 import { getOrCreateUncategorizedCategory } from '@/lib/category-service';
+import { getOrCreateDefaultTaskProject, migrateTaskProjectsAndPhases } from '@/lib/task-project-service';
 
 export async function GET(req: NextRequest) {
   try {
     await ensureDoneRequestColumns().catch(() => {});
+    await migrateTaskProjectsAndPhases().catch(() => {});
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
@@ -115,10 +117,15 @@ export async function GET(req: NextRequest) {
         tags: true,
         startDate: true,
         dueDate: true,
+        taskProjectId: true,
+        phaseId: true,
+        phase: true,
+        phaseRel: { select: { id: true, name: true, order: true } },
         createdAt: true,
         updatedAt: true,
         assignee: { select: { id: true, name: true, image: true } },
         category: { select: { id: true, name: true } },
+        taskProject: { select: { id: true, name: true } },
         checklists: { select: { id: true, isCompleted: true } },
         _count: { select: { comments: true, attachments: true, checklists: true } },
       },
@@ -172,6 +179,9 @@ export async function POST(req: NextRequest) {
       tags,
       startDate,
       dueDate,
+      taskProjectId,
+      phaseId,
+      phase,
     } = body;
 
     if (!title || !title.trim()) {
@@ -231,6 +241,70 @@ export async function POST(req: NextRequest) {
       targetCategoryId = uncategorizedCat.id;
     }
 
+    // Validate taskProjectId belongs to active project
+    let targetTaskProjectId: number | null = null;
+    if (taskProjectId) {
+      const parsedTpId = parseInt(String(taskProjectId), 10);
+      if (!isNaN(parsedTpId) && parsedTpId > 0) {
+        const validTp = await prisma.taskProject.findFirst({
+          where: { id: parsedTpId, projectId: activeProject.projectId },
+        });
+        if (validTp) {
+          targetTaskProjectId = validTp.id;
+        }
+      }
+    }
+
+    if (!targetTaskProjectId) {
+      const defaultTp = await getOrCreateDefaultTaskProject(activeProject.projectId);
+      targetTaskProjectId = defaultTp?.id || null;
+    }
+
+    let targetPhaseId: number | null = null;
+    let targetPhaseName = 'Tanpa Phase';
+
+    if (phaseId) {
+      const parsedPhaseId = parseInt(String(phaseId), 10);
+      if (!isNaN(parsedPhaseId) && parsedPhaseId > 0 && targetTaskProjectId) {
+        const validPhase = await prisma.taskPhase.findFirst({
+          where: { id: parsedPhaseId, taskProjectId: targetTaskProjectId },
+        });
+        if (validPhase) {
+          targetPhaseId = validPhase.id;
+          targetPhaseName = validPhase.name;
+        }
+      }
+    } else if (phase && phase.trim() && phase.trim() !== 'Tanpa Phase' && targetTaskProjectId) {
+      const trimmedPhase = phase.trim();
+      let validPhase = await prisma.taskPhase.findFirst({
+        where: { taskProjectId: targetTaskProjectId, name: trimmedPhase },
+      });
+      if (!validPhase) {
+        try {
+          const maxOrderPhase = await prisma.taskPhase.findFirst({
+            where: { taskProjectId: targetTaskProjectId },
+            orderBy: { order: 'desc' },
+            select: { order: true },
+          });
+          validPhase = await prisma.taskPhase.create({
+            data: {
+              taskProjectId: targetTaskProjectId,
+              name: trimmedPhase,
+              order: (maxOrderPhase?.order ?? -1) + 1,
+            },
+          });
+        } catch {
+          validPhase = await prisma.taskPhase.findFirst({
+            where: { taskProjectId: targetTaskProjectId, name: trimmedPhase },
+          });
+        }
+      }
+      if (validPhase) {
+        targetPhaseId = validPhase.id;
+        targetPhaseName = validPhase.name;
+      }
+    }
+
     // Atomic creation
     const task = await prisma.$transaction(async (tx) => {
       const taskNumber = await generateNextTaskNumber(tx);
@@ -249,6 +323,9 @@ export async function POST(req: NextRequest) {
           tags: tags?.trim() || null,
           startDate: parsedStartDate,
           dueDate: parsedDueDate,
+          taskProjectId: targetTaskProjectId,
+          phaseId: targetPhaseId,
+          phase: targetPhaseName,
         },
         select: {
           id: true,
@@ -264,6 +341,10 @@ export async function POST(req: NextRequest) {
           tags: true,
           startDate: true,
           dueDate: true,
+          taskProjectId: true,
+          phaseId: true,
+          phase: true,
+          phaseRel: { select: { id: true, name: true, order: true } },
           createdAt: true,
           updatedAt: true,
           assignee: { select: { id: true, name: true } },

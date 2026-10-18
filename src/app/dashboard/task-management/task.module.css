@@ -2123,6 +2123,647 @@
   }
 }
 
+/* ===== Inline Project Creation ===== */
+.dropdownWithAction {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+}
+
+.dropdownWithAction > div:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.addInlineBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
+  color: white;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.addInlineBtn:hover {
+  background: var(--primary-hover);
+}
+
+.inlineCreateGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.inlineCreateActions {
+  display: flex;
+  gap: 4px;
+}
+
+.inlineCreateBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md, 6px);
+  background: var(--primary);
+  border: 1px solid var(--primary-hover);
+  color: white;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.inlineCreateBtn:hover {
+  background: var(--primary-hover);
+}
+
+.inlineCreateBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.inlineCancelBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md, 6px);
+  background: var(--surface-hover, #374151);
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.inlineCancelBtn:hover {
+  background: var(--border);
+}
+
+.inlineCreateError {
+  font-size: 0.75rem;
+  color: hsl(350, 95%, 70%);
+}
+
+/* ===== Timeline / Gantt Chart ===== */
+.timelineContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-height: 300px;
+}
+
+.timelineToolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 0 0 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.timelineFilterGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timelineFilterLabel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.timelineLegend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--muted-foreground);
+  white-space: nowrap;
+}
+
+.legendDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* Gantt scroll wrapper */
+.ganttWrapper {
+  display: flex;
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* Sticky left panel (task names) */
+.ganttSidebar {
+  flex-shrink: 0;
+  width: 220px;
+  min-width: 220px;
+  border-right: 2px solid var(--border);
+  background: var(--surface);
+  z-index: 10;
+  overflow-y: auto;
+}
+
+.ganttSidebarHeader {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  height: 40px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--foreground);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 5;
+}
+
+.ganttSidebarRow {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  height: 36px;
+  font-size: 0.78rem;
+  color: var(--foreground);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.ganttSidebarRow:hover {
+  background: var(--surface-hover, rgba(255, 255, 255, 0.04));
+}
+
+.ganttSidebarPhaseRow {
+  composes: ganttSidebarRow;
+  font-weight: 700;
+  font-size: 0.76rem;
+  color: var(--primary);
+  background: rgba(99, 102, 241, 0.06);
+  cursor: default;
+}
+
+.ganttSidebarPhaseRow:hover {
+  background: rgba(99, 102, 241, 0.08);
+}
+
+.ganttSidebarProjectRow {
+  composes: ganttSidebarRow;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--foreground);
+  background: rgba(139, 92, 246, 0.08);
+  cursor: default;
+  height: 40px;
+}
+
+.ganttSidebarProjectRow:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.phaseProgress {
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* Right scrollable chart area */
+.ganttChart {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+}
+
+.ganttGrid {
+  display: flex;
+  flex-direction: column;
+  min-width: max-content;
+  position: relative;
+}
+
+/* Header row with dates */
+.ganttDateHeader {
+  display: flex;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  height: 40px;
+}
+
+.ganttDateCell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: var(--gantt-col-width, 36px);
+  min-width: var(--gantt-col-width, 36px);
+  padding: 2px 0;
+  font-size: 0.65rem;
+  font-weight: 500;
+  color: var(--muted-foreground);
+  border-right: 1px solid var(--border);
+  user-select: none;
+}
+
+.ganttDateCellDay {
+  font-size: 0.6rem;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.ganttDateCellToday {
+  composes: ganttDateCell;
+  background: rgba(239, 68, 68, 0.08);
+  color: #ef4444;
+  font-weight: 700;
+}
+
+.ganttDateCellWeekend {
+  composes: ganttDateCell;
+  display: none;
+}
+
+/* Chart rows */
+.ganttRow {
+  display: flex;
+  position: relative;
+  height: 36px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ganttPhaseRow {
+  composes: ganttRow;
+  background: rgba(99, 102, 241, 0.03);
+}
+
+.ganttProjectRow {
+  composes: ganttRow;
+  background: rgba(139, 92, 246, 0.04);
+  height: 40px;
+}
+
+.ganttCell {
+  width: var(--gantt-col-width, 36px);
+  min-width: var(--gantt-col-width, 36px);
+  border-right: 1px solid var(--border);
+  position: relative;
+}
+
+/* Task bars */
+.ganttBar {
+  position: absolute;
+  top: 6px;
+  height: 24px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  padding: 0 6px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  z-index: 3;
+  transition: filter 0.15s ease, transform 0.1s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 8px;
+}
+
+.ganttBar:hover {
+  filter: brightness(1.15);
+  transform: translateY(-1px);
+  z-index: 4;
+}
+
+.ganttBarBacklog {
+  background: #64748b;
+}
+
+.ganttBarOpen {
+  background: #3b82f6;
+}
+
+.ganttBarInProgress {
+  background: #d97706;
+}
+
+.ganttBarDone {
+  background: #16a34a;
+}
+
+.ganttBarOverdue {
+  background: #dc2626;
+}
+
+.ganttBarPhase {
+  background: rgba(99, 102, 241, 0.25);
+  border: 1px solid rgba(99, 102, 241, 0.5);
+  color: var(--foreground);
+  font-size: 0.66rem;
+  font-weight: 500;
+  height: 24px;
+  top: 6px;
+}
+
+.ganttBarProject {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.45);
+  color: var(--foreground);
+  font-size: 0.7rem;
+  font-weight: 600;
+  height: 28px;
+  top: 6px;
+}
+
+/* Today line */
+.todayLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #ef4444;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.todayLine::before {
+  content: 'Today';
+  position: absolute;
+  top: -18px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: #ef4444;
+  white-space: nowrap;
+}
+
+/* Tooltip */
+.ganttTooltip {
+  position: fixed;
+  z-index: 9999;
+  padding: 10px 14px;
+  background: var(--surface, #1e1e2e);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  font-size: 0.78rem;
+  color: var(--foreground);
+  pointer-events: none;
+  max-width: 320px;
+  min-width: 200px;
+}
+
+.ganttTooltipTitle {
+  font-weight: 700;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+  color: var(--foreground);
+}
+
+.ganttTooltipRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.ganttTooltipLabel {
+  font-weight: 600;
+  color: var(--foreground);
+  min-width: 65px;
+}
+
+.ganttTooltipBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+/* Priority dots in sidebar */
+.priorityDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-right: 6px;
+}
+
+/* Assignee badge in sidebar */
+.ganttAssignee {
+  font-size: 0.66rem;
+  color: var(--muted-foreground);
+  margin-left: 6px;
+  flex-shrink: 0;
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Empty state */
+.timelineEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  gap: 12px;
+  color: var(--muted-foreground);
+  text-align: center;
+}
+
+.timelineEmptyIcon {
+  opacity: 0.3;
+}
+
+.timelineEmptyText {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.timelineEmptySubtext {
+  font-size: 0.78rem;
+  opacity: 0.7;
+}
+
+/* Timeline Action Buttons & Management */
+.timelineBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.timelineToolbarBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 12px;
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface-hover, rgba(255, 255, 255, 0.06));
+  border: 1px solid var(--border);
+  color: var(--foreground);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.timelineToolbarBtn:hover:not(:disabled) {
+  background: var(--border);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.timelineToolbarBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.timelineToolbarBtnPrimary {
+  background: var(--primary);
+  border-color: var(--primary-hover);
+  color: white;
+}
+
+.timelineToolbarBtnPrimary:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.phaseActionGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: auto;
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.timelineActionBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  transition: all 0.12s ease;
+  padding: 0;
+}
+
+.timelineActionBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--foreground);
+}
+
+.timelineActionBtnDanger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.phaseAddTaskBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 4px;
+  background: var(--primary);
+  border: none;
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  white-space: nowrap;
+}
+
+.phaseAddTaskBtn:hover {
+  background: var(--primary-hover);
+}
+
+.deleteWarningBox {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  background: hsla(350, 90%, 55%, 0.12);
+  border: 1px solid hsla(350, 90%, 55%, 0.3);
+  color: hsl(350, 95%, 85%);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+
+@media (max-width: 768px) {
+  .ganttSidebar {
+    width: 150px;
+    min-width: 150px;
+  }
+
+  .ganttDateCell,
+  .ganttDateCellToday {
+    width: 30px;
+    min-width: 30px;
+    font-size: 0.58rem;
+  }
+
+  .ganttCell {
+    width: 30px;
+    min-width: 30px;
+  }
+
+  .timelineLegend {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .filterToggleIcon,
   .filterCollapseOuter,

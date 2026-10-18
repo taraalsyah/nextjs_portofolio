@@ -13,6 +13,14 @@ function createPrismaClient(): PrismaClient {
   });
 }
 
+// Reset client if running server has outdated client lacking newer models
+if (globalForPrisma.prisma && (!(globalForPrisma.prisma as any).taskProject || !(globalForPrisma.prisma as any).taskPhase)) {
+  try {
+    (globalForPrisma.prisma as any).$disconnect();
+  } catch {}
+  globalForPrisma.prisma = undefined;
+}
+
 export const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== 'production' && typeof window === 'undefined') {

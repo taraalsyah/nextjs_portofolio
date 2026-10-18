@@ -1,48 +1,52 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { X, Check, Plus } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { CustomDropdown, CustomDropdownOption } from '@/components/ui/CustomDropdown';
-import { DateTimePicker } from '@/components/ui/DateTimePicker';
 import { RichTextEditor } from '@/components/ui/RichTextEditor';
+import { DateTimePicker } from '@/components/ui/DateTimePicker';
 
-interface TaskFormModalProps {
+export interface TaskFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (formData: any) => Promise<void>;
+  onSubmit: (taskData: any) => Promise<void>;
   initialData?: any;
   categories: { id: number; name: string }[];
   users: { id: number; name: string }[];
 }
 
 const STATUS_FORM_OPTIONS: CustomDropdownOption[] = [
-  { value: 'BACKLOG', label: 'Backlog', dotColor: '#64748b', color: '#475569', bgColor: '#f1f5f9', borderColor: '#cbd5e1' },
-  { value: 'OPEN', label: 'Open', dotColor: '#2563eb', color: '#2563eb', bgColor: '#eff6ff', borderColor: '#bfdbfe' },
-  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#d97706', color: '#d97706', bgColor: '#fffbeb', borderColor: '#fde68a' },
-  { value: 'DONE', label: 'Done', dotColor: '#16a34a', color: '#16a34a', bgColor: '#f0fdf4', borderColor: '#bbf7d0' },
+  { value: 'BACKLOG', label: 'Backlog', dotColor: '#94a3b8' },
+  { value: 'IN_PROGRESS', label: 'In Progress', dotColor: '#3b82f6' },
+  { value: 'IN_REVIEW', label: 'In Review', dotColor: '#a855f7' },
 ];
 
 const PRIORITY_FORM_OPTIONS: CustomDropdownOption[] = [
-  { value: 'LOW', label: 'Low', dotColor: '#64748b', color: '#475569', bgColor: '#f1f5f9', borderColor: '#cbd5e1' },
-  { value: 'MEDIUM', label: 'Medium', dotColor: '#2563eb', color: '#2563eb', bgColor: '#eff6ff', borderColor: '#bfdbfe' },
-  { value: 'HIGH', label: 'High', dotColor: '#d97706', color: '#d97706', bgColor: '#fffbeb', borderColor: '#fde68a' },
-  { value: 'CRITICAL', label: 'Critical', dotColor: '#dc2626', color: '#dc2626', bgColor: '#fef2f2', borderColor: '#fca5a5' },
+  { value: 'LOW', label: 'Low', dotColor: '#10b981' },
+  { value: 'MEDIUM', label: 'Medium', dotColor: '#f59e0b' },
+  { value: 'HIGH', label: 'High', dotColor: '#ef4444' },
+  { value: 'URGENT', label: 'Urgent', dotColor: '#dc2626' },
 ];
 
-function parseToDateTimeValue(dateInput?: string | null, fallbackTime?: string): string {
-  if (!dateInput) return '';
-  const d = new Date(dateInput);
+const DEFAULT_PHASE_SUGGESTIONS = [
+  'Tanpa Phase',
+  'Discovery & Planning',
+  'Development',
+  'Testing / QA',
+  'Deployment / Release',
+];
+
+function parseToDateTimeValue(dateString: string | null | undefined, defaultTime = '00:00'): string {
+  if (!dateString) return '';
+  const d = new Date(dateString);
   if (isNaN(d.getTime())) return '';
-
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-
-  const timeStr = hh === '00' && min === '00' && fallbackTime ? fallbackTime : `${hh}:${min}`;
-  return `${yyyy}-${mm}-${dd}T${timeStr}`;
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
 export function TaskFormModal({
@@ -62,8 +66,68 @@ export function TaskFormModal({
   const [tags, setTags] = useState('');
   const [startDate, setStartDate] = useState('');
   const [dueDate, setDueDate] = useState('');
+  const [taskProjectId, setTaskProjectId] = useState('');
+  const [phaseId, setPhaseId] = useState<number | null>(null);
+  const [phase, setPhase] = useState('Tanpa Phase');
+  const [projectPhases, setProjectPhases] = useState<{ id: number; name: string; order: number }[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Task projects state
+  const [taskProjects, setTaskProjects] = useState<{ id: number; name: string }[]>([]);
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [newProjectName, setNewProjectName] = useState('');
+  const [projectCreateError, setProjectCreateError] = useState<string | null>(null);
+
+  // Phase creation state
+  const [isCreatingPhase, setIsCreatingPhase] = useState(false);
+  const [newPhaseName, setNewPhaseName] = useState('');
+  const [phaseCreateError, setPhaseCreateError] = useState<string | null>(null);
+
+  // Fetch task projects when modal opens
+  const fetchTaskProjects = useCallback(async () => {
+    try {
+      const res = await fetch('/api/task-projects');
+      if (res.ok) {
+        const data = await res.json();
+        setTaskProjects(data.taskProjects || []);
+      }
+    } catch {
+      // silently fail
+    }
+  }, []);
+
+  // Fetch phases for currently selected taskProjectId
+  const fetchPhasesForProject = useCallback(async (tpId: string) => {
+    if (!tpId) {
+      setProjectPhases([]);
+      return;
+    }
+    try {
+      const res = await fetch(`/api/task-phases?taskProjectId=${tpId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setProjectPhases(data.phases || []);
+      }
+    } catch {
+      setProjectPhases([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchTaskProjects();
+    }
+  }, [isOpen, fetchTaskProjects]);
+
+  // When taskProjectId changes, fetch phases for that project
+  useEffect(() => {
+    if (taskProjectId) {
+      fetchPhasesForProject(taskProjectId);
+    } else {
+      setProjectPhases([]);
+    }
+  }, [taskProjectId, fetchPhasesForProject]);
 
   useEffect(() => {
     const uncategorizedCat = categories.find((c) => c.name === 'Uncategorized');
@@ -77,9 +141,16 @@ export function TaskFormModal({
       setAssigneeId(initialData.assigneeId ? String(initialData.assigneeId) : '');
       setCategoryId(initialData.categoryId ? String(initialData.categoryId) : defaultCatId);
       setTags(initialData.tags || '');
-
       setStartDate(initialData.startDate ? parseToDateTimeValue(initialData.startDate, '09:00') : '');
       setDueDate(initialData.dueDate ? parseToDateTimeValue(initialData.dueDate, '17:00') : '');
+      const initTpId = initialData.taskProjectId ? String(initialData.taskProjectId) : '';
+      setTaskProjectId(initTpId);
+      const initPhase = initialData.phase && initialData.phase.trim() ? initialData.phase.trim() : 'Tanpa Phase';
+      setPhase(initPhase);
+      setPhaseId(initialData.phaseId || null);
+      if (initTpId) {
+        fetchPhasesForProject(initTpId);
+      }
     } else {
       setTitle('');
       setDescription('');
@@ -90,13 +161,82 @@ export function TaskFormModal({
       setTags('');
       setStartDate('');
       setDueDate('');
+      setTaskProjectId('');
+      setPhase('Tanpa Phase');
+      setPhaseId(null);
+      setProjectPhases([]);
     }
     setError(null);
-  }, [initialData, isOpen, categories]);
+    setIsCreatingProject(false);
+    setNewProjectName('');
+    setProjectCreateError(null);
+    setIsCreatingPhase(false);
+    setNewPhaseName('');
+    setPhaseCreateError(null);
+  }, [initialData, isOpen, categories, fetchPhasesForProject]);
 
   if (!isOpen) return null;
 
   const isTaskDone = Boolean(initialData?.status === 'DONE' || initialData?.status === 'CLOSED' || initialData?.isLocked);
+
+  const handleCreateProject = async () => {
+    if (!newProjectName.trim()) return;
+    setProjectCreateError(null);
+
+    try {
+      const res = await fetch('/api/task-projects', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newProjectName.trim() }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setTaskProjects((prev) => [...prev, data.taskProject]);
+        setTaskProjectId(String(data.taskProject.id));
+        setIsCreatingProject(false);
+        setNewProjectName('');
+      } else {
+        const data = await res.json();
+        setProjectCreateError(data.error || 'Gagal membuat proyek.');
+      }
+    } catch {
+      setProjectCreateError('Gagal membuat proyek.');
+    }
+  };
+
+  const handleCreatePhase = async () => {
+    const trimmed = newPhaseName.trim();
+    if (!trimmed) return;
+    setPhaseCreateError(null);
+
+    if (!taskProjectId) {
+      setPhaseCreateError('Pilih Proyek/Fitur terlebih dahulu sebelum membuat Phase.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/task-phases', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskProjectId: parseInt(taskProjectId, 10), name: trimmed }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setProjectPhases((prev) => [...prev, data.taskPhase]);
+        setPhase(data.taskPhase.name);
+        setPhaseId(data.taskPhase.id);
+        setIsCreatingPhase(false);
+        setNewPhaseName('');
+      } else {
+        const data = await res.json();
+        setPhaseCreateError(data.error || 'Gagal membuat phase.');
+      }
+    } catch {
+      setPhaseCreateError('Gagal membuat phase.');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,6 +276,15 @@ export function TaskFormModal({
 
     const uncategorizedCat = categories.find((c) => c.name === 'Uncategorized');
 
+    // Resolve matching phaseId from projectPhases
+    let resolvedPhaseId = phaseId;
+    if (phase && phase !== 'Tanpa Phase') {
+      const matchingP = projectPhases.find((p) => p.name.toLowerCase() === phase.trim().toLowerCase());
+      if (matchingP) resolvedPhaseId = matchingP.id;
+    } else {
+      resolvedPhaseId = null;
+    }
+
     try {
       await onSubmit({
         title: title.trim(),
@@ -147,6 +296,9 @@ export function TaskFormModal({
         tags: tags.trim() || null,
         startDate: fullStartDate,
         dueDate: fullDueDate,
+        taskProjectId: taskProjectId || null,
+        phaseId: resolvedPhaseId,
+        phase: phase.trim() || 'Tanpa Phase',
       });
       onClose();
     } catch (err: any) {
@@ -179,6 +331,30 @@ export function TaskFormModal({
     })),
   ];
 
+  // Options for Project/Fitur
+  const taskProjectOptions: CustomDropdownOption[] = [
+    { value: '', label: 'Tanpa Proyek', dotColor: '#94a3b8' },
+    ...taskProjects.map((tp) => ({
+      value: String(tp.id),
+      label: tp.name,
+      dotColor: '#8b5cf6',
+    })),
+    { value: '__ADD_NEW_PROJECT__', label: '+ Tambah Proyek Baru', dotColor: '#38bdf8' },
+  ];
+
+  // Options for Phase (scoped strictly to selected Project/Fitur)
+  const phaseOptions: CustomDropdownOption[] = [
+    { value: 'Tanpa Phase', label: 'Tanpa Phase', dotColor: '#94a3b8' },
+    ...projectPhases.map((p) => ({
+      value: p.name,
+      label: p.name,
+      dotColor: '#a855f7',
+    })),
+    ...(taskProjectId
+      ? [{ value: '__ADD_NEW_PHASE__', label: '+ Tambah Phase Baru', dotColor: '#38bdf8' }]
+      : []),
+  ];
+
   return (
     <div className={`${styles.modalOverlay} ${styles.taskModalOverlay}`} onClick={onClose}>
       <div className={`${styles.modalContent} ${styles.taskModalContent}`} onClick={(e) => e.stopPropagation()}>
@@ -208,14 +384,14 @@ export function TaskFormModal({
                   background: 'hsla(350, 90%, 55%, 0.15)',
                   border: '1px solid hsla(350, 90%, 55%, 0.3)',
                   color: 'hsl(350, 95%, 85%)',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
+                  fontSize: '0.875rem',
                 }}
               >
                 {error}
               </div>
             )}
 
+            {/* Field: Judul Task */}
             <div className={styles.formGroupFull}>
               <div className={styles.labelRow}>
                 <label className={styles.label}>Judul Task *</label>
@@ -234,6 +410,163 @@ export function TaskFormModal({
               />
             </div>
 
+            {/* Row right below Judul Task: Project/Fitur (left) & Phase (right) */}
+            <div className={styles.formRowTwoCols}>
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Project / Fitur</label>
+                {isCreatingProject ? (
+                  <div className={styles.inlineCreateGroup}>
+                    <input
+                      type="text"
+                      placeholder="Nama proyek baru..."
+                      value={newProjectName}
+                      onChange={(e) => setNewProjectName(e.target.value)}
+                      className={styles.input}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleCreateProject();
+                        }
+                        if (e.key === 'Escape') {
+                          setIsCreatingProject(false);
+                          setNewProjectName('');
+                          setProjectCreateError(null);
+                        }
+                      }}
+                    />
+                    <div className={styles.inlineCreateActions}>
+                      <button
+                        type="button"
+                        className={styles.inlineCreateBtn}
+                        onClick={handleCreateProject}
+                        disabled={!newProjectName.trim()}
+                        title="Simpan Proyek"
+                      >
+                        <Check size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.inlineCancelBtn}
+                        onClick={() => {
+                          setIsCreatingProject(false);
+                          setNewProjectName('');
+                          setProjectCreateError(null);
+                        }}
+                        title="Batal"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    {projectCreateError && (
+                      <span className={styles.inlineCreateError}>{projectCreateError}</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className={styles.dropdownWithAction}>
+                    <CustomDropdown
+                      value={taskProjectId}
+                      options={taskProjectOptions}
+                      onChange={(val) => {
+                        if (val === '__ADD_NEW_PROJECT__') {
+                          setIsCreatingProject(true);
+                        } else {
+                          setTaskProjectId(val);
+                        }
+                      }}
+                      disabled={isSubmitting}
+                      minWidth="100%"
+                    />
+                    <button
+                      type="button"
+                      className={styles.addInlineBtn}
+                      onClick={() => setIsCreatingProject(true)}
+                      title="Tambah Proyek Baru"
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className={styles.formGroup}>
+                <label className={styles.label}>Phase (Opsional)</label>
+                {isCreatingPhase ? (
+                  <div className={styles.inlineCreateGroup}>
+                    <input
+                      type="text"
+                      placeholder="Nama phase baru..."
+                      value={newPhaseName}
+                      onChange={(e) => setNewPhaseName(e.target.value)}
+                      className={styles.input}
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleCreatePhase();
+                        }
+                        if (e.key === 'Escape') {
+                          setIsCreatingPhase(false);
+                          setNewPhaseName('');
+                        }
+                      }}
+                    />
+                    <div className={styles.inlineCreateActions}>
+                      <button
+                        type="button"
+                        className={styles.inlineCreateBtn}
+                        onClick={handleCreatePhase}
+                        disabled={!newPhaseName.trim()}
+                        title="Gunakan Phase"
+                      >
+                        <Check size={14} />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.inlineCancelBtn}
+                        onClick={() => {
+                          setIsCreatingPhase(false);
+                          setNewPhaseName('');
+                        }}
+                        title="Batal"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    {phaseCreateError && (
+                      <span className={styles.inlineCreateError}>{phaseCreateError}</span>
+                    )}
+                  </div>
+                ) : (
+                  <div className={styles.dropdownWithAction}>
+                    <CustomDropdown
+                      value={phase}
+                      options={phaseOptions}
+                      onChange={(val) => {
+                        if (val === '__ADD_NEW_PHASE__') {
+                          setIsCreatingPhase(true);
+                        } else {
+                          setPhase(val);
+                        }
+                      }}
+                      disabled={isSubmitting || isTaskDone}
+                      minWidth="100%"
+                    />
+                    <button
+                      type="button"
+                      className={styles.addInlineBtn}
+                      onClick={() => setIsCreatingPhase(true)}
+                      title="Tambah Phase Baru"
+                      disabled={isSubmitting || isTaskDone}
+                    >
+                      <Plus size={14} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Field: Deskripsi */}
             <div className={styles.formGroupFull}>
               <label className={styles.label}>Deskripsi *</label>
               <RichTextEditor
@@ -321,6 +654,7 @@ export function TaskFormModal({
               </div>
             </div>
 
+            {/* Tags */}
             <div className={styles.formGroupFull}>
               <label className={styles.label}>Tags (Pisahkan dengan koma)</label>
               <input
@@ -337,19 +671,17 @@ export function TaskFormModal({
             <button
               type="button"
               onClick={onClose}
-              className={styles.modalCancelBtn}
+              className={`${styles.cancelBtn} ${styles.btnCompact}`}
               disabled={isSubmitting}
             >
               Batal
             </button>
             <button
               type="submit"
-              className={styles.modalSubmitBtn}
-              disabled={isSubmitting}
-              style={{ opacity: isSubmitting ? 0.6 : 1 }}
+              className={`${styles.submitBtn} ${styles.btnCompact}`}
+              disabled={isSubmitting || isTaskDone}
             >
-              <Check size={15} />
-              {isSubmitting ? 'Menyimpan...' : initialData ? 'Perbarui Task' : 'Simpan Task'}
+              {isSubmitting ? 'Menyimpan...' : initialData ? 'Perbarui Task' : 'Buat Task'}
             </button>
           </div>
         </form>

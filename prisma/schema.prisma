@@ -210,6 +210,7 @@ model Project {
   owner               User                        @relation("ProjectOwner", fields: [ownerUserId], references: [id], onDelete: Cascade)
   tasks               Task[]
   categories          TaskCategory[]
+  taskProjects        TaskProject[]
   payment             ProjectPayment?             @relation("ProjectPayment")
   flows               Flow[]
 
@@ -265,6 +266,9 @@ model Task {
   tags               String?          @db.Text
   startDate          DateTime?        @map("start_date")
   dueDate            DateTime?        @map("due_date")
+  taskProjectId      Int?             @map("task_project_id")
+  phaseId            Int?             @map("phase_id")
+  phase              String?          @default("Tanpa Phase")
   createdAt          DateTime         @default(now()) @map("created_at")
   updatedAt          DateTime         @updatedAt @map("updated_at")
   deletedAt          DateTime?        @map("deleted_at")
@@ -297,8 +301,12 @@ model Task {
   doneRequestedBy    User?            @relation("DoneRequester", fields: [doneRequestedById], references: [id])
   doneReviewedBy     User?            @relation("DoneReviewer", fields: [doneReviewedById], references: [id])
   project            Project?         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  taskProject        TaskProject?     @relation(fields: [taskProjectId], references: [id], onDelete: SetNull)
+  phaseRel           TaskPhase?       @relation(fields: [phaseId], references: [id], onDelete: SetNull)
 
   @@index([projectId])
+  @@index([taskProjectId])
+  @@index([phaseId])
   @@index([status])
   @@index([priority])
   @@index([assigneeId])
@@ -510,3 +518,35 @@ model Flow {
   @@map("flows")
 }
 
+model TaskProject {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String?     @db.Text
+  projectId   Int         @map("project_id")
+  createdAt   DateTime    @default(now()) @map("created_at")
+  updatedAt   DateTime    @updatedAt @map("updated_at")
+
+  project     Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  phases      TaskPhase[]
+
+  @@unique([projectId, name])
+  @@index([projectId])
+  @@map("task_projects")
+}
+
+model TaskPhase {
+  id            Int         @id @default(autoincrement())
+  name          String
+  order         Int         @default(0)
+  taskProjectId Int         @map("task_project_id")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  taskProject   TaskProject @relation(fields: [taskProjectId], references: [id], onDelete: Cascade)
+  tasks         Task[]
+
+  @@unique([taskProjectId, name])
+  @@index([taskProjectId])
+  @@map("task_phases")
+}

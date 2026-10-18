@@ -9,6 +9,7 @@ import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
 import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
 import { getOrCreateUncategorizedCategory } from '@/lib/category-service';
+import { getOrCreateDefaultTaskProject } from '@/lib/task-project-service';
 
 // Updated route with Done Request Approval Workflow & Stale-Client Purging
 export async function GET(
@@ -74,6 +75,11 @@ export async function GET(
         assignee: { select: { id: true, name: true, username: true, email: true, image: true } },
         createdBy: { select: { id: true, name: true, username: true, email: true, image: true } },
         category: { select: { id: true, name: true, description: true } },
+        taskProjectId: true,
+        phaseId: true,
+        phase: true,
+        phaseRel: { select: { id: true, name: true, order: true } },
+        taskProject: { select: { id: true, name: true, description: true } },
         checklists: { orderBy: { createdAt: 'asc' } },
         comments: {
           orderBy: { createdAt: 'asc' },
@@ -196,6 +202,9 @@ export async function PUT(
       tags,
       startDate,
       dueDate,
+      taskProjectId,
+      phaseId,
+      phase,
     } = body;
 
     // 🔒 WORKFLOW STATUS VALIDATION
@@ -281,6 +290,92 @@ export async function PUT(
       newCategoryId = uncategorizedCat.id;
     }
 
+    // Validate taskProjectId if provided
+    let newTaskProjectId = oldTask.taskProjectId;
+    if (taskProjectId !== undefined) {
+      if (taskProjectId === null || taskProjectId === '' || taskProjectId === 0) {
+        const defaultTp = await getOrCreateDefaultTaskProject(activeProject.projectId);
+        newTaskProjectId = defaultTp?.id || null;
+      } else {
+        const parsedTpId = parseInt(String(taskProjectId), 10);
+        if (!isNaN(parsedTpId) && parsedTpId > 0) {
+          const validTp = await prisma.taskProject.findFirst({
+            where: { id: parsedTpId, projectId: activeProject.projectId },
+          });
+          if (validTp) {
+            newTaskProjectId = validTp.id;
+          } else {
+            const defaultTp = await getOrCreateDefaultTaskProject(activeProject.projectId);
+            newTaskProjectId = defaultTp?.id || null;
+          }
+        } else {
+          const defaultTp = await getOrCreateDefaultTaskProject(activeProject.projectId);
+          newTaskProjectId = defaultTp?.id || null;
+        }
+      }
+    } else if (!newTaskProjectId) {
+      const defaultTp = await getOrCreateDefaultTaskProject(activeProject.projectId);
+      newTaskProjectId = defaultTp?.id || null;
+    }
+
+    let newPhaseId = oldTask.phaseId;
+    let newPhase = oldTask.phase;
+
+    if (phaseId !== undefined) {
+      if (!phaseId || phaseId === 0) {
+        newPhaseId = null;
+        newPhase = 'Tanpa Phase';
+      } else {
+        const parsedPhId = parseInt(String(phaseId), 10);
+        if (!isNaN(parsedPhId) && parsedPhId > 0 && newTaskProjectId) {
+          const validPhase = await prisma.taskPhase.findFirst({
+            where: { id: parsedPhId, taskProjectId: newTaskProjectId },
+          });
+          if (validPhase) {
+            newPhaseId = validPhase.id;
+            newPhase = validPhase.name;
+          } else {
+            newPhaseId = null;
+            newPhase = 'Tanpa Phase';
+          }
+        }
+      }
+    } else if (phase !== undefined) {
+      const trimmedPhase = phase?.trim() || 'Tanpa Phase';
+      if (trimmedPhase === 'Tanpa Phase' || !trimmedPhase) {
+        newPhaseId = null;
+        newPhase = 'Tanpa Phase';
+      } else if (newTaskProjectId) {
+        let validPhase = await prisma.taskPhase.findFirst({
+          where: { taskProjectId: newTaskProjectId, name: trimmedPhase },
+        });
+        if (!validPhase) {
+          try {
+            const maxOrderPhase = await prisma.taskPhase.findFirst({
+              where: { taskProjectId: newTaskProjectId },
+              orderBy: { order: 'desc' },
+              select: { order: true },
+            });
+            validPhase = await prisma.taskPhase.create({
+              data: {
+                taskProjectId: newTaskProjectId,
+                name: trimmedPhase,
+                order: (maxOrderPhase?.order ?? -1) + 1,
+              },
+            });
+          } catch {
+            validPhase = await prisma.taskPhase.findFirst({
+              where: { taskProjectId: newTaskProjectId, name: trimmedPhase },
+            });
+          }
+        }
+        if (validPhase) {
+          newPhaseId = validPhase.id;
+          newPhase = validPhase.name;
+        }
+      }
+    }
+
     const updatedTask = await prisma.$transaction(async (tx) => {
       const taskRes = await tx.task.update({
         where: { id: taskId },
@@ -294,6 +389,9 @@ export async function PUT(
           tags: tags !== undefined ? (tags?.trim() || null) : oldTask.tags,
           startDate: parsedStartDate,
           dueDate: parsedDueDate,
+          taskProjectId: newTaskProjectId,
+          phaseId: newPhaseId,
+          phase: newPhase,
           overdueNotifiedAt: shouldResetOverdue ? null : undefined,
         },
         select: {
@@ -310,6 +408,10 @@ export async function PUT(
           tags: true,
           startDate: true,
           dueDate: true,
+          taskProjectId: true,
+          phaseId: true,
+          phase: true,
+          phaseRel: { select: { id: true, name: true, order: true } },
           createdAt: true,
           updatedAt: true,
           assignee: { select: { id: true, name: true } },

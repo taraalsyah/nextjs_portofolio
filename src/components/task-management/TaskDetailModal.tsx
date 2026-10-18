@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Edit3, ShieldAlert, CheckCircle, XCircle, Clock, Send, Ban, CheckSquare, ChevronDown, Check, User, UserCheck, Tag, Calendar, Hash } from 'lucide-react';
+import { X, Edit3, ShieldAlert, CheckCircle, XCircle, Clock, Send, Ban, CheckSquare, ChevronDown, Check, User, UserCheck, Tag, Calendar, Hash, Folder, Layers } from 'lucide-react';
 import styles from '@/app/dashboard/task-management/task.module.css';
 import { TaskChecklistSection, ChecklistItem } from './TaskChecklistSection';
 import { TaskCommentSection } from './TaskCommentSection';
@@ -24,6 +24,9 @@ interface TaskDetailData {
   assigneeId: number | null;
   createdById: number;
   categoryId: number | null;
+  taskProjectId?: number | null;
+  taskProject?: { id: number; name: string; description?: string | null } | null;
+  phase?: string | null;
   tags: string | null;
   startDate: string | null;
   dueDate: string | null;
@@ -1701,6 +1704,24 @@ export function TaskDetailModal({
                     <div className={styles.infoValue}>
                       <Tag size={15} className={styles.infoIcon} />
                       <span>{task.category?.name || '-'}</span>
+                    </div>
+                  </div>
+
+                  {/* Project / Fitur */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Project / Fitur</label>
+                    <div className={styles.infoValue}>
+                      <Folder size={15} className={styles.infoIcon} />
+                      <span>{task.taskProject?.name || 'Tanpa Proyek'}</span>
+                    </div>
+                  </div>
+
+                  {/* Phase */}
+                  <div className={styles.infoCard}>
+                    <label className={styles.label}>Phase</label>
+                    <div className={styles.infoValue}>
+                      <Layers size={15} className={styles.infoIcon} />
+                      <span>{task.phase || 'Tanpa Phase'}</span>
                     </div>
                   </div>
 
