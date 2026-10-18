@@ -1589,11 +1589,12 @@
 }
 
 .formBody {
+  --form-field-gap: 12px;
   padding: 1.5rem;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--form-field-gap);
   flex: 1;
   max-height: calc(90vh - 135px);
   scrollbar-width: thin;
@@ -1614,9 +1615,10 @@
 }
 
 .formGrid {
+  --form-field-gap: 12px;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: var(--form-field-gap);
   width: 100%;
 }
 
@@ -1904,8 +1906,9 @@
   }
 
   .formBody {
+    --form-field-gap: 10px;
     padding: 1.15rem;
-    gap: 1.1rem;
+    gap: var(--form-field-gap);
   }
 
   .modalFooter {
@@ -1917,6 +1920,11 @@
   .modalSubmitBtn {
     flex: 1;
     justify-content: center;
+  }
+
+  .formGrid {
+    --form-field-gap: 10px;
+    gap: var(--form-field-gap);
   }
 
   .formGrid,
