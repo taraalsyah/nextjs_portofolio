@@ -100,19 +100,6 @@ export function ProjectSwitcher({ isCollapsed = false }: ProjectSwitcherProps) {
     switchProject(projectId);
   };
 
-  const roleClass = (role?: string) => {
-    switch (role) {
-      case 'OWNER':
-        return styles.roleOwner;
-      case 'ADMIN':
-        return styles.roleAdmin;
-      case 'MEMBER':
-        return styles.roleMember;
-      default:
-        return styles.roleViewer;
-    }
-  };
-
   const currentDisplayProject = optimisticProject || activeProject;
 
   const dropdownMenuElement = (
@@ -199,16 +186,16 @@ export function ProjectSwitcher({ isCollapsed = false }: ProjectSwitcherProps) {
             </span>
             <div className={styles.projectMeta}>
               {currentDisplayProject?.visibility === 'PRIVATE' ? (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <span className={styles.projectMetaItem}>
                   <Lock size={10} /> Private
                 </span>
               ) : (
-                <span style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
+                <span className={styles.projectMetaItem}>
                   <Users size={10} /> Team
                 </span>
               )}
-              {currentDisplayProject && (
-                <span className={`${styles.roleBadge} ${roleClass(currentDisplayProject.memberRole)}`}>
+              {currentDisplayProject?.memberRole && (
+                <span className={styles.projectMetaItem}>
                   {currentDisplayProject.memberRole}
                 </span>
               )}

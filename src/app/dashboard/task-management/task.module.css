@@ -617,6 +617,8 @@
 }
 
 .table {
+  --task-cell-pad-y: 0.325rem; /* ~5px — setengah dari nilai sebelumnya (0.65rem / 10.4px) */
+  --col-due-date-width: 135px; /* Lebar kolom Due Date agar tanggal (mis. 30 Sep 2026) tampil 1 baris */
   width: 100%;
   min-width: 800px;
   border-collapse: collapse;
@@ -644,7 +646,7 @@
 .table th:nth-child(4) { width: 100px; }
 .table th:nth-child(5) { width: 110px; }
 .table th:nth-child(6) { width: 130px; }
-.table th:nth-child(7) { width: 110px; }
+.table th:nth-child(7) { width: var(--col-due-date-width, 135px); }
 .table th:nth-child(8) { width: 110px; }
 
 .taskNumberTh {
@@ -665,7 +667,7 @@
 }
 
 .table td {
-  padding: 0.65rem 0.85rem;
+  padding: var(--task-cell-pad-y, 0.325rem) 0.85rem;
   border-bottom: 1px solid var(--border);
   vertical-align: middle;
   line-height: 1.4;
@@ -807,8 +809,8 @@
 }
 
 .taskTitleTd {
-  width: 220px !important;
-  max-width: 220px !important;
+  width: 195px !important;
+  max-width: 195px !important;
   word-break: break-word;
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -826,7 +828,7 @@
   line-height: 1.4;
   display: block;
   width: 100%;
-  max-width: 220px;
+  max-width: 195px;
   transition: color 0.15s ease;
 }
 
@@ -841,6 +843,36 @@
   gap: 0.35rem;
   justify-content: flex-end;
   align-items: center;
+}
+
+/* Due Date Column & Single-Line Layout */
+.dueDateTh {
+  width: var(--col-due-date-width, 135px) !important;
+  white-space: nowrap !important;
+}
+
+.dueDateTd {
+  width: var(--col-due-date-width, 135px) !important;
+  white-space: nowrap !important;
+}
+
+.dueDateWrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.dueDateIcon {
+  color: var(--muted-foreground);
+  flex-shrink: 0;
+}
+
+.dueDateText {
+  font-size: 0.78rem;
+  white-space: nowrap;
+  line-height: 1;
 }
 
 .tablePaginationBar {

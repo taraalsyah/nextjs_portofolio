@@ -111,9 +111,21 @@
 .projectMeta {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   font-size: 0.7rem;
   color: var(--muted-foreground);
+  white-space: nowrap;
+  line-height: 1.2;
+}
+
+.projectMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   white-space: nowrap;
 }
 

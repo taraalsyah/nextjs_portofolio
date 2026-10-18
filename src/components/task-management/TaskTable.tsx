@@ -153,7 +153,7 @@ export function TaskTable({
               <th>Priority</th>
               <th>Category</th>
               <th>Assignee</th>
-              <th>Due Date</th>
+              <th className={styles.dueDateTh}>Due Date</th>
               <th className={styles.actionColTd} style={{ textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
@@ -231,10 +231,10 @@ export function TaskTable({
                         </span>
                       </div>
                     </td>
-                    <td>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                        <Calendar size={13} style={{ color: 'var(--muted-foreground)' }} />
-                        <span style={{ fontSize: '0.78rem' }}>{formatDate(task.dueDate)}</span>
+                    <td className={styles.dueDateTd}>
+                      <div className={styles.dueDateWrapper}>
+                        <Calendar size={13} className={styles.dueDateIcon} />
+                        <span className={styles.dueDateText}>{formatDate(task.dueDate)}</span>
                       </div>
                     </td>
                     <td className={styles.actionColTd} style={{ textAlign: 'right' }}>
