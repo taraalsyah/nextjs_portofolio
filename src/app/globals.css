@@ -69,6 +69,7 @@
 
   /* Layout Spacing Tokens */
   --content-gutter: 1.25rem;
+  --tabnav-content-gap: 0.625rem; /* 10px — setengah dari jarak vertikal tab nav sebelumnya (20px) */
 
   /* Transitions */
   --transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -77,6 +78,7 @@
 @media (max-width: 768px) {
   :root {
     --content-gutter: 1rem;
+    --tabnav-content-gap: 0.5rem; /* 8px — setengah dari jarak vertikal mobile sebelumnya (16px) */
   }
 }
 

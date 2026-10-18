@@ -13,7 +13,7 @@
   min-width: 0;
   overflow: hidden;
   box-sizing: border-box;
-  gap: var(--content-gutter, 1.25rem);
+  gap: var(--tabnav-content-gap, 10px);
 }
 
 .editorContainer {

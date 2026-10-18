@@ -147,6 +147,7 @@ export function TaskFilterBar({
           value={status}
           options={STATUS_FILTER_OPTIONS}
           onChange={(val) => setStatus(val)}
+          minWidth="0"
         />
       </div>
 
@@ -156,6 +157,7 @@ export function TaskFilterBar({
           value={priority}
           options={PRIORITY_FILTER_OPTIONS}
           onChange={(val) => setPriority(val)}
+          minWidth="0"
         />
       </div>
 
@@ -165,6 +167,7 @@ export function TaskFilterBar({
           value={categoryId}
           options={categoryOptions}
           onChange={(val) => setCategoryId(val)}
+          minWidth="0"
         />
       </div>
 
@@ -175,6 +178,7 @@ export function TaskFilterBar({
             value={assigneeId}
             options={assigneeOptions}
             onChange={(val) => setAssigneeId(val)}
+            minWidth="0"
           />
         </div>
       )}
@@ -190,6 +194,7 @@ export function TaskFilterBar({
               setSortBy(by);
               setSortOrder(order);
             }}
+            minWidth="0"
           />
         </div>
       )}
