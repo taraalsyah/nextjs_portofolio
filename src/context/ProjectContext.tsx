@@ -39,7 +39,12 @@ interface ProjectContextType {
 
 const ProjectContext = createContext<ProjectContextType | undefined>(undefined);
 
-export function ProjectProvider({ children }: { children: React.ReactNode }) {
+interface ProjectProviderProps {
+  children: React.ReactNode;
+  disableAuthRedirect?: boolean;
+}
+
+export function ProjectProvider({ children, disableAuthRedirect = false }: ProjectProviderProps) {
   const router = useRouter();
   const { showToast } = useToast();
 
@@ -61,12 +66,14 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         setActiveProject(data.activeProject);
         setOptimisticProject(data.activeProject);
       } else if (res.status === 401) {
-        router.push('/login?error=SessionExpired');
+        if (!disableAuthRedirect) {
+          router.push('/login?error=SessionExpired');
+        }
       }
     } catch (err) {
       console.error('Failed to fetch active project:', err);
     }
-  }, [router]);
+  }, [router, disableAuthRedirect]);
 
   const fetchProjects = useCallback(async () => {
     setIsLoading(true);
@@ -76,14 +83,16 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         const data = await res.json();
         setProjects(data.projects || []);
       } else if (res.status === 401) {
-        router.push('/login?error=SessionExpired');
+        if (!disableAuthRedirect) {
+          router.push('/login?error=SessionExpired');
+        }
       }
     } catch (err) {
       console.error('Failed to fetch user projects:', err);
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
+  }, [router, disableAuthRedirect]);
 
   useEffect(() => {
     fetchActiveProject();
@@ -123,8 +132,9 @@ export function ProjectProvider({ children }: { children: React.ReactNode }) {
         const errData = await res.json().catch(() => ({}));
         if (res.status === 401 || errData.error === 'Session expired.') {
           setOptimisticProject(currentActive);
-          showToast('Sesi Anda telah berakhir. Silakan login kembali.', 'error');
-          router.push('/login?error=SessionExpired');
+          if (!disableAuthRedirect) {
+            router.push('/login?error=SessionExpired');
+          }
           return false;
         }
         throw new Error(errData.error || 'Gagal mengubah proyek aktif.');
