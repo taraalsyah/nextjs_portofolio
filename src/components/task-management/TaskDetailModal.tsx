@@ -869,9 +869,9 @@ export function TaskDetailModal({
   };
 
   return (
-    <div className={styles.modalOverlay} onClick={handleCloseWithReset}>
-      <div className={styles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-        <div className={styles.modalHeader}>
+    <div className={`${styles.modalOverlay} ${styles.taskModalOverlay}`} onClick={handleCloseWithReset}>
+      <div className={`${styles.modalContent} ${styles.taskModalContent}`} onClick={(e) => e.stopPropagation()}>
+        <div className={`${styles.modalHeader} ${styles.taskModalHeader}`}>
           <div style={{ flex: 1, minWidth: 0, paddingRight: '0.75rem' }}>
             <span className={styles.taskNumber}>{task?.taskNumber || 'Task Detail'}</span>
             <h3 className={styles.modalTitle} style={{ marginTop: '0.2rem' }}>
@@ -1806,6 +1806,30 @@ export function TaskDetailModal({
             )}
           </div>
         )}
+        </div>
+
+        {/* Modal Footer */}
+        <div className={`${styles.modalFooter} ${styles.modalFooterCompact}`}>
+          <button
+            type="button"
+            onClick={handleCloseWithReset}
+            className={`${styles.modalCancelBtn} ${styles.cancelBtn} ${styles.btnCompact}`}
+          >
+            Tutup
+          </button>
+          {task && canEditMetadata && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onEditRequest(task);
+              }}
+              className={`${styles.modalSubmitBtn} ${styles.submitBtn} ${styles.btnCompact}`}
+            >
+              <Edit3 size={14} />
+              <span>Edit Task</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
