@@ -5,13 +5,11 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { 
   CheckCircle2, 
-  ArrowRight, 
   Play, 
   CheckSquare, 
   FolderKanban, 
   Users, 
   Clock, 
-  TrendingUp, 
   Layers,
   Sparkles
 } from 'lucide-react';
@@ -24,15 +22,14 @@ const HeroSection = () => {
         <div className={styles.heroGrid}>
           {/* Left Column: SaaS Value Proposition */}
           <div className={styles.content}>
-            <motion.div 
-              initial={{ opacity: 0, y: 15 }}
+            <motion.p 
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className={styles.badge}
+              transition={{ duration: 0.5 }}
+              className={styles.description}
             >
-              <span className={styles.badgeDot}></span>
-              PROJECT MANAGEMENT PLATFORM
-            </motion.div>
+              Break projects down into tasks, assign them to your team, and track progress with Kanban, Calendar, Gantt, and Flow until everything is done.
+            </motion.p>
             
             <motion.h1 
               initial={{ opacity: 0, y: 20 }}
@@ -44,34 +41,11 @@ const HeroSection = () => {
               <span className="text-gradient">Get Things Done.</span>
             </motion.h1>
             
-            <motion.p 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
-              className={styles.description}
-            >
-              Plan projects, manage tasks, collaborate with your team, and track progress — all in one streamlined enterprise workplace.
-            </motion.p>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className={styles.actions}
-            >
-              <Link href="/register" className={styles.primaryBtn}>
-                Get Started <ArrowRight size={18} />
-              </Link>
-              <Link href="/explore-demo" className={styles.secondaryBtn}>
-                <Play size={15} fill="currentColor" /> Explore Demo
-              </Link>
-            </motion.div>
-
             {/* Trust & Capability Checkmarks */}
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               className={styles.trustItems}
             >
               <div className={styles.trustItem}>
@@ -109,13 +83,9 @@ const HeroSection = () => {
 
             {/* Bottom Floating Badge Card */}
             <div className={styles.floatingCard2}>
-              <div className={styles.iconBox}>
-                <TrendingUp size={18} />
-              </div>
-              <div>
-                <div className={styles.cardVal}>Team Progress 84%</div>
-                <div className={styles.cardSub}>Sprint on Schedule</div>
-              </div>
+              <Link href="/explore-demo" className={styles.secondaryBtn}>
+                <Play size={15} fill="currentColor" /> Explore Demo
+              </Link>
             </div>
 
             {/* Product UI Mockup Card */}
