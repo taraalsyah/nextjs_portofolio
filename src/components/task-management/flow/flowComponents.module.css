@@ -1,14 +1,13 @@
 /* Flow Editor Component Styles — Enterprise UI
    Tinggi editorPageWrapper disesuaikan dengan posisi tabNav baru:
-   tabNav naik sebesar 1.25rem (20px), sehingga ruang vertikal yang tersedia bertambah 1.25rem:
-   calc(100dvh - 52px (topbar) - 2.5rem (padding contentContainer) + 1.25rem (offset tabNav)) = calc(100dvh - 52px - 1.25rem)
+   calc(100dvh - var(--header-height, 48px) (topbar) - 2.5rem (padding contentContainer) + 1.25rem (offset tabNav)) = calc(100dvh - var(--header-height, 48px) - 1.25rem)
 */
 .editorPageWrapper {
   display: flex;
   flex-direction: column;
   width: 100%;
-  height: calc(100dvh - 52px - 1.25rem);
-  max-height: calc(100dvh - 52px - 1.25rem);
+  height: calc(100dvh - var(--header-height, 48px) - 1.25rem);
+  max-height: calc(100dvh - var(--header-height, 48px) - 1.25rem);
   min-height: 0;
   min-width: 0;
   overflow: hidden;
@@ -1085,8 +1084,8 @@
 
 @media (max-width: 768px) {
   .editorPageWrapper {
-    height: calc(100dvh - 52px - 2.5rem);
-    max-height: calc(100dvh - 52px - 2.5rem);
+    height: calc(100dvh - var(--header-height, 48px) - 2.5rem);
+    max-height: calc(100dvh - var(--header-height, 48px) - 2.5rem);
   }
 }
 

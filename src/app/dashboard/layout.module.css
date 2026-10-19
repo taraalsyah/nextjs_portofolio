@@ -30,13 +30,14 @@
 }
 
 .sidebarHeader {
-  height: 48px;
+  height: var(--header-height, 48px);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 0.75rem;
   border-bottom: 1px solid var(--border);
   overflow: hidden;
+  box-sizing: border-box;
 }
 
 .logoArea {
@@ -238,8 +239,8 @@
   position: fixed;
   top: 0;
   right: 0;
-  height: 52px;
-  min-height: 52px;
+  height: var(--header-height, 48px);
+  min-height: var(--header-height, 48px);
   background: #FFFFFF;
   border-bottom: 1px solid var(--border);
   display: flex;
@@ -247,6 +248,7 @@
   justify-content: space-between;
   padding: 0 1.25rem;
   z-index: 1000;
+  box-sizing: border-box;
   transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -419,7 +421,7 @@
 .contentContainer {
   flex: 1;
   padding: var(--content-gutter, 1.25rem);
-  margin-top: 52px;
+  margin-top: var(--header-height, 48px);
   position: relative;
   z-index: 10;
   overflow-y: auto;
@@ -471,9 +473,12 @@
   }
 
   .topbar {
-    padding: calc(0.6rem + env(safe-area-inset-top, 0px)) max(1.25rem, env(safe-area-inset-right, 0px)) 0.6rem max(1.25rem, env(safe-area-inset-left, 0px));
-    min-height: calc(56px + env(safe-area-inset-top, 0px));
-    height: auto;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: 0;
+    padding-left: max(1.25rem, env(safe-area-inset-left, 0px));
+    padding-right: max(1.25rem, env(safe-area-inset-right, 0px));
+    min-height: calc(var(--header-height, 48px) + env(safe-area-inset-top, 0px));
+    height: calc(var(--header-height, 48px) + env(safe-area-inset-top, 0px));
   }
 
   .marginExpanded .topbar,
@@ -491,7 +496,7 @@
   }
 
   .contentContainer {
-    margin-top: calc(56px + env(safe-area-inset-top, 0px));
+    margin-top: calc(var(--header-height, 48px) + env(safe-area-inset-top, 0px));
     padding: var(--content-gutter, 1rem) max(var(--content-gutter, 1rem), env(safe-area-inset-left, 0px)) calc(2rem + env(safe-area-inset-bottom, 0px)) max(var(--content-gutter, 1rem), env(safe-area-inset-right, 0px));
     width: 100%;
     box-sizing: border-box;

@@ -27,10 +27,10 @@
 /* Submenu Bar Navigation — Clean Underline Indicator
    1. Keselarasan vertikal atas: Tepi bawah tabNav diselaraskan secara vertikal dengan
       tepi bawah kartu proyek (project switcher) di sidebar kiri desktop:
-      - Sidebar: header (48px) + switcher padding-top (8px / 0.5rem) + kartu proyek (54px) = 110px.
-      - Header topbar (52px) + contentContainer padding-top (20px / 1.25rem) = 72px.
+      - Sidebar: header (var(--header-height, 48px)) + switcher padding-top (8px / 0.5rem) + kartu proyek (54px) = 110px.
+      - Header topbar (var(--header-height, 48px)) + contentContainer padding-top (20px / 1.25rem) = 68px.
       - Tinggi tabNav: padding-top (12px / 0.75rem) + tabItem (~41px) + padding-bottom (8px / 0.5rem) + border-bottom (1px) = 62px.
-      - Untuk mencapai target 110px: 110px - (52px + 20px + 62px) = -24px (-1.5rem margin-top).
+      - Untuk mencapai target 110px: 110px - (48px + 20px + 62px) = -20px (-1.25rem margin-top).
    2. Keselarasan jarak bawah tabNav:
       - Jarak vertikal antara garis bawah tabNav (border-bottom) dan tepi atas kartu konten
         ditetapkan sebesar SETENGAH dari nilai sebelumnya (dari 20px menjadi 10px / 0.625rem di desktop, dan 8px di mobile).
@@ -45,11 +45,11 @@
   margin-bottom: 0;
   overflow-x: auto;
   position: sticky;
-  top: -1.5rem;
+  top: -1.25rem;
   z-index: 30;
   background: var(--background);
   padding: 0.75rem 0 0.5rem 0;
-  margin-top: -1.5rem;
+  margin-top: -1.25rem;
 }
 
 .tabItem {
@@ -1467,13 +1467,13 @@
 
 /* Modifiers for Task Form Modal (Create Task & Edit Task) */
 .taskModalOverlay {
-  padding-top: calc(52px + 1rem);
+  padding-top: calc(var(--header-height, 48px) + 1rem);
   padding-bottom: 1.25rem;
 }
 
 .taskModalContent {
-  max-height: calc(100vh - 52px - 2.25rem);
-  max-height: calc(100dvh - 52px - 2.25rem);
+  max-height: calc(100vh - var(--header-height, 48px) - 2.25rem);
+  max-height: calc(100dvh - var(--header-height, 48px) - 2.25rem);
 }
 
 .taskModalHeader {
@@ -1990,14 +1990,14 @@
   }
 
   .taskModalOverlay {
-    padding-top: calc(52px + 0.65rem);
+    padding-top: calc(var(--header-height, 48px) + 0.65rem);
     padding-bottom: 0.75rem;
     padding-left: 0.75rem;
     padding-right: 0.75rem;
   }
 
   .taskModalContent {
-    max-height: calc(100dvh - 52px - 1.5rem);
+    max-height: calc(100dvh - var(--header-height, 48px) - 1.5rem);
   }
 
   .taskModalHeader {
