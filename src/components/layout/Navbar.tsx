@@ -19,7 +19,14 @@ const Navbar = () => {
         {/* Brand Logo */}
         <Link href="/" className={styles.logo}>
           <div className={styles.logoIcon}>
-            <img src="/logo.png" alt="TaskTuntas Logo" width={22} height={22} style={{ borderRadius: '4px', objectFit: 'contain' }} />
+            <Image 
+              src="/favicon.png" 
+              alt="TaskTuntas Logo" 
+              width={32} 
+              height={32} 
+              priority 
+              className={styles.logoImage} 
+            />
           </div>
           <div className={styles.logoText}>
             Task<span>tuntas</span>
