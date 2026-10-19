@@ -81,7 +81,7 @@ export default function FlowPage() {
   // Compute effective editor mode:
   // - mode=edit: allowed if canEdit is true, otherwise falls back to view
   // - mode=view: always view mode
-  // - URL without mode (e.g. ?flowId=X): backward-compatible default (edit for Owner/Admin, view for others)
+  // - URL without mode (e.g. ?flowId=X): defaults to view mode
   const effectiveMode: 'view' | 'edit' = useMemo(() => {
     if (modeParam === 'edit') {
       return canEdit ? 'edit' : 'view';
@@ -89,8 +89,8 @@ export default function FlowPage() {
     if (modeParam === 'view') {
       return 'view';
     }
-    // Backward compatibility for existing URLs without explicit mode
-    return canEdit ? 'edit' : 'view';
+    // Default fallback for URLs without explicit mode
+    return 'view';
   }, [modeParam, canEdit]);
 
   // Non-intrusive notification when a non-editor opens a URL with ?mode=edit directly
@@ -115,10 +115,10 @@ export default function FlowPage() {
   const handleOpenFlow = useCallback(
     (id: number, mode?: 'view' | 'edit') => {
       setActiveFlowId(id);
-      const chosenMode = mode || (canEdit ? 'edit' : 'view');
+      const chosenMode = mode || 'view';
       router.replace(`/dashboard/task-management/flow?flowId=${id}&mode=${chosenMode}`, { scroll: false });
     },
-    [router, canEdit]
+    [router]
   );
 
   const handleToggleMode = useCallback(

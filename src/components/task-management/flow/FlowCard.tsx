@@ -20,6 +20,7 @@ interface FlowCardProps {
 
 export function FlowCard({
   flow,
+  onOpen,
   onView,
   onEdit,
   onRename,
@@ -50,8 +51,8 @@ export function FlowCard({
   });
 
   const handleCardClick = () => {
-    if (canEdit) {
-      onEdit(flow);
+    if (onOpen) {
+      onOpen(flow);
     } else {
       onView(flow);
     }

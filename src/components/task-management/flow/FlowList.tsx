@@ -321,7 +321,7 @@ export function FlowList({
               <FlowCard
                 key={flow.id}
                 flow={flow}
-                onOpen={(f) => onOpenFlow(f.id, canEdit ? 'edit' : 'view')}
+                onOpen={(f) => onOpenFlow(f.id, 'view')}
                 onView={(f) => onOpenFlow(f.id, 'view')}
                 onEdit={(f) => onOpenFlow(f.id, 'edit')}
                 onRename={(f) => {
