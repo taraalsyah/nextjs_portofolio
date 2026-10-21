@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import {
   getProjectMember,
   getProjectFullPermissionMatrix,
+  invalidateProjectPermissionMatrixCache,
   ALL_PERMISSIONS_LIST,
   ALL_WORKFLOW_TRANSITIONS,
   ProjectRole,
@@ -143,6 +144,8 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       },
       { timeout: 30000 }
     );
+
+    invalidateProjectPermissionMatrixCache(projectId);
 
     return NextResponse.json({
       success: true,

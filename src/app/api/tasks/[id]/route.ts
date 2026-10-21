@@ -16,8 +16,8 @@ export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const tStart = performance.now();
   try {
-    await ensureDoneRequestColumns().catch(() => { });
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
@@ -138,7 +138,10 @@ export async function GET(
       userPermissions = await getProjectPermissions(membership.role as ProjectRole, task.projectId);
     }
 
-    return NextResponse.json({ task, userPermissions });
+    const totalDur = (performance.now() - tStart).toFixed(2);
+    const response = NextResponse.json({ task, userPermissions });
+    response.headers.set('Server-Timing', `total;dur=${totalDur}`);
+    return response;
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Internal server error';
     return NextResponse.json({ error: message }, { status: 500 });

@@ -87,6 +87,7 @@ interface TaskDetailData {
 
 interface TaskDetailModalProps {
   taskId: number | null;
+  initialData?: any;
   isOpen: boolean;
   onClose: () => void;
   currentUserId: number;
@@ -392,16 +393,30 @@ const renderFormattedStatusMsg = (msg: string) => {
   return <span>{msg}</span>;
 };
 
+const taskDetailCache = new Map<number, { task: TaskDetailData; userPermissions: ProjectPermissions; timestamp: number }>();
+
 export function TaskDetailModal({
   taskId,
+  initialData,
   isOpen,
   onClose,
   currentUserId,
   onEditRequest,
   onTaskUpdated,
 }: TaskDetailModalProps) {
-  const [task, setTask] = useState<TaskDetailData | null>(null);
-  const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
+  const [task, setTask] = useState<TaskDetailData | null>(() => {
+    if (initialData) return initialData as TaskDetailData;
+    if (taskId && taskDetailCache.has(taskId)) {
+      return taskDetailCache.get(taskId)!.task;
+    }
+    return null;
+  });
+  const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(() => {
+    if (taskId && taskDetailCache.has(taskId)) {
+      return taskDetailCache.get(taskId)!.userPermissions;
+    }
+    return null;
+  });
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
   const [statusMsg, setStatusMsg] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -413,6 +428,7 @@ export function TaskDetailModal({
     onTaskUpdated?.();
     if (taskId) {
       notifyTaskMutated(taskId);
+      taskDetailCache.delete(taskId);
     }
   }, [onTaskUpdated, taskId]);
 
@@ -440,6 +456,11 @@ export function TaskDetailModal({
         const json = await res.json();
         setTask(json.task);
         setUserPermissions(json.userPermissions);
+        taskDetailCache.set(taskId, {
+          task: json.task,
+          userPermissions: json.userPermissions,
+          timestamp: Date.now(),
+        });
       } else {
         setStatusMsg({
           type: 'error',
@@ -462,8 +483,6 @@ export function TaskDetailModal({
       }
       hasChangesRef.current = false;
     }
-    setTask(null);
-    setUserPermissions(null);
     setStatusMsg(null);
     setShowReasonInput(false);
     setRequestReasonText('');
@@ -479,10 +498,17 @@ export function TaskDetailModal({
   useEffect(() => {
     if (isOpen && taskId) {
       hasChangesRef.current = false;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- setState only fires after await; this is a false positive
+      // Prepopulate immediately from initialData or cache for instant 0ms perceived opening
+      if (initialData && (!task || task.id !== taskId)) {
+        setTask(initialData as TaskDetailData);
+      } else if (taskDetailCache.has(taskId)) {
+        const cached = taskDetailCache.get(taskId)!;
+        setTask(cached.task);
+        setUserPermissions(cached.userPermissions);
+      }
       fetchTaskDetails();
     }
-  }, [isOpen, taskId, fetchTaskDetails]);
+  }, [isOpen, taskId, initialData, fetchTaskDetails]);
 
   if (!isOpen || !taskId) return null;
 

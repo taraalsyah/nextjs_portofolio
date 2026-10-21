@@ -203,10 +203,25 @@ export const DEFAULT_WORKFLOW_PERMISSIONS: Record<ProjectRole, Record<string, bo
   },
 };
 
+const permMatrixCache = new Map<number, { data: { matrix: any; workflowMatrix: any }; expiry: number }>();
+
+export function invalidateProjectPermissionMatrixCache(projectId?: number) {
+  if (projectId) {
+    permMatrixCache.delete(projectId);
+  } else {
+    permMatrixCache.clear();
+  }
+}
+
 /**
- * Gets project permission matrix from database or generates defaults.
+ * Gets project permission matrix from database or generates defaults (cached in-memory for 60s).
  */
 export async function getProjectFullPermissionMatrix(projectId: number) {
+  const cached = permMatrixCache.get(projectId);
+  if (cached && cached.expiry > Date.now()) {
+    return cached.data;
+  }
+
   const roles: ProjectRole[] = ['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'];
 
   const dbRolePerms = await prisma.projectRolePermission.findMany({
@@ -238,7 +253,9 @@ export async function getProjectFullPermissionMatrix(projectId: number) {
     }
   }
 
-  return { matrix, workflowMatrix };
+  const result = { matrix, workflowMatrix };
+  permMatrixCache.set(projectId, { data: result, expiry: Date.now() + 60_000 });
+  return result;
 }
 
 /**
