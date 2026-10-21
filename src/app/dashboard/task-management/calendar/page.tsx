@@ -153,10 +153,10 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={`${styles.container} ${styles.calendarPageContainer}`}>
       <TaskNavTab />
 
-      <div className={styles.tableCard}>
+      <div className={`${styles.tableCard} ${styles.calendarTableCard}`}>
         <div className={styles.headerSection}>
           <div className={styles.headerTitleGroup}>
             <div className={styles.headerIcon}>
