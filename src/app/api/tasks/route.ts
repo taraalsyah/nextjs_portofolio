@@ -4,16 +4,13 @@ import { authOptions } from '@/lib/auth';
 import { prisma } from '@/lib/prisma';
 import { generateNextTaskNumber, logTaskActivity, TASK_TABLE_PAGE_SIZE, TASK_TABLE_MAX_PAGE_SIZE } from '@/lib/task';
 import { getActiveProjectContext } from '@/lib/active-project';
-import { ensureDoneRequestColumns } from '@/lib/ensure-db-columns';
 import { createAssignmentNotification } from '@/services/notification/notification.service';
 import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
 import { getOrCreateUncategorizedCategory } from '@/lib/category-service';
-import { getOrCreateDefaultTaskProject, migrateTaskProjectsAndPhases } from '@/lib/task-project-service';
+import { getOrCreateDefaultTaskProject } from '@/lib/task-project-service';
 
 export async function GET(req: NextRequest) {
   try {
-    await ensureDoneRequestColumns().catch(() => {});
-    await migrateTaskProjectsAndPhases().catch(() => {});
     const session = await getServerSession(authOptions);
     if (!session || !session.user) {
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });

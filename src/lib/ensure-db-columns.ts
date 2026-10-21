@@ -1,7 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { migrateUncategorizedTasks } from '@/lib/category-service';
 
-let isMigrated = false;
+let isMigrated = true;
 
 /**
  * Ensures that the required database columns for Done Request Approval Workflow
