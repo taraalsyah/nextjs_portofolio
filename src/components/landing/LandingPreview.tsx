@@ -24,6 +24,8 @@ import {
   ExternalLink
 } from 'lucide-react';
 import styles from './landing.module.css';
+import { FlowAnimation } from '@/components/task-management/flow/FlowAnimation';
+import { ListFlowAnimation } from '@/components/task-management/flow/ListFlowAnimation';
 
 // 20 workdays for timeline mockup (4 weeks, Mon-Fri)
 const TIMELINE_DAYS = [
@@ -297,13 +299,13 @@ const LandingPreviewContent = () => {
             className={`${styles.tabBtn} ${activeTab === 'list' ? styles.tabBtnActive : ''}`}
             onClick={() => handleTabClick('list')}
           >
-            <ListTodo size={16} /> Task List View
+            <ListTodo size={16} /> Design
           </button>
           <button 
             id="tab-flow"
             role="tab"
             aria-selected={activeTab === 'flow'}
-            aria-controls="panel-flow"
+            aria-controls="panel-list"
             className={`${styles.tabBtn} ${activeTab === 'flow' ? styles.tabBtnActive : ''}`}
             onClick={() => handleTabClick('flow')}
           >
@@ -313,7 +315,7 @@ const LandingPreviewContent = () => {
 
         {/* Interactive View Mockup Container */}
         <motion.div 
-          id={`panel-${activeTab}`}
+          id={activeTab === 'flow' ? 'panel-list' : `panel-${activeTab}`}
           role="tabpanel"
           aria-labelledby={`tab-${activeTab}`}
           key={activeTab}
@@ -658,152 +660,9 @@ const LandingPreviewContent = () => {
             </div>
           )}
 
-          {activeTab === 'list' && (
-            <div style={{ width: '100%', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ borderBottom: '1px solid var(--border)', fontSize: '0.78rem', color: 'var(--secondary-text)', textTransform: 'uppercase' }}>
-                    <th style={{ padding: '0.75rem 1rem' }}>Task Title</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Status</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Priority</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Assignee</th>
-                    <th style={{ padding: '0.75rem 1rem' }}>Due Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr style={{ borderBottom: '1px solid var(--border)', fontSize: '0.9rem' }}>
-                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>Design landing page UI layout</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>
-                      <span style={{ padding: '0.2rem 0.6rem', borderRadius: '100px', background: '#EFF6FF', color: '#1D4ED8', fontSize: '0.75rem', fontWeight: 600 }}>
-                        In Progress
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.85rem 1rem', color: '#DC2626', fontWeight: 600 }}>High</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>Lead Developer</td>
-                    <td style={{ padding: '0.85rem 1rem', color: 'var(--secondary-text)' }}>Aug 29, 2026</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid var(--border)', fontSize: '0.9rem' }}>
-                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>Request-to-Close validation logic</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>
-                      <span style={{ padding: '0.2rem 0.6rem', borderRadius: '100px', background: '#FEF3C7', color: '#B45309', fontSize: '0.75rem', fontWeight: 600 }}>
-                        Review Pending
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.85rem 1rem', color: '#D97706', fontWeight: 600 }}>Medium</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>System Admin</td>
-                    <td style={{ padding: '0.85rem 1rem', color: 'var(--secondary-text)' }}>Aug 30, 2026</td>
-                  </tr>
-                  <tr style={{ borderBottom: '1px solid var(--border)', fontSize: '0.9rem' }}>
-                    <td style={{ padding: '0.85rem 1rem', fontWeight: 600 }}>Prisma transaction safety audit</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>
-                      <span style={{ padding: '0.2rem 0.6rem', borderRadius: '100px', background: '#DCFCE7', color: '#15803D', fontSize: '0.75rem', fontWeight: 600 }}>
-                        Done
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.85rem 1rem', color: '#2563EB', fontWeight: 600 }}>Medium</td>
-                    <td style={{ padding: '0.85rem 1rem' }}>Backend Lead</td>
-                    <td style={{ padding: '0.85rem 1rem', color: 'var(--secondary-text)' }}>Aug 27, 2026</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          )}
+          {activeTab === 'list' && <ListFlowAnimation />}
 
-          {activeTab === 'flow' && (
-            <div className={styles.flowCanvasContainer}>
-              <div className={styles.flowCanvasHeader}>
-                <div className={styles.flowCanvasTitle}>
-                  <Workflow size={16} style={{ color: '#6366f1' }} />
-                  <span>Visual Workflow Canvas Preview</span>
-                </div>
-                <span className={styles.flowCanvasBadge}>Interactive State Engine</span>
-              </div>
-
-              <div className={styles.flowNodesTrack}>
-                {/* Node 1: Inisiasi */}
-                <div className={styles.flowNodeCard}>
-                  <div className={styles.flowNodeTop}>
-                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
-                      <Folder size={15} />
-                    </div>
-                    <span className={styles.flowNodeTag} style={{ background: '#f1f5f9', color: '#475569' }}>
-                      Backlog
-                    </span>
-                  </div>
-                  <div className={styles.flowNodeTitle}>1. Inisiasi Tugas</div>
-                  <p className={styles.flowNodeDesc}>Tugas dibuat & ditentukan prioritas tim</p>
-                </div>
-
-                {/* Arrow 1 */}
-                <div className={styles.flowArrow} aria-hidden="true">
-                  <ArrowRight size={20} />
-                </div>
-
-                {/* Node 2: Pengembangan */}
-                <div className={styles.flowNodeCard}>
-                  <div className={styles.flowNodeTop}>
-                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
-                      <Clock size={15} />
-                    </div>
-                    <span className={styles.flowNodeTag} style={{ background: '#eff6ff', color: '#1d4ed8' }}>
-                      In Progress
-                    </span>
-                  </div>
-                  <div className={styles.flowNodeTitle}>2. Pengembangan</div>
-                  <p className={styles.flowNodeDesc}>Assignee mengerjakan tugas & update progress</p>
-                </div>
-
-                {/* Arrow 2 */}
-                <div className={styles.flowArrow} aria-hidden="true">
-                  <ArrowRight size={20} />
-                </div>
-
-                {/* Node 3: Approval Gate */}
-                <div className={styles.flowNodeCard} style={{ borderColor: 'rgba(217, 119, 6, 0.4)' }}>
-                  <div className={styles.flowNodeTop}>
-                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(217, 119, 6, 0.15)', color: '#d97706' }}>
-                      <Layers size={15} />
-                    </div>
-                    <span className={styles.flowNodeTag} style={{ background: '#fef3c7', color: '#b45309' }}>
-                      Approval Gate
-                    </span>
-                  </div>
-                  <div className={styles.flowNodeTitle}>3. Request-to-Done</div>
-                  <p className={styles.flowNodeDesc}>Reviewer & Project Owner memvalidasi hasil</p>
-                </div>
-
-                {/* Arrow 3 */}
-                <div className={styles.flowArrow} aria-hidden="true">
-                  <ArrowRight size={20} />
-                </div>
-
-                {/* Node 4: Done */}
-                <div className={styles.flowNodeCard}>
-                  <div className={styles.flowNodeTop}>
-                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
-                      <CheckCircle2 size={15} />
-                    </div>
-                    <span className={styles.flowNodeTag} style={{ background: '#dcfce7', color: '#15803d' }}>
-                      Done
-                    </span>
-                  </div>
-                  <div className={styles.flowNodeTitle}>4. Tugas Selesai</div>
-                  <p className={styles.flowNodeDesc}>Audit log tersimpan & email notifikasi terkirim</p>
-                </div>
-              </div>
-
-              <div className={styles.flowImageFooter}>
-                <div className={styles.flowImageCaption}>
-                  <span className={styles.flowLiveDot} />
-                  <span>Interactive Flow Editor — Visual workflow diagrams, smart snapping, and approval workflow gates.</span>
-                </div>
-                <Link href="/dashboard/task-management/flow?flowId=1&mode=edit" className={styles.flowOpenBtn}>
-                  <span>Buka di Task Management</span>
-                  <ExternalLink size={14} />
-                </Link>
-              </div>
-            </div>
-          )}
+          {activeTab === 'flow' && <FlowAnimation />}
         </motion.div>
       </div>
     </section>
