@@ -272,16 +272,6 @@ const LandingPreviewContent = () => {
         {/* Tab Switcher */}
         <div className={styles.tabControls} role="tablist" aria-label="Product Features Preview">
           <button 
-            id="tab-ai"
-            role="tab"
-            aria-selected={activeTab === 'ai'}
-            aria-controls="panel-ai"
-            className={`${styles.tabBtn} ${activeTab === 'ai' ? styles.tabBtnActive : ''}`}
-            onClick={() => handleTabClick('ai')}
-          >
-            <Sparkles size={16} /> AI
-          </button>
-          <button 
             id="tab-timeline"
             role="tab"
             aria-selected={activeTab === 'timeline'}
@@ -290,6 +280,16 @@ const LandingPreviewContent = () => {
             onClick={() => handleTabClick('timeline')}
           >
             <GanttChart size={16} /> Timeline
+          </button>
+          <button 
+            id="tab-ai"
+            role="tab"
+            aria-selected={activeTab === 'ai'}
+            aria-controls="panel-ai"
+            className={`${styles.tabBtn} ${activeTab === 'ai' ? styles.tabBtnActive : ''}`}
+            onClick={() => handleTabClick('ai')}
+          >
+            <Sparkles size={16} /> AI
           </button>
           <button 
             id="tab-list"
