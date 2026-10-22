@@ -160,9 +160,20 @@
 .tabControls {
   display: flex;
   justify-content: center;
+  align-items: center;
   gap: 0.75rem;
   margin-bottom: 2.5rem;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 0.25rem 0.5rem;
+  max-width: 100%;
+}
+
+.tabControls::-webkit-scrollbar {
+  display: none;
 }
 
 .tabBtn {
@@ -178,6 +189,8 @@
   border: 1px solid var(--border);
   cursor: pointer;
   transition: var(--transition);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .tabBtnActive {
@@ -194,6 +207,7 @@
   box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.08);
   overflow: hidden;
   padding: 1.75rem;
+  min-height: 520px;
 }
 
 /* Kanban Board Preview Grid */
@@ -903,4 +917,514 @@
   color: #ffffff;
   border-color: var(--primary-hover);
   transform: translateY(-1px);
+}
+
+/* ─── AI CHAT DEMO MOCKUP (STATIC DEMO) ─────────────────────────────────── */
+.aiChatContainer {
+  display: flex;
+  flex-direction: column;
+  min-height: 460px;
+  width: 100%;
+  max-width: 820px;
+  margin: 0 auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+}
+
+.aiChatHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.aiChatHeaderLeft {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.aiBotAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+}
+
+.aiBotName {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.aiBotStatus {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.74rem;
+  color: var(--secondary-text);
+}
+
+.aiStatusDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  display: inline-block;
+}
+
+.aiBadge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 100px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+}
+
+.aiChatBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  flex: 1;
+  min-height: 380px;
+}
+
+/* User Message Bubble */
+.aiUserRow {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.aiUserBubble {
+  background: var(--primary);
+  color: #ffffff;
+  padding: 0.85rem 1.15rem;
+  border-radius: 16px 16px 4px 16px;
+  max-width: 82%;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.16);
+}
+
+.aiUserText {
+  font-size: 0.92rem;
+  line-height: 1.45;
+  font-weight: 500;
+  margin: 0;
+  color: #ffffff;
+}
+
+.aiMessageTime {
+  display: block;
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.8);
+  text-align: right;
+  margin-top: 0.35rem;
+}
+
+.aiUserAvatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--secondary);
+  color: var(--secondary-text);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Bot Message Row */
+.aiBotRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.aiBotAvatarLarge {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
+  margin-top: 2px;
+}
+
+.aiBotContent {
+  flex: 1;
+  max-width: calc(100% - 46px);
+}
+
+/* Loading State Bubble */
+.aiLoadingBubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 16px 4px;
+  padding: 0.85rem 1.15rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.aiLoadingDots {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.aiDot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--primary);
+  display: inline-block;
+  animation: aiDotBlink 1.4s infinite ease-in-out both;
+}
+
+.aiDot:nth-child(1) {
+  animation-delay: -0.32s;
+}
+
+.aiDot:nth-child(2) {
+  animation-delay: -0.16s;
+}
+
+@keyframes aiDotBlink {
+  0%, 80%, 100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+}
+
+.aiLoadingText {
+  font-size: 0.84rem;
+  color: var(--secondary-text);
+  font-weight: 500;
+}
+
+/* Answer Bubble */
+.aiAnswerBubble {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px 16px 16px 4px;
+  padding: 1.15rem;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 100%;
+}
+
+.aiAnswerIntro {
+  font-size: 0.92rem;
+  color: var(--foreground);
+  margin: 0;
+  line-height: 1.45;
+}
+
+.aiTaskList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.aiTaskCard {
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  transition: var(--transition);
+}
+
+.aiTaskCard:hover {
+  border-color: var(--primary-border);
+  background: var(--surface-hover);
+}
+
+.aiTaskTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.aiTaskTitleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aiUrgentIcon {
+  color: var(--error);
+  flex-shrink: 0;
+}
+
+.aiTaskTitle {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.aiBadgeGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+}
+
+.badgeUrgent {
+  padding: 0.15rem 0.55rem;
+  border-radius: 100px;
+  background: var(--error-subtle);
+  color: var(--error);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.badgeInProgress {
+  padding: 0.15rem 0.55rem;
+  border-radius: 100px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid var(--primary-border);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.badgeToDo {
+  padding: 0.15rem 0.55rem;
+  border-radius: 100px;
+  background: var(--secondary);
+  color: var(--secondary-text);
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.aiTaskMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.78rem;
+  color: var(--secondary-text);
+  flex-wrap: wrap;
+}
+
+.aiMetaItem {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.aiMetaIcon {
+  color: var(--secondary-text);
+  opacity: 0.8;
+}
+
+.aiMetaDivider {
+  color: var(--border);
+}
+
+.aiUrgentTime {
+  color: var(--error);
+  font-weight: 600;
+}
+
+/* ─── FLOW TAB NODE DIAGRAM (PURE HTML/CSS) ─────────────────────────────── */
+.flowCanvasContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+.flowCanvasHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--border);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.flowCanvasTitle {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--foreground);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flowCanvasBadge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 100px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #6366f1;
+}
+
+.flowNodesTrack {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 2.25rem 1rem;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.flowNodesTrack::-webkit-scrollbar {
+  display: none;
+}
+
+.flowNodeCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.15rem;
+  min-width: 200px;
+  max-width: 230px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  transition: var(--transition);
+}
+
+.flowNodeCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--primary-border);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+}
+
+.flowNodeTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.flowNodeIconBg {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.flowNodeTag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 0.12rem 0.45rem;
+  border-radius: 4px;
+}
+
+.flowNodeTitle {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--foreground);
+}
+
+.flowNodeDesc {
+  font-size: 0.74rem;
+  color: var(--secondary-text);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.flowArrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--secondary-text);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* Accessibility sr-only helper */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@media (max-width: 640px) {
+  .tabControls {
+    justify-content: flex-start;
+    padding: 0.5rem 1rem;
+    margin-left: -1rem;
+    margin-right: -1rem;
+    width: calc(100% + 2rem);
+  }
+
+  .aiChatContainer {
+    min-height: 480px;
+  }
+
+  .aiUserBubble {
+    max-width: 90%;
+  }
+
+  .aiTaskTop {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aiDot {
+    animation: none !important;
+  }
 }

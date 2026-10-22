@@ -1,11 +1,13 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { 
+  Sparkles,
+  User,
+  ArrowRight,
   GanttChart, 
   ListTodo, 
   Workflow, 
@@ -47,29 +49,202 @@ const TIMELINE_DAYS = [
   { dayName: 'Jum', dayNum: 11, isToday: false },
 ];
 
+type TabType = 'ai' | 'timeline' | 'list' | 'flow';
+
+/**
+ * Mock AI Conversation View (Pure static HTML/CSS demo - no external API)
+ */
+const AIMockChat = () => {
+  const [step, setStep] = useState<'question' | 'loading' | 'answered'>('question');
+
+  useEffect(() => {
+    // Respect prefers-reduced-motion: if active, show final answered state immediately
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setStep('answered');
+      return;
+    }
+
+    // Reset step to initial question state whenever component mounts / tab is activated
+    setStep('question');
+
+    // Step b: After brief delay (~0.5s), AI loading bubble appears
+    const timer1 = setTimeout(() => {
+      setStep('loading');
+    }, 500);
+
+    // Step c: After ~1.8s (approx 2.3s total), loading transitions to AI answer
+    const timer2 = setTimeout(() => {
+      setStep('answered');
+    }, 2300);
+
+    // Clean up all timers on unmount or tab switch to prevent leaks and double animations
+    return () => {
+      clearTimeout(timer1);
+      clearTimeout(timer2);
+    };
+  }, []);
+
+  return (
+    <div className={styles.aiChatContainer}>
+      {/* Chat Window Header */}
+      <div className={styles.aiChatHeader}>
+        <div className={styles.aiChatHeaderLeft}>
+          <div className={styles.aiBotAvatar}>
+            <Sparkles size={16} />
+          </div>
+          <div>
+            <div className={styles.aiBotName}>TaskTuntas AI Assistant</div>
+            <div className={styles.aiBotStatus}>
+              <span className={styles.aiStatusDot} />
+              <span>Siap Membantu • Smart Project Intelligence</span>
+            </div>
+          </div>
+        </div>
+        <div className={styles.aiBadge}>AI PREVIEW</div>
+      </div>
+
+      {/* Chat Body */}
+      <div className={styles.aiChatBody}>
+        {/* Step a: User Question Bubble */}
+        <div className={styles.aiUserRow}>
+          <div className={styles.aiUserBubble}>
+            <p className={styles.aiUserText}>
+              Ada tugas dengan status urgent tenggat waktu hari ini?
+            </p>
+            <span className={styles.aiMessageTime}>09:41</span>
+          </div>
+          <div className={styles.aiUserAvatar} title="User">
+            <User size={16} />
+          </div>
+        </div>
+
+        {/* Step b & c: AI Response Area with accessibility aria-live */}
+        <div className={styles.aiBotRow}>
+          <div className={styles.aiBotAvatarLarge}>
+            <Sparkles size={18} />
+          </div>
+
+          <div className={styles.aiBotContent} aria-live="polite">
+            {step === 'loading' && (
+              <div className={styles.aiLoadingBubble}>
+                <span className={styles.srOnly}>AI sedang berpikir...</span>
+                <div className={styles.aiLoadingDots} aria-hidden="true">
+                  <span className={styles.aiDot} />
+                  <span className={styles.aiDot} />
+                  <span className={styles.aiDot} />
+                </div>
+                <span className={styles.aiLoadingText}>AI sedang berpikir...</span>
+              </div>
+            )}
+
+            {step === 'answered' && (
+              <motion.div 
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className={styles.aiAnswerBubble}
+              >
+                <p className={styles.aiAnswerIntro}>
+                  Ya, ada <strong>2 tugas urgent</strong> dengan tenggat hari ini:
+                </p>
+
+                <div className={styles.aiTaskList}>
+                  {/* Task 1 */}
+                  <div className={styles.aiTaskCard}>
+                    <div className={styles.aiTaskTop}>
+                      <div className={styles.aiTaskTitleWrapper}>
+                        <AlertCircle size={15} className={styles.aiUrgentIcon} />
+                        <span className={styles.aiTaskTitle}>Perbaikan bug pembayaran</span>
+                      </div>
+                      <div className={styles.aiBadgeGroup}>
+                        <span className={styles.badgeUrgent}>Urgent</span>
+                        <span className={styles.badgeInProgress}>In Progress</span>
+                      </div>
+                    </div>
+                    <div className={styles.aiTaskMeta}>
+                      <span className={styles.aiMetaItem}>
+                        <User size={13} className={styles.aiMetaIcon} />
+                        <span>Penanggung jawab: <strong>Rina</strong></span>
+                      </span>
+                      <span className={styles.aiMetaDivider}>•</span>
+                      <span className={styles.aiMetaItem}>
+                        <Clock size={13} className={styles.aiMetaIcon} />
+                        <span>Tenggat: <strong className={styles.aiUrgentTime}>17:00</strong> (Hari ini)</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Task 2 */}
+                  <div className={styles.aiTaskCard}>
+                    <div className={styles.aiTaskTop}>
+                      <div className={styles.aiTaskTitleWrapper}>
+                        <AlertCircle size={15} className={styles.aiUrgentIcon} />
+                        <span className={styles.aiTaskTitle}>Review desain halaman login</span>
+                      </div>
+                      <div className={styles.aiBadgeGroup}>
+                        <span className={styles.badgeUrgent}>Urgent</span>
+                        <span className={styles.badgeToDo}>To Do</span>
+                      </div>
+                    </div>
+                    <div className={styles.aiTaskMeta}>
+                      <span className={styles.aiMetaItem}>
+                        <User size={13} className={styles.aiMetaIcon} />
+                        <span>Penanggung jawab: <strong>Dimas</strong></span>
+                      </span>
+                      <span className={styles.aiMetaDivider}>•</span>
+                      <span className={styles.aiMetaItem}>
+                        <Clock size={13} className={styles.aiMetaIcon} />
+                        <span>Tenggat: <strong className={styles.aiUrgentTime}>15:00</strong> (Hari ini)</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LandingPreviewContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<'timeline' | 'list' | 'flow'>('timeline');
+  const [activeTab, setActiveTab] = useState<TabType>('ai');
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     const flowIdParam = searchParams.get('flowId');
     if (flowIdParam || tabParam === 'flow') {
       setActiveTab('flow');
-    } else if (tabParam === 'timeline' || tabParam === 'list') {
-      setActiveTab(tabParam);
+    } else if (tabParam === 'timeline' || tabParam === 'list' || tabParam === 'ai') {
+      setActiveTab(tabParam as TabType);
     }
   }, [searchParams]);
 
-  const handleTabClick = (tab: 'timeline' | 'list' | 'flow') => {
+  const handleTabClick = (tab: TabType) => {
     setActiveTab(tab);
     const params = new URLSearchParams(searchParams.toString());
     if (tab === 'flow') {
       params.set('tab', 'flow');
+      params.delete('flowId');
+      params.delete('mode');
       const newQuery = params.toString();
       router.replace(newQuery ? `/?${newQuery}` : '/?tab=flow', { scroll: false });
+    } else if (tab === 'timeline') {
+      params.set('tab', 'timeline');
+      params.delete('flowId');
+      params.delete('mode');
+      const newQuery = params.toString();
+      router.replace(newQuery ? `/?${newQuery}` : '/?tab=timeline', { scroll: false });
+    } else if (tab === 'list') {
+      params.set('tab', 'list');
+      params.delete('flowId');
+      params.delete('mode');
+      const newQuery = params.toString();
+      router.replace(newQuery ? `/?${newQuery}` : '/?tab=list', { scroll: false });
     } else {
       params.delete('tab');
       params.delete('flowId');
@@ -88,25 +263,47 @@ const LandingPreviewContent = () => {
             See your projects <span className="text-gradient">clearly</span>
           </h2>
           <p className={styles.sectionSubtitle}>
-            Switch effortlessly between interactive Timeline Gantt charts, detailed task lists, and visual workflow diagrams.
+            Switch effortlessly between interactive AI intelligence, Timeline Gantt charts, detailed task lists, and visual workflow diagrams.
           </p>
         </div>
 
         {/* Tab Switcher */}
-        <div className={styles.tabControls}>
+        <div className={styles.tabControls} role="tablist" aria-label="Product Features Preview">
           <button 
+            id="tab-ai"
+            role="tab"
+            aria-selected={activeTab === 'ai'}
+            aria-controls="panel-ai"
+            className={`${styles.tabBtn} ${activeTab === 'ai' ? styles.tabBtnActive : ''}`}
+            onClick={() => handleTabClick('ai')}
+          >
+            <Sparkles size={16} /> AI
+          </button>
+          <button 
+            id="tab-timeline"
+            role="tab"
+            aria-selected={activeTab === 'timeline'}
+            aria-controls="panel-timeline"
             className={`${styles.tabBtn} ${activeTab === 'timeline' ? styles.tabBtnActive : ''}`}
             onClick={() => handleTabClick('timeline')}
           >
             <GanttChart size={16} /> Timeline
           </button>
           <button 
+            id="tab-list"
+            role="tab"
+            aria-selected={activeTab === 'list'}
+            aria-controls="panel-list"
             className={`${styles.tabBtn} ${activeTab === 'list' ? styles.tabBtnActive : ''}`}
             onClick={() => handleTabClick('list')}
           >
             <ListTodo size={16} /> Task List View
           </button>
           <button 
+            id="tab-flow"
+            role="tab"
+            aria-selected={activeTab === 'flow'}
+            aria-controls="panel-flow"
             className={`${styles.tabBtn} ${activeTab === 'flow' ? styles.tabBtnActive : ''}`}
             onClick={() => handleTabClick('flow')}
           >
@@ -116,12 +313,16 @@ const LandingPreviewContent = () => {
 
         {/* Interactive View Mockup Container */}
         <motion.div 
+          id={`panel-${activeTab}`}
+          role="tabpanel"
+          aria-labelledby={`tab-${activeTab}`}
           key={activeTab}
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
           className={`${styles.previewFrame} ${activeTab === 'flow' ? styles.flowPreviewFrame : ''}`}
         >
+          {activeTab === 'ai' && <AIMockChat />}
           {activeTab === 'timeline' && (
             <div className={styles.timelinePreviewWrapper}>
               {/* Timeline Toolbar & Filter Controls */}
@@ -509,16 +710,86 @@ const LandingPreviewContent = () => {
           )}
 
           {activeTab === 'flow' && (
-            <div className={styles.flowImageContainer}>
-              <div className={styles.flowImageWrapper}>
-                <Image
-                  src="/flow_preview_light.png"
-                  alt="TaskTuntas Flow & Workflow Editor Preview"
-                  width={1920}
-                  height={1080}
-                  className={styles.flowPreviewImage}
-                  priority
-                />
+            <div className={styles.flowCanvasContainer}>
+              <div className={styles.flowCanvasHeader}>
+                <div className={styles.flowCanvasTitle}>
+                  <Workflow size={16} style={{ color: '#6366f1' }} />
+                  <span>Visual Workflow Canvas Preview</span>
+                </div>
+                <span className={styles.flowCanvasBadge}>Interactive State Engine</span>
+              </div>
+
+              <div className={styles.flowNodesTrack}>
+                {/* Node 1: Inisiasi */}
+                <div className={styles.flowNodeCard}>
+                  <div className={styles.flowNodeTop}>
+                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(139, 92, 246, 0.15)', color: '#8b5cf6' }}>
+                      <Folder size={15} />
+                    </div>
+                    <span className={styles.flowNodeTag} style={{ background: '#f1f5f9', color: '#475569' }}>
+                      Backlog
+                    </span>
+                  </div>
+                  <div className={styles.flowNodeTitle}>1. Inisiasi Tugas</div>
+                  <p className={styles.flowNodeDesc}>Tugas dibuat & ditentukan prioritas tim</p>
+                </div>
+
+                {/* Arrow 1 */}
+                <div className={styles.flowArrow} aria-hidden="true">
+                  <ArrowRight size={20} />
+                </div>
+
+                {/* Node 2: Pengembangan */}
+                <div className={styles.flowNodeCard}>
+                  <div className={styles.flowNodeTop}>
+                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(59, 130, 246, 0.15)', color: '#3b82f6' }}>
+                      <Clock size={15} />
+                    </div>
+                    <span className={styles.flowNodeTag} style={{ background: '#eff6ff', color: '#1d4ed8' }}>
+                      In Progress
+                    </span>
+                  </div>
+                  <div className={styles.flowNodeTitle}>2. Pengembangan</div>
+                  <p className={styles.flowNodeDesc}>Assignee mengerjakan tugas & update progress</p>
+                </div>
+
+                {/* Arrow 2 */}
+                <div className={styles.flowArrow} aria-hidden="true">
+                  <ArrowRight size={20} />
+                </div>
+
+                {/* Node 3: Approval Gate */}
+                <div className={styles.flowNodeCard} style={{ borderColor: 'rgba(217, 119, 6, 0.4)' }}>
+                  <div className={styles.flowNodeTop}>
+                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(217, 119, 6, 0.15)', color: '#d97706' }}>
+                      <Layers size={15} />
+                    </div>
+                    <span className={styles.flowNodeTag} style={{ background: '#fef3c7', color: '#b45309' }}>
+                      Approval Gate
+                    </span>
+                  </div>
+                  <div className={styles.flowNodeTitle}>3. Request-to-Done</div>
+                  <p className={styles.flowNodeDesc}>Reviewer & Project Owner memvalidasi hasil</p>
+                </div>
+
+                {/* Arrow 3 */}
+                <div className={styles.flowArrow} aria-hidden="true">
+                  <ArrowRight size={20} />
+                </div>
+
+                {/* Node 4: Done */}
+                <div className={styles.flowNodeCard}>
+                  <div className={styles.flowNodeTop}>
+                    <div className={styles.flowNodeIconBg} style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981' }}>
+                      <CheckCircle2 size={15} />
+                    </div>
+                    <span className={styles.flowNodeTag} style={{ background: '#dcfce7', color: '#15803d' }}>
+                      Done
+                    </span>
+                  </div>
+                  <div className={styles.flowNodeTitle}>4. Tugas Selesai</div>
+                  <p className={styles.flowNodeDesc}>Audit log tersimpan & email notifikasi terkirim</p>
+                </div>
               </div>
 
               <div className={styles.flowImageFooter}>
