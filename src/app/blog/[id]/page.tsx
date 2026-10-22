@@ -294,21 +294,44 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Related Articles Footer */}
           {relatedPosts.length > 0 && (
-            <div style={{ marginTop: '2.5rem' }}>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--foreground)' }}>
+            <div style={{ marginTop: '2rem' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--foreground)' }}>
                 Artikel Terkait Lainnya
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
                 {relatedPosts.map(rel => (
                   <Link key={rel.id} href={`/blog/${rel.id}`} style={{ textDecoration: 'none' }}>
-                    <div className={styles.blogCard} style={{ background: 'var(--surface)' }}>
-                      <div className={styles.cardImageWrapper}>
-                        <Image src={rel.image} alt={rel.title} fill className={styles.cardImage} sizes="400px" />
+                    <div className={styles.blogCard} style={{ background: 'var(--surface)', borderRadius: '8px' }}>
+                      <div style={{ position: 'relative', width: '100%', height: '110px', overflow: 'hidden', background: '#0f172a' }}>
+                        <Image src={rel.image} alt={rel.title} fill className={styles.cardImage} sizes="350px" />
                       </div>
-                      <div className={styles.cardContent}>
-                        <span className={styles.cardTag}>{rel.tag}</span>
-                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0.4rem 0', color: 'var(--foreground)' }}>{rel.title}</h4>
-                        <p className={styles.postSnippet}>{rel.snippet}</p>
+                      <div style={{ padding: '0.65rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
+                        <span className={styles.cardTag} style={{ fontSize: '0.62rem', padding: '0.12rem 0.4rem' }}>{rel.tag}</span>
+                        <h4 style={{ 
+                          fontSize: '0.85rem', 
+                          fontWeight: 700, 
+                          margin: '0.1rem 0', 
+                          color: 'var(--foreground)',
+                          lineHeight: 1.3,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {rel.title}
+                        </h4>
+                        <p style={{ 
+                          fontSize: '0.76rem', 
+                          color: 'rgba(255, 255, 255, 0.6)', 
+                          lineHeight: 1.35, 
+                          margin: 0,
+                          display: '-webkit-box',
+                          WebkitLineClamp: 2,
+                          WebkitBoxOrient: 'vertical',
+                          overflow: 'hidden'
+                        }}>
+                          {rel.snippet}
+                        </p>
                       </div>
                     </div>
                   </Link>
