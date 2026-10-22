@@ -214,7 +214,7 @@ const LandingPreviewContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const [activeTab, setActiveTab] = useState<TabType>('ai');
+  const [activeTab, setActiveTab] = useState<TabType>('timeline');
 
   useEffect(() => {
     const tabParam = searchParams.get('tab');
@@ -223,6 +223,8 @@ const LandingPreviewContent = () => {
       setActiveTab('flow');
     } else if (tabParam === 'timeline' || tabParam === 'list' || tabParam === 'ai') {
       setActiveTab(tabParam as TabType);
+    } else {
+      setActiveTab('timeline');
     }
   }, [searchParams]);
 
@@ -235,12 +237,12 @@ const LandingPreviewContent = () => {
       params.delete('mode');
       const newQuery = params.toString();
       router.replace(newQuery ? `/?${newQuery}` : '/?tab=flow', { scroll: false });
-    } else if (tab === 'timeline') {
-      params.set('tab', 'timeline');
+    } else if (tab === 'ai') {
+      params.set('tab', 'ai');
       params.delete('flowId');
       params.delete('mode');
       const newQuery = params.toString();
-      router.replace(newQuery ? `/?${newQuery}` : '/?tab=timeline', { scroll: false });
+      router.replace(newQuery ? `/?${newQuery}` : '/?tab=ai', { scroll: false });
     } else if (tab === 'list') {
       params.set('tab', 'list');
       params.delete('flowId');
