@@ -71,53 +71,53 @@ export default async function BlogPostPage({ params }: Props) {
     <main style={{ minHeight: '100vh', width: '100%', background: 'var(--background)' }}>
       <Navbar />
 
-      <div className={styles.blogContainer} style={{ paddingTop: '7rem', paddingBottom: '5rem' }}>
+      <div className={styles.blogContainer} style={{ paddingTop: '5.5rem', paddingBottom: '3.5rem', gap: '1.5rem' }}>
         {/* Navigation back */}
-        <Link href="/blog" className={styles.backHomeLink} style={{ marginBottom: '2rem', display: 'inline-flex' }}>
+        <Link href="/blog" className={styles.backHomeLink} style={{ marginBottom: '0.75rem', display: 'inline-flex' }}>
           <ArrowLeft size={16} /> Kembali ke Artikel Blog
         </Link>
 
         <article style={{ maxWidth: '840px', margin: '0 auto' }}>
           {/* Article Header */}
-          <header style={{ marginBottom: '2.5rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+          <header style={{ marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <span className={styles.cardTag}>{post.tag}</span>
-              <span style={{ fontSize: '0.85rem', color: 'var(--secondary-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <span style={{ fontSize: '0.82rem', color: 'var(--secondary-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                 <Tag size={13} /> {post.category}
               </span>
             </div>
 
             <h1 style={{ 
-              fontSize: '2.4rem', 
+              fontSize: '1.85rem', 
               fontWeight: 800, 
               lineHeight: 1.25, 
               letterSpacing: '-0.02em', 
               color: 'var(--foreground)',
-              marginBottom: '1.25rem' 
+              marginBottom: '0.65rem' 
             }}>
               {post.title}
             </h1>
 
-            <div className={styles.postMeta} style={{ fontSize: '0.9rem', color: 'var(--secondary-text)' }}>
+            <div className={styles.postMeta} style={{ fontSize: '0.82rem', color: 'var(--secondary-text)', gap: '0.85rem' }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Calendar size={15} /> {post.date}
+                <Calendar size={14} /> {post.date}
               </span>
               <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Clock size={15} /> {post.readTime}
+                <Clock size={14} /> {post.readTime}
               </span>
             </div>
           </header>
 
-          {/* Featured Image */}
+          {/* Featured Image - Compact sleek banner */}
           <div style={{ 
             position: 'relative', 
             width: '100%', 
-            height: '420px', 
+            height: '240px', 
             borderRadius: 'var(--radius-modal)', 
             overflow: 'hidden', 
-            marginBottom: '3rem',
+            marginBottom: '1.25rem',
             border: '1px solid var(--border)',
-            boxShadow: '0 20px 40px -15px rgba(0,0,0,0.08)'
+            boxShadow: '0 10px 25px -10px rgba(0,0,0,0.08)'
           }}>
             <Image
               src={post.image}
@@ -128,16 +128,16 @@ export default async function BlogPostPage({ params }: Props) {
             />
           </div>
 
-          {/* Article Content Body */}
+          {/* Article Content Body - Compact reading mode */}
           <div style={{
-            fontSize: '1.05rem',
-            lineHeight: 1.8,
+            fontSize: '0.94rem',
+            lineHeight: 1.55,
             color: 'var(--foreground)',
             background: 'var(--surface)',
-            padding: '2.5rem',
+            padding: '1.5rem 1.75rem',
             borderRadius: 'var(--radius-modal)',
             border: '1px solid var(--border)',
-            boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)'
+            boxShadow: '0 8px 24px -10px rgba(0,0,0,0.03)'
           }}>
             {post.content.split('\n\n').map((paragraph, idx) => {
               const text = paragraph.trim();
@@ -147,13 +147,13 @@ export default async function BlogPostPage({ params }: Props) {
               if (text.startsWith('## ')) {
                 return (
                   <h2 key={idx} style={{ 
-                    fontSize: '1.6rem', 
+                    fontSize: '1.25rem', 
                     fontWeight: 700, 
-                    marginTop: '2.5rem', 
-                    marginBottom: '1rem',
+                    marginTop: '1.25rem', 
+                    marginBottom: '0.45rem',
                     color: 'var(--foreground)',
-                    borderBottom: '2px solid var(--primary-soft)',
-                    paddingBottom: '0.5rem'
+                    borderBottom: '1.5px solid var(--primary-soft)',
+                    paddingBottom: '0.35rem'
                   }}>
                     {text.replace('## ', '')}
                   </h2>
@@ -163,10 +163,10 @@ export default async function BlogPostPage({ params }: Props) {
               if (text.startsWith('### ')) {
                 return (
                   <h3 key={idx} style={{ 
-                    fontSize: '1.3rem', 
+                    fontSize: '1.08rem', 
                     fontWeight: 700, 
-                    marginTop: '2rem', 
-                    marginBottom: '0.75rem',
+                    marginTop: '1rem', 
+                    marginBottom: '0.35rem',
                     color: 'var(--foreground)'
                   }}>
                     {text.replace('### ', '')}
@@ -177,13 +177,14 @@ export default async function BlogPostPage({ params }: Props) {
               if (text.startsWith('> ')) {
                 return (
                   <blockquote key={idx} style={{
-                    borderLeft: '4px solid var(--primary)',
-                    paddingLeft: '1.25rem',
-                    margin: '1.5rem 0',
+                    borderLeft: '3px solid var(--primary)',
+                    padding: '0.6rem 0.9rem',
+                    margin: '0.75rem 0',
                     fontStyle: 'italic',
+                    fontSize: '0.9rem',
+                    lineHeight: 1.5,
                     color: 'var(--secondary-text)',
                     background: 'var(--primary-soft)',
-                    padding: '1rem 1.25rem',
                     borderRadius: '0 var(--radius-sm) var(--radius-sm) 0'
                   }}>
                     {text.replace('> ', '').replace(/"/g, '')}
@@ -192,7 +193,7 @@ export default async function BlogPostPage({ params }: Props) {
               }
 
               if (text.startsWith('---')) {
-                return <hr key={idx} style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '2rem 0' }} />;
+                return <hr key={idx} style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0.85rem 0' }} />;
               }
 
               if (text.startsWith('|')) {
@@ -201,12 +202,12 @@ export default async function BlogPostPage({ params }: Props) {
                 const bodyRows = rows.slice(1).map(row => row.split('|').map(cell => cell.trim()).filter(Boolean));
 
                 return (
-                  <div key={idx} style={{ overflowX: 'auto', margin: '1.5rem 0' }}>
+                  <div key={idx} style={{ overflowX: 'auto', margin: '0.75rem 0' }}>
                     <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)' }}>
                       <thead>
-                        <tr style={{ background: 'var(--primary-soft)', borderBottom: '2px solid var(--border)' }}>
+                        <tr style={{ background: 'var(--primary-soft)', borderBottom: '1.5px solid var(--border)' }}>
                           {headers.map((h, i) => (
-                            <th key={i} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 700, fontSize: '0.92rem' }}>
+                            <th key={i} style={{ padding: '0.45rem 0.75rem', textAlign: 'left', fontWeight: 700, fontSize: '0.85rem' }}>
                               {h.replace(/\*\*/g, '')}
                             </th>
                           ))}
@@ -216,7 +217,7 @@ export default async function BlogPostPage({ params }: Props) {
                         {bodyRows.map((r, rIdx) => (
                           <tr key={rIdx} style={{ borderBottom: '1px solid var(--border)', background: rIdx % 2 === 1 ? 'var(--background)' : 'var(--surface)' }}>
                             {r.map((c, cIdx) => (
-                              <td key={cIdx} style={{ padding: '0.75rem 1rem', fontSize: '0.92rem' }}>
+                              <td key={cIdx} style={{ padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}>
                                 {c.replace(/\*\*/g, '')}
                               </td>
                             ))}
@@ -231,9 +232,9 @@ export default async function BlogPostPage({ params }: Props) {
               if (text.startsWith('* ') || text.startsWith('- ')) {
                 const items = text.split('\n').map(item => item.replace(/^[\*\-]\s*/, ''));
                 return (
-                  <ul key={idx} style={{ margin: '1rem 0 1.5rem 1.5rem', listStyleType: 'disc' }}>
+                  <ul key={idx} style={{ margin: '0.35rem 0 0.65rem 1.25rem', listStyleType: 'disc' }}>
                     {items.map((it, i) => (
-                      <li key={i} style={{ marginBottom: '0.4rem' }}>
+                      <li key={i} style={{ marginBottom: '0.25rem', lineHeight: 1.5 }}>
                         {it.split('**').map((part, pIdx) => 
                           pIdx % 2 === 1 ? <strong key={pIdx} style={{ color: 'var(--foreground)' }}>{part}</strong> : part
                         )}
@@ -244,7 +245,7 @@ export default async function BlogPostPage({ params }: Props) {
               }
 
               return (
-                <p key={idx} style={{ marginBottom: '1.4rem' }}>
+                <p key={idx} style={{ marginBottom: '0.65rem', lineHeight: 1.55 }}>
                   {text.split('**').map((part, pIdx) => 
                     pIdx % 2 === 1 ? <strong key={pIdx} style={{ color: 'var(--foreground)' }}>{part}</strong> : part
                   )}
@@ -254,19 +255,19 @@ export default async function BlogPostPage({ params }: Props) {
 
             {/* Bottom Call to Action Card inside article */}
             <div style={{
-              marginTop: '3.5rem',
-              padding: '2rem',
+              marginTop: '1.75rem',
+              padding: '1.25rem 1.5rem',
               borderRadius: 'var(--radius-modal)',
               background: 'linear-gradient(135deg, var(--primary-soft) 0%, #DBEAFE 100%)',
               border: '1px solid var(--primary-border)',
               display: 'flex',
               flexDirection: 'column',
-              gap: '1rem'
+              gap: '0.6rem'
             }}>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--primary-dark)', margin: 0 }}>
+              <h3 style={{ fontSize: '1.12rem', fontWeight: 700, color: 'var(--primary-dark)', margin: 0 }}>
                 Kelola Proyek & Task Tim Anda dengan TaskTuntas
               </h3>
-              <p style={{ fontSize: '0.95rem', color: '#1E3A8A', margin: 0 }}>
+              <p style={{ fontSize: '0.88rem', color: '#1E3A8A', margin: 0, lineHeight: 1.5 }}>
                 Coba platform TaskTuntas secara gratis. Kelola task, kanban board, workflow request-to-done, dan laporan produktivitas dalam satu platform terintegrasi.
               </p>
               <div>
@@ -275,17 +276,17 @@ export default async function BlogPostPage({ params }: Props) {
                   style={{ 
                     display: 'inline-flex', 
                     alignItems: 'center', 
-                    gap: '0.5rem', 
+                    gap: '0.4rem', 
                     background: 'var(--primary)', 
                     color: '#fff', 
-                    padding: '0.7rem 1.4rem', 
+                    padding: '0.5rem 1.1rem', 
                     borderRadius: 'var(--radius-md)', 
                     fontWeight: 600,
-                    fontSize: '0.9rem',
+                    fontSize: '0.85rem',
                     textDecoration: 'none'
                   }}
                 >
-                  Mulai Gunakan TaskTuntas <ArrowRight size={16} />
+                  Mulai Gunakan TaskTuntas <ArrowRight size={15} />
                 </Link>
               </div>
             </div>
@@ -293,11 +294,11 @@ export default async function BlogPostPage({ params }: Props) {
 
           {/* Related Articles Footer */}
           {relatedPosts.length > 0 && (
-            <div style={{ marginTop: '4rem' }}>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700, marginBottom: '1.5rem', color: 'var(--foreground)' }}>
+            <div style={{ marginTop: '2.5rem' }}>
+              <h3 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: '1rem', color: 'var(--foreground)' }}>
                 Artikel Terkait Lainnya
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
                 {relatedPosts.map(rel => (
                   <Link key={rel.id} href={`/blog/${rel.id}`} style={{ textDecoration: 'none' }}>
                     <div className={styles.blogCard} style={{ background: 'var(--surface)' }}>
@@ -306,7 +307,7 @@ export default async function BlogPostPage({ params }: Props) {
                       </div>
                       <div className={styles.cardContent}>
                         <span className={styles.cardTag}>{rel.tag}</span>
-                        <h4 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0.5rem 0', color: 'var(--foreground)' }}>{rel.title}</h4>
+                        <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0.4rem 0', color: 'var(--foreground)' }}>{rel.title}</h4>
                         <p className={styles.postSnippet}>{rel.snippet}</p>
                       </div>
                     </div>

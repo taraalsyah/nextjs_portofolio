@@ -20,6 +20,150 @@ export const CATEGORIES = ["All", "Productivity", "Technology", "UI/UX Design", 
 
 export const BLOG_POSTS: BlogPost[] = [
   {
+    id: "memakai-sistem-manajemen-proyek-untuk-mengerjakan-tugas-uas",
+    title: "Memakai Sistem Manajemen Proyek untuk Mengerjakan Tugas UAS",
+    snippet: "Pekan UAS sering kali berantakan bukan karena sulitnya tugas, melainkan cara mengelolanya. Pelajari cara memecah tugas, membagi peran tim, dan memantau progres harian secara terstruktur.",
+    category: "Productivity",
+    tag: "STUDY & PRODUCTIVITY",
+    date: "October 22, 2026",
+    readTime: "6 min read",
+    image: "/uas_pm_banner.jpg",
+    seoTitle: "Memakai Sistem Manajemen Proyek untuk Mengerjakan Tugas UAS | TaskTuntas",
+    metaDescription: "Panduan praktis menggunakan sistem manajemen proyek untuk menyelesaikan tugas UAS kelompok: pembagian peran adil, breakdown task, papan kanban, timeline, dan cadangan waktu.",
+    keywords: [
+      "manajemen proyek tugas uas",
+      "cara mengerjakan tugas kelompok uas",
+      "aplikasi project management mahasiswa",
+      "tips tugas uas tepat waktu",
+      "kanban board tugas kuliah",
+      "tasktuntas untuk mahasiswa",
+      "cara bagi tugas kelompok"
+    ],
+    ogTitle: "Memakai Sistem Manajemen Proyek untuk Mengerjakan Tugas UAS",
+    ogDescription: "Pekan UAS sering kali berantakan bukan karena sulitnya tugas, melainkan cara mengelolanya. Pelajari cara memecah tugas, membagi peran tim, dan memantau progres harian secara terstruktur.",
+    content: `
+Pekan UAS hampir selalu punya cerita yang sama. Tugas diberikan sejak berminggu-minggu lalu, tetapi pengerjaannya baru serius dimulai ketika deadline tinggal beberapa hari. Di tugas kelompok, ceritanya bisa lebih rumit: ada anggota yang tidak tahu harus mengerjakan apa, ada bagian yang dikerjakan dua orang sekaligus, dan ada bagian yang ternyata tidak dikerjakan siapa pun.
+
+Masalahnya jarang ada pada kemampuan. Masalahnya ada pada **cara mengelola pekerjaan**. Dan itu persis yang diselesaikan oleh sistem manajemen proyek. Tulisan ini membahas bagaimana memakainya untuk tugas UAS, dari memecah tugas sampai memantau progres sehari-hari.
+
+---
+
+## Kenapa Tugas UAS Perlu Dikelola Seperti Proyek?
+
+Tugas UAS, terutama yang berbentuk proyek, punya semua ciri sebuah proyek: ada tujuan, ada batas waktu, ada beberapa orang yang terlibat, dan ada beberapa tahap yang saling bergantung. Mengerjakannya hanya dengan ingatan dan grup chat berarti mengandalkan hal yang paling mudah hilang.
+
+Sistem manajemen proyek memberi tiga hal yang tidak bisa diberikan grup chat:
+
+* **Kejelasan**: Semua orang tahu apa yang harus dikerjakan dan siapa yang bertanggung jawab.
+* **Visibilitas**: Progres terlihat tanpa harus bertanya satu per satu.
+* **Kontrol waktu**: Deadline dan urutan pekerjaan terlihat jelas, sehingga keterlambatan ketahuan lebih awal.
+
+---
+
+## Langkah 1: Pahami Ketentuan Tugas dan Hitung Mundur dari Deadline
+
+Sebelum membuat task apa pun, baca ketentuan UAS sampai selesai. Catat hal berikut:
+
+* **Komponen pengumpulan**: Apa saja yang harus dikumpulkan (aplikasi, laporan, slide, video demo)?
+* **Jadwal dan batas waktu**: Kapan deadline pengumpulan dan kapan jadwal presentasi?
+* **Batasan teknis**: Apakah ada batasan teknologi, fitur minimal, atau format laporan?
+
+Setelah itu, **hitung mundur dari tanggal deadline**. Tentukan dua tanggal penting lebih dulu: kapan semua fitur harus selesai dan kapan laporan harus selesai. Baru pekerjaan dibagi di antara tanggal-tanggal itu.
+
+Beri jarak dua sampai tiga hari sebelum deadline asli sebagai cadangan. Hampir selalu ada yang meleset, dan cadangan itu yang menyelamatkan.
+
+---
+
+## Langkah 2: Pecah Tugas Besar Menjadi Task Kecil
+
+*"Kerjakan sistem informasi"* bukan task. Itu adalah tujuan. Task yang baik cukup kecil untuk selesai dalam satu sampai tiga hari dan cukup jelas sehingga orang yang mengerjakannya tidak perlu bertanya.
+
+Contoh pemecahan untuk UAS berupa proyek aplikasi:
+
+| Tahap | Contoh Task |
+| --- | --- |
+| Analisis | Menentukan topik, mengumpulkan kebutuhan sistem |
+| Desain | Membuat ERD, flowchart, dan wireframe |
+| Pengembangan | Halaman login, CRUD data, fitur utama, koneksi database |
+| Pengujian | Menguji fitur dan memperbaiki bug |
+| Dokumentasi | Laporan, slide presentasi, video demo |
+| Finalisasi | Mengecek format, mengumpulkan file, latihan presentasi |
+
+Setiap task sebaiknya punya **satu penanggung jawab, deadline, prioritas, dan kriteria selesai**. Contoh kriteria selesai yang baik: *"halaman login berfungsi dan terhubung ke database"*. Kriteria seperti ini menghilangkan perdebatan soal apakah sebuah task sudah benar-benar selesai.
+
+---
+
+## Langkah 3: Bagi Pekerjaan dengan Adil
+
+Pembagian task yang baik mempertimbangkan kemampuan, beban, dan ketergantungan antar-anggota. Beberapa prinsip sederhana:
+
+* **1. Jangan menumpuk semua pekerjaan teknis pada satu orang**: Distribusikan beban agar tidak ada anggota yang kewalahan atau menjadi bottleneck.
+* **2. Pasangkan bagian yang saling bergantung**: Misalnya, yang membuat desain berkomunikasi dekat dengan yang membuat tampilan UI frontend.
+* **3. Libatkan semua anggota dalam dokumentasi dan presentasi**: Dokumentasi dan persiapan slide bukan sekadar pekerjaan sampingan, melainkan bobot penting penilaian.
+* **4. Sediakan satu orang sebagai pemegang papan**: Tunjuk satu anggota yang memastikan status task di board selalu diperbarui setiap hari.
+
+Dengan sistem manajemen proyek, pembagian ini tercatat dan terlihat oleh semua orang. Tidak ada lagi alasan *"saya kira itu bagian kamu"*.
+
+---
+
+## Langkah 4: Pilih Tampilan yang Sesuai Kebutuhan
+
+Sistem manajemen proyek biasanya menyediakan beberapa tampilan untuk data yang sama. Masing-masing menjawab pertanyaan yang berbeda:
+
+* **Papan Kanban**: Menjawab *"apa status pekerjaan kita sekarang?"*. Kolomnya biasanya backlog, in progress, dan closed (selesai). Ini tampilan yang paling sering dibuka setiap hari.
+* **Gantt Chart atau Timeline**: Menjawab *"apakah jadwal kita masuk akal?"*. Di sini terlihat urutan task, ketergantungan, dan apakah ada pekerjaan yang menumpuk menjelang deadline.
+* **Kalender**: Menjawab *"tenggat apa saja yang akan datang?"*. Cocok untuk memastikan tidak ada tanggal penting yang terlewat.
+
+Kalau tugasnya kecil dan singkat, papan Kanban saja sudah cukup. Kalau tugasnya besar dengan banyak tahap yang saling bergantung, Gantt Chart sangat membantu.
+
+---
+
+## Langkah 5: Jaga Ritme Selama Pengerjaan
+
+Sistem yang bagus tidak berguna kalau tidak dipakai. Beberapa kebiasaan kecil yang menjaganya tetap hidup:
+
+* **1. Tinjau papan sekali sehari**: Lima menit cukup: apa yang selesai kemarin, apa yang dikerjakan hari ini, dan apa yang tersendat.
+* **2. Pindahkan status segera**: Task yang sudah selesai tetapi masih tercatat "in progress" membuat seluruh papan tidak bisa dipercaya.
+* **3. Sepakati aturan selesai**: Untuk tugas kelompok, sebuah task baru dipindah ke closed setelah dicek anggota lain.
+* **4. Sisakan dua sampai tiga hari terakhir**: Alokasikan waktu untuk pengujian menyeluruh, perapian laporan, dan latihan presentasi. Bagian ini paling sering terlupakan dan menjadi sumber panik.
+
+---
+
+## Kesalahan yang Sering Terjadi
+
+* **1. Task terlalu besar dan kabur**: Misalnya "kerjakan laporan". Sebaiknya pecah menjadi bab atau sub-bagian yang spesifik.
+* **2. Semua task diberi prioritas tinggi**: Sehingga skala prioritas kehilangan makna dan arah tim menjadi kabur.
+* **3. Papan jarang diperbarui**: Akhirnya anggota kembali bertanya-tanya lewat chat dan sistem kehilangan kepercayaannya.
+* **4. Laporan dan presentasi dimulai di hari terakhir**: Padahal keduanya membutuhkan waktu yang tidak sedikit untuk diformat dengan baik.
+* **5. Tidak ada cadangan waktu**: Satu keterlambatan kecil langsung menggeser seluruh jadwal dan berujung begadang darurat.
+
+---
+
+## Studi Singkat: Contoh Alur Dua Minggu
+
+Bayangkan UAS berupa proyek aplikasi dengan waktu pengerjaan dua minggu oleh tim empat orang:
+
+* **Hari 1 sampai 2**: Membaca ketentuan, menentukan topik, memecah pekerjaan menjadi task, dan membagi penanggung jawab.
+* **Hari 3 sampai 4**: Desain arsitektur dan antarmuka (ERD, flowchart, wireframe).
+* **Hari 5 sampai 10**: Pengembangan fitur, dibagi per modul, dengan papan ditinjau setiap hari.
+* **Hari 11 sampai 12**: Pengujian dan perbaikan bug, sambil menyusun draft laporan.
+* **Hari 13**: Finalisasi laporan dan slide, latihan presentasi.
+* **Hari 14**: Cadangan waktu untuk hal tak terduga sebelum pengumpulan resmi.
+
+Perhatikan bahwa jadwal ini sengaja menyisakan ruang di akhir. Itu bukan kemalasan, melainkan perencanaan yang realistis.
+
+---
+
+## Penutup
+
+Memakai sistem manajemen proyek untuk tugas UAS bukan soal terlihat profesional. Ini soal mengurangi kebingungan, membagi beban dengan jelas, dan melihat masalah sebelum terlambat.
+
+Dan kebiasaan ini tidak berhenti di UAS: cara berpikir yang sama dipakai di dunia kerja, dari tim pengembang kecil sampai proyek besar.
+
+Mulailah dari hal sederhana: pecah tugasmu jadi task kecil, beri penanggung jawab dan deadline, lalu tinjau papannya setiap hari. Hasilnya akan terasa sejak minggu pertama.
+`
+  },
+  {
     id: "manfaat-ai-dalam-manajemen-proyek",
     title: "Manfaat AI dalam Manajemen Proyek",
     snippet: "Bagaimana kecerdasan buatan membantu tim bekerja lebih terencana, lebih cepat, dan lebih sedikit kejutan, tanpa menggantikan peran manusia.",
