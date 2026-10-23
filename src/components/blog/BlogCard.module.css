@@ -1,0 +1,151 @@
+.cardContainer {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 100%;
+}
+
+.cardLink {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0.25rem;
+  border-radius: var(--radius-md);
+}
+
+.cardLink:hover {
+  transform: translateY(-4px);
+}
+
+.cardLink:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+
+/* 1. Thumbnail 16:9 */
+.thumbnailWrapper {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+}
+
+.thumbnail {
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.cardLink:hover .thumbnail {
+  transform: scale(1.03);
+}
+
+/* 2. Label Kategori */
+.categoryLabel {
+  font-size: 0.76rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--secondary-text);
+  margin-top: 0.85rem;
+  margin-bottom: 0.35rem;
+  display: inline-block;
+}
+
+/* 3. Judul Artikel (Maks 4 baris line-clamp) */
+.title {
+  font-size: 1.02rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--foreground);
+  margin: 0 0 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  transition: color 0.15s ease;
+}
+
+.cardLink:hover .title {
+  color: var(--primary);
+}
+
+/* 4. Tanggal & Read Time */
+.metaRow {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  color: var(--secondary-text);
+  margin-bottom: 0.75rem;
+}
+
+.dotSeparator {
+  color: var(--border);
+  font-weight: bold;
+}
+
+/* 5. Penulis */
+.authorRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding-top: 0.25rem;
+}
+
+.avatarWrapper {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  background-color: var(--surface-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
+}
+
+.authorName {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.cardLink:hover .authorName {
+  text-decoration: underline;
+}
+
+/* 6. Garis bawah tipis sebagai pemisah */
+.bottomDivider {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border);
+  margin-top: 1rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cardLink,
+  .thumbnail {
+    transition: none;
+  }
+  .cardLink:hover {
+    transform: none;
+  }
+  .cardLink:hover .thumbnail {
+    transform: none;
+  }
+}

@@ -2,11 +2,17 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Calendar, Clock, Tag, Share2, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Tag } from 'lucide-react';
 import Navbar from "@/components/layout/Navbar";
 import { BLOG_POSTS } from "@/data/blogPosts";
-import styles from "../blog.module.css";
 import type { Metadata } from 'next';
+
+import styles from "@/components/blog/BlogDetail.module.css";
+import TableOfContents, { type TocHeading } from "@/components/blog/TableOfContents";
+import DetailSearchForm from "@/components/blog/DetailSearchForm";
+import PromoCard from "@/components/blog/PromoCard";
+import NewsletterBlock from "@/components/blog/NewsletterBlock";
+import BlogCard from "@/components/blog/BlogCard";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -56,6 +62,36 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-');
+}
+
+function extractHeadings(content: string): TocHeading[] {
+  const headings: TocHeading[] = [];
+  const lines = content.split('\n');
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('## ')) {
+      const text = trimmed.replace(/^##\s+/, '').replace(/\*\*/g, '').trim();
+      if (text) {
+        headings.push({ id: slugify(text), text, level: 2 });
+      }
+    } else if (trimmed.startsWith('### ')) {
+      const text = trimmed.replace(/^###\s+/, '').replace(/\*\*/g, '').trim();
+      if (text) {
+        headings.push({ id: slugify(text), text, level: 3 });
+      }
+    }
+  }
+
+  return headings;
+}
+
 export default async function BlogPostPage({ params }: Props) {
   const { id } = await params;
   const post = BLOG_POSTS.find((p) => p.id === id);
@@ -67,279 +103,231 @@ export default async function BlogPostPage({ params }: Props) {
   // Related posts from the same category
   const relatedPosts = BLOG_POSTS.filter((p) => p.id !== post.id && p.category === post.category).slice(0, 2);
 
+  const headings = extractHeadings(post.content);
+
+  const authorName = (post as any).author?.name || 'TaskTuntas Team';
+  const authorAvatar = (post as any).author?.avatar || '/favicon.png';
+
   return (
-    <main style={{ minHeight: '100vh', width: '100%', background: 'var(--background)' }}>
+    <main style={{ minHeight: '100vh', width: '100%', backgroundColor: 'var(--background)' }}>
       <Navbar />
 
-      <div className={styles.blogContainer} style={{ paddingTop: '5.5rem', paddingBottom: '3.5rem', gap: '1.5rem' }}>
+      <div className={styles.pageContainer}>
         {/* Navigation back */}
-        <Link href="/blog" className={styles.backHomeLink} style={{ marginBottom: '0.75rem', display: 'inline-flex' }}>
-          <ArrowLeft size={16} /> Kembali ke Artikel Blog
+        <Link href="/blog" className={styles.backLink} aria-label="Kembali ke daftar blog">
+          <ArrowLeft size={16} /> Kembali ke Blog
         </Link>
 
-        <article style={{ maxWidth: '840px', margin: '0 auto' }}>
-          {/* Article Header */}
-          <header style={{ marginBottom: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
-              <span className={styles.cardTag}>{post.tag}</span>
-              <span style={{ fontSize: '0.82rem', color: 'var(--secondary-text)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Tag size={13} /> {post.category}
-              </span>
-            </div>
-
-            <h1 style={{ 
-              fontSize: '1.85rem', 
-              fontWeight: 800, 
-              lineHeight: 1.25, 
-              letterSpacing: '-0.02em', 
-              color: 'var(--foreground)',
-              marginBottom: '0.65rem' 
-            }}>
-              {post.title}
-            </h1>
-
-            <div className={styles.postMeta} style={{ fontSize: '0.82rem', color: 'var(--secondary-text)', gap: '0.85rem' }}>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Calendar size={14} /> {post.date}
-              </span>
-              <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <Clock size={14} /> {post.readTime}
-              </span>
-            </div>
-          </header>
-
-          {/* Featured Image - Compact sleek banner */}
-          <div style={{ 
-            position: 'relative', 
-            width: '100%', 
-            height: '240px', 
-            borderRadius: 'var(--radius-modal)', 
-            overflow: 'hidden', 
-            marginBottom: '1.25rem',
-            border: '1px solid var(--border)',
-            boxShadow: '0 10px 25px -10px rgba(0,0,0,0.08)'
-          }}>
-            <Image
-              src={post.image}
-              alt={post.title}
-              fill
-              style={{ objectFit: 'cover' }}
-              priority
-            />
+        {/* HEADER ARTIKEL (LEBAR PENUH CONTAINER) */}
+        <header className={styles.articleHeader}>
+          <div className={styles.categoryBadge}>
+            <Tag size={13} aria-hidden="true" />
+            <span>{post.category}</span>
           </div>
 
-          {/* Article Content Body - Compact reading mode */}
-          <div style={{
-            fontSize: '0.94rem',
-            lineHeight: 1.55,
-            color: 'var(--foreground)',
-            background: 'var(--surface)',
-            padding: '1.5rem 1.75rem',
-            borderRadius: 'var(--radius-modal)',
-            border: '1px solid var(--border)',
-            boxShadow: '0 8px 24px -10px rgba(0,0,0,0.03)'
-          }}>
-            {post.content.split('\n\n').map((paragraph, idx) => {
-              const text = paragraph.trim();
+          <h1 className={styles.articleTitle}>
+            {post.title}
+          </h1>
 
-              if (!text) return null;
+          <div className={styles.articleMetaRow}>
+            {/* "Tayang <tanggal>" (label tebal, tanggal normal) */}
+            <span className={styles.metaItem}>
+              <strong className={styles.metaLabel}>Tayang</strong>
+              <span className={styles.metaValue}>{post.date}</span>
+            </span>
 
-              if (text.startsWith('## ')) {
-                return (
-                  <h2 key={idx} style={{ 
-                    fontSize: '1.25rem', 
-                    fontWeight: 700, 
-                    marginTop: '1.25rem', 
-                    marginBottom: '0.45rem',
-                    color: 'var(--foreground)',
-                    borderBottom: '1.5px solid var(--primary-soft)',
-                    paddingBottom: '0.35rem'
-                  }}>
-                    {text.replace('## ', '')}
-                  </h2>
-                );
-              }
+            <span className={styles.metaSeparator} aria-hidden="true">•</span>
 
-              if (text.startsWith('### ')) {
-                return (
-                  <h3 key={idx} style={{ 
-                    fontSize: '1.08rem', 
-                    fontWeight: 700, 
-                    marginTop: '1rem', 
-                    marginBottom: '0.35rem',
-                    color: 'var(--foreground)'
-                  }}>
-                    {text.replace('### ', '')}
-                  </h3>
-                );
-              }
+            {/* "Ditulis oleh:" + avatar bulat + nama penulis berwarna link */}
+            <span className={styles.authorMeta}>
+              <strong className={styles.metaLabel}>Ditulis oleh:</strong>
+              <Image
+                src={authorAvatar}
+                alt={authorName}
+                width={22}
+                height={22}
+                className={styles.authorAvatar}
+              />
+              <Link href="/blog" className={styles.authorLink}>
+                {authorName}
+              </Link>
+            </span>
 
-              if (text.startsWith('> ')) {
-                return (
-                  <blockquote key={idx} style={{
-                    borderLeft: '3px solid var(--primary)',
-                    padding: '0.6rem 0.9rem',
-                    margin: '0.75rem 0',
-                    fontStyle: 'italic',
-                    fontSize: '0.9rem',
-                    lineHeight: 1.5,
-                    color: 'var(--secondary-text)',
-                    background: 'var(--primary-soft)',
-                    borderRadius: '0 var(--radius-sm) var(--radius-sm) 0'
-                  }}>
-                    {text.replace('> ', '').replace(/"/g, '')}
-                  </blockquote>
-                );
-              }
+            <span className={styles.metaSeparator} aria-hidden="true">•</span>
 
-              if (text.startsWith('---')) {
-                return <hr key={idx} style={{ border: 'none', borderTop: '1px solid var(--border)', margin: '0.85rem 0' }} />;
-              }
+            <span className={styles.metaItem}>
+              <span className={styles.metaValue}>{post.readTime}</span>
+            </span>
+          </div>
+        </header>
 
-              if (text.startsWith('|')) {
-                const rows = text.split('\n').filter(row => !row.includes('---'));
-                const headers = rows[0]?.split('|').map(cell => cell.trim()).filter(Boolean) || [];
-                const bodyRows = rows.slice(1).map(row => row.split('|').map(cell => cell.trim()).filter(Boolean));
+        {/* Garis pemisah putus-putus (dotted) di bawah header */}
+        <hr className={styles.dottedDivider} aria-hidden="true" />
 
-                return (
-                  <div key={idx} style={{ overflowX: 'auto', margin: '0.75rem 0' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', borderRadius: 'var(--radius-sm)', overflow: 'hidden', border: '1px solid var(--border)' }}>
-                      <thead>
-                        <tr style={{ background: 'var(--primary-soft)', borderBottom: '1.5px solid var(--border)' }}>
-                          {headers.map((h, i) => (
-                            <th key={i} style={{ padding: '0.45rem 0.75rem', textAlign: 'left', fontWeight: 700, fontSize: '0.85rem' }}>
-                              {h.replace(/\*\*/g, '')}
-                            </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {bodyRows.map((r, rIdx) => (
-                          <tr key={rIdx} style={{ borderBottom: '1px solid var(--border)', background: rIdx % 2 === 1 ? 'var(--background)' : 'var(--surface)' }}>
-                            {r.map((c, cIdx) => (
-                              <td key={cIdx} style={{ padding: '0.45rem 0.75rem', fontSize: '0.85rem' }}>
-                                {c.replace(/\*\*/g, '')}
-                              </td>
+        {/* BODY TIGA KOLOM (DESKTOP) */}
+        <div className={styles.bodyLayout}>
+          {/* Kolom Kiri: Sticky (± 20%) */}
+          <aside className={styles.leftColumn} aria-label="Navigasi dan Pencarian Artikel">
+            <DetailSearchForm />
+            <TableOfContents headings={headings} />
+          </aside>
+
+          {/* Kolom Tengah: Konten (± 60%) */}
+          <article className={styles.centerColumn}>
+            {/* Gambar utama artikel (sudut membulat) */}
+            <figure style={{ margin: 0 }}>
+              <div className={styles.mainImageWrapper}>
+                <Image
+                  src={post.image}
+                  alt={post.title}
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 60vw, 720px"
+                  className={styles.mainImage}
+                />
+              </div>
+              {/* Caption kecil di tengah di bawahnya */}
+              <figcaption className={styles.imageCaption}>
+                Ilustrasi: {post.title}
+              </figcaption>
+            </figure>
+
+            {/* Isi artikel dengan tipografi nyaman */}
+            <div className={styles.contentBody}>
+              {post.content.split('\n\n').map((paragraph, idx) => {
+                const text = paragraph.trim();
+
+                if (!text) return null;
+
+                if (text.startsWith('## ')) {
+                  const headingText = text.replace('## ', '').replace(/\*\*/g, '').trim();
+                  const headingId = slugify(headingText);
+                  return (
+                    <h2 key={idx} id={headingId} className={styles.heading2}>
+                      {headingText}
+                    </h2>
+                  );
+                }
+
+                if (text.startsWith('### ')) {
+                  const headingText = text.replace('### ', '').replace(/\*\*/g, '').trim();
+                  const headingId = slugify(headingText);
+                  return (
+                    <h3 key={idx} id={headingId} className={styles.heading3}>
+                      {headingText}
+                    </h3>
+                  );
+                }
+
+                if (text.startsWith('> ')) {
+                  return (
+                    <blockquote key={idx} className={styles.blockquote}>
+                      {text.replace('> ', '').replace(/"/g, '')}
+                    </blockquote>
+                  );
+                }
+
+                if (text.startsWith('---')) {
+                  return <hr key={idx} className={styles.contentDivider} />;
+                }
+
+                if (text.startsWith('|')) {
+                  const rows = text.split('\n').filter(row => !row.includes('---'));
+                  const headers = rows[0]?.split('|').map(cell => cell.trim()).filter(Boolean) || [];
+                  const bodyRows = rows.slice(1).map(row => row.split('|').map(cell => cell.trim()).filter(Boolean));
+
+                  return (
+                    <div key={idx} className={styles.tableWrapper}>
+                      <table className={styles.table}>
+                        <thead>
+                          <tr>
+                            {headers.map((h, i) => (
+                              <th key={i} className={styles.tableTh}>
+                                {h.replace(/\*\*/g, '')}
+                              </th>
                             ))}
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              }
-
-              if (text.startsWith('* ') || text.startsWith('- ')) {
-                const items = text.split('\n').map(item => item.replace(/^[\*\-]\s*/, ''));
-                return (
-                  <ul key={idx} style={{ margin: '0.35rem 0 0.65rem 1.25rem', listStyleType: 'disc' }}>
-                    {items.map((it, i) => (
-                      <li key={i} style={{ marginBottom: '0.25rem', lineHeight: 1.5 }}>
-                        {it.split('**').map((part, pIdx) => 
-                          pIdx % 2 === 1 ? <strong key={pIdx} style={{ color: 'var(--foreground)' }}>{part}</strong> : part
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                );
-              }
-
-              return (
-                <p key={idx} style={{ marginBottom: '0.65rem', lineHeight: 1.55 }}>
-                  {text.split('**').map((part, pIdx) => 
-                    pIdx % 2 === 1 ? <strong key={pIdx} style={{ color: 'var(--foreground)' }}>{part}</strong> : part
-                  )}
-                </p>
-              );
-            })}
-
-            {/* Bottom Call to Action Card inside article */}
-            <div style={{
-              marginTop: '1.75rem',
-              padding: '1.25rem 1.5rem',
-              borderRadius: 'var(--radius-modal)',
-              background: 'linear-gradient(135deg, var(--primary-soft) 0%, #DBEAFE 100%)',
-              border: '1px solid var(--primary-border)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.6rem'
-            }}>
-              <h3 style={{ fontSize: '1.12rem', fontWeight: 700, color: 'var(--primary-dark)', margin: 0 }}>
-                Kelola Proyek & Task Tim Anda dengan TaskTuntas
-              </h3>
-              <p style={{ fontSize: '0.88rem', color: '#1E3A8A', margin: 0, lineHeight: 1.5 }}>
-                Coba platform TaskTuntas secara gratis. Kelola task, kanban board, workflow request-to-done, dan laporan produktivitas dalam satu platform terintegrasi.
-              </p>
-              <div>
-                <Link 
-                  href="/register" 
-                  style={{ 
-                    display: 'inline-flex', 
-                    alignItems: 'center', 
-                    gap: '0.4rem', 
-                    background: 'var(--primary)', 
-                    color: '#fff', 
-                    padding: '0.5rem 1.1rem', 
-                    borderRadius: 'var(--radius-md)', 
-                    fontWeight: 600,
-                    fontSize: '0.85rem',
-                    textDecoration: 'none'
-                  }}
-                >
-                  Mulai Gunakan TaskTuntas <ArrowRight size={15} />
-                </Link>
-              </div>
-            </div>
-          </div>
-
-          {/* Related Articles Footer */}
-          {relatedPosts.length > 0 && (
-            <div style={{ marginTop: '2rem' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 700, marginBottom: '0.75rem', color: 'var(--foreground)' }}>
-                Artikel Terkait Lainnya
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.85rem' }}>
-                {relatedPosts.map(rel => (
-                  <Link key={rel.id} href={`/blog/${rel.id}`} style={{ textDecoration: 'none' }}>
-                    <div className={styles.blogCard} style={{ background: 'var(--surface)', borderRadius: '8px' }}>
-                      <div style={{ position: 'relative', width: '100%', height: '110px', overflow: 'hidden', background: '#0f172a' }}>
-                        <Image src={rel.image} alt={rel.title} fill className={styles.cardImage} sizes="350px" />
-                      </div>
-                      <div style={{ padding: '0.65rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-                        <span className={styles.cardTag} style={{ fontSize: '0.62rem', padding: '0.12rem 0.4rem' }}>{rel.tag}</span>
-                        <h4 style={{ 
-                          fontSize: '0.85rem', 
-                          fontWeight: 700, 
-                          margin: '0.1rem 0', 
-                          color: 'var(--foreground)',
-                          lineHeight: 1.3,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}>
-                          {rel.title}
-                        </h4>
-                        <p style={{ 
-                          fontSize: '0.76rem', 
-                          color: 'rgba(255, 255, 255, 0.6)', 
-                          lineHeight: 1.35, 
-                          margin: 0,
-                          display: '-webkit-box',
-                          WebkitLineClamp: 2,
-                          WebkitBoxOrient: 'vertical',
-                          overflow: 'hidden'
-                        }}>
-                          {rel.snippet}
-                        </p>
-                      </div>
+                        </thead>
+                        <tbody>
+                          {bodyRows.map((r, rIdx) => (
+                            <tr key={rIdx} className={rIdx % 2 === 1 ? styles.tableTrAlt : undefined}>
+                              {r.map((c, cIdx) => (
+                                <td key={cIdx} className={styles.tableTd}>
+                                  {c.replace(/\*\*/g, '')}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
+                  );
+                }
+
+                if (text.startsWith('* ') || text.startsWith('- ')) {
+                  const items = text.split('\n').map(item => item.replace(/^[\*\-]\s*/, ''));
+                  return (
+                    <ul key={idx} className={styles.list}>
+                      {items.map((it, i) => (
+                        <li key={i} className={styles.listItem}>
+                          {it.split('**').map((part, pIdx) => 
+                            pIdx % 2 === 1 ? <strong key={pIdx} style={{ color: 'var(--foreground)' }}>{part}</strong> : part
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  );
+                }
+
+                return (
+                  <p key={idx} className={styles.paragraph}>
+                    {text.split('**').map((part, pIdx) => 
+                      pIdx % 2 === 1 ? <strong key={pIdx} style={{ color: 'var(--foreground)' }}>{part}</strong> : part
+                    )}
+                  </p>
+                );
+              })}
+
+              {/* Bottom Call to Action Card inside article */}
+              <div className={styles.bottomCtaCard}>
+                <h3 className={styles.bottomCtaTitle}>
+                  Kelola Proyek &amp; Task Tim Anda dengan TaskTuntas
+                </h3>
+                <p className={styles.bottomCtaDesc}>
+                  Coba platform TaskTuntas secara gratis. Kelola task, kanban board, workflow request-to-done, dan laporan produktivitas dalam satu platform terintegrasi.
+                </p>
+                <div>
+                  <Link href="/register" className={styles.bottomCtaBtn}>
+                    Mulai Gunakan TaskTuntas <ArrowRight size={15} />
                   </Link>
-                ))}
+                </div>
               </div>
             </div>
-          )}
-        </article>
+
+            {/* Related Articles Footer */}
+            {relatedPosts.length > 0 && (
+              <section className={styles.relatedSection} aria-label="Artikel Terkait">
+                <h3 className={styles.relatedHeading}>
+                  Artikel Terkait Lainnya
+                </h3>
+                <div className={styles.relatedGrid}>
+                  {relatedPosts.map((rel) => (
+                    <BlogCard key={rel.id} post={rel} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </article>
+
+          {/* Kolom Kanan: Sticky (± 20%) */}
+          <aside className={styles.rightColumn} aria-label="Informasi & Promosi Tambahan">
+            <PromoCard />
+            <NewsletterBlock
+              title="Kurasi Newsletter"
+              description="Dapatkan kurasi newsletter terkait produktivitas, manajemen proyek, dan engineering terbaik langsung ke inbox Anda."
+            />
+          </aside>
+        </div>
       </div>
     </main>
   );

@@ -1,0 +1,105 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-modal);
+  box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+}
+
+.title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.description {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--secondary-text);
+  margin: 0;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.inputWrapper {
+  width: 100%;
+}
+
+.emailInput {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  font-size: 0.84rem;
+  font-family: inherit;
+  color: var(--foreground);
+  background-color: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.emailInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-glow);
+  background-color: var(--surface);
+}
+
+.emailInput::placeholder {
+  color: var(--secondary-text);
+  opacity: 0.7;
+}
+
+/* Tombol outline "Subscribe" */
+.subscribeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: transparent;
+  border: 1.5px solid var(--primary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: var(--transition);
+  width: 100%;
+}
+
+.subscribeBtn:hover {
+  background-color: var(--primary-soft);
+  border-color: var(--primary-hover);
+  color: var(--primary-dark);
+}
+
+.subscribeBtn:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.successMessage {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background-color: var(--success-subtle);
+  border: 1px solid rgba(22, 163, 74, 0.2);
+  border-radius: var(--radius-md);
+  font-size: 0.82rem;
+  color: var(--success);
+  line-height: 1.4;
+}
+
+.successIcon {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
