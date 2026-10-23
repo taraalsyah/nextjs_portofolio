@@ -68,6 +68,7 @@ export interface SendEmailParams {
   subject: string;
   html: string;
   text?: string;
+  replyTo?: string;
 }
 
 export interface EmailResult {
@@ -89,6 +90,7 @@ export async function sendEmail(params: SendEmailParams): Promise<EmailResult> {
       subject: params.subject,
       html: params.html,
       text: params.text,
+      replyTo: params.replyTo,
     });
 
     console.log('[mail.ts] Email terkirim:', info.messageId);

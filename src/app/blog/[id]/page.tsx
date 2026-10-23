@@ -13,6 +13,7 @@ import DetailSearchForm from "@/components/blog/DetailSearchForm";
 import PromoCard from "@/components/blog/PromoCard";
 import NewsletterBlock from "@/components/blog/NewsletterBlock";
 import BlogCard from "@/components/blog/BlogCard";
+import CommentSection from "@/components/blog/comments/CommentSection";
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -303,6 +304,9 @@ export default async function BlogPostPage({ params }: Props) {
                 </div>
               </div>
             </div>
+
+            {/* Bagian Komentar Pembaca */}
+            <CommentSection slug={post.id} postTitle={post.title} />
 
             {/* Related Articles Footer */}
             {relatedPosts.length > 0 && (

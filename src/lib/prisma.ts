@@ -14,7 +14,7 @@ function createPrismaClient(): PrismaClient {
 }
 
 // Reset client if running server has outdated client lacking newer models
-if (globalForPrisma.prisma && (!(globalForPrisma.prisma as any).taskProject || !(globalForPrisma.prisma as any).taskPhase)) {
+if (globalForPrisma.prisma && (!(globalForPrisma.prisma as any).taskProject || !(globalForPrisma.prisma as any).taskPhase || !(globalForPrisma.prisma as any).comment)) {
   try {
     (globalForPrisma.prisma as any).$disconnect();
   } catch {}

@@ -550,3 +550,21 @@ model TaskPhase {
   @@index([taskProjectId])
   @@map("task_phases")
 }
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  postSlug  String   @map("post_slug")
+  name      String
+  email     String
+  content   String   @db.Text
+  status    String   @default("approved")
+  ipHash    String?  @map("ip_hash")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([postSlug])
+  @@index([postSlug, status])
+  @@index([createdAt])
+  @@map("comments")
+}
+
