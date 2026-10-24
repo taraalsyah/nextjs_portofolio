@@ -65,8 +65,7 @@ export default function AllTasksPage() {
   // Modals state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<TaskItem | null>(null);
-  const [selectedTask, setSelectedTask] = useState<TaskItem | null>(null);
-  const selectedTaskId = selectedTask?.id ?? null;
+  const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [taskToDelete, setTaskToDelete] = useState<TaskItem | null>(null);
 
   const role = session?.user?.role || 'Staff';
@@ -306,7 +305,7 @@ export default function AllTasksPage() {
           isLoading={isLoading}
           isFetching={isFetching}
           isAdmin={isAdmin}
-          onView={(t) => setSelectedTask(t)}
+          onView={(t) => setSelectedTaskId(t.id)}
           onEdit={(t) => setEditingTask(t)}
           onDelete={handleDeleteTask}
           currentPage={currentPage}
@@ -334,9 +333,8 @@ export default function AllTasksPage() {
       {/* Detail Modal */}
       <TaskDetailModal
         taskId={selectedTaskId}
-        initialData={selectedTask}
         isOpen={selectedTaskId !== null}
-        onClose={() => setSelectedTask(null)}
+        onClose={() => setSelectedTaskId(null)}
         currentUserId={currentUserId}
         onEditRequest={(t) => setEditingTask(t as unknown as TaskItem)}
         onTaskUpdated={fetchTasks}

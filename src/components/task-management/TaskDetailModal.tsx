@@ -87,7 +87,6 @@ interface TaskDetailData {
 
 interface TaskDetailModalProps {
   taskId: number | null;
-  initialData?: any;
   isOpen: boolean;
   onClose: () => void;
   currentUserId: number;
@@ -393,30 +392,18 @@ const renderFormattedStatusMsg = (msg: string) => {
   return <span>{msg}</span>;
 };
 
-const taskDetailCache = new Map<number, { task: TaskDetailData; userPermissions: ProjectPermissions; timestamp: number }>();
-
 export function TaskDetailModal({
   taskId,
-  initialData,
   isOpen,
   onClose,
   currentUserId,
   onEditRequest,
   onTaskUpdated,
 }: TaskDetailModalProps) {
-  const [task, setTask] = useState<TaskDetailData | null>(() => {
-    if (initialData) return initialData as TaskDetailData;
-    if (taskId && taskDetailCache.has(taskId)) {
-      return taskDetailCache.get(taskId)!.task;
-    }
-    return null;
-  });
-  const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(() => {
-    if (taskId && taskDetailCache.has(taskId)) {
-      return taskDetailCache.get(taskId)!.userPermissions;
-    }
-    return null;
-  });
+  const [task, setTask] = useState<TaskDetailData | null>(null);
+  const [userPermissions, setUserPermissions] = useState<ProjectPermissions | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'info' | 'checklist' | 'comments' | 'attachments' | 'history'>('info');
   const [statusMsg, setStatusMsg] = useState<{ type: 'error' | 'success'; message: string } | null>(null);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
@@ -428,7 +415,6 @@ export function TaskDetailModal({
     onTaskUpdated?.();
     if (taskId) {
       notifyTaskMutated(taskId);
-      taskDetailCache.delete(taskId);
     }
   }, [onTaskUpdated, taskId]);
 
@@ -446,32 +432,38 @@ export function TaskDetailModal({
   const [showDoneRejectModal, setShowDoneRejectModal] = useState(false);
   const [doneRejectReasonText, setDoneRejectReasonText] = useState('');
 
-  const isLoading = task === null && isOpen && taskId !== null;
-
-  const fetchTaskDetails = React.useCallback(async () => {
+  const fetchTaskDetails = React.useCallback(async (showLoadingSpinner = false) => {
     if (!taskId) return;
+    if (showLoadingSpinner) {
+      setIsLoading(true);
+      setFetchError(null);
+    }
     try {
       const res = await fetch(`/api/tasks/${taskId}`);
       if (res.ok) {
         const json = await res.json();
         setTask(json.task);
         setUserPermissions(json.userPermissions);
-        taskDetailCache.set(taskId, {
-          task: json.task,
-          userPermissions: json.userPermissions,
-          timestamp: Date.now(),
-        });
+        setFetchError(null);
       } else {
+        const errMsg = 'Gagal memuat detail task dari database.';
+        setFetchError(errMsg);
         setStatusMsg({
           type: 'error',
-          message: 'Gagal memuat detail task.',
+          message: errMsg,
         });
       }
     } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Gagal memuat detail task dari database.';
+      setFetchError(errMsg);
       setStatusMsg({
         type: 'error',
-        message: err instanceof Error ? err.message : 'Gagal memuat detail task.',
+        message: errMsg,
       });
+    } finally {
+      if (showLoadingSpinner) {
+        setIsLoading(false);
+      }
     }
   }, [taskId]);
 
@@ -483,6 +475,10 @@ export function TaskDetailModal({
       }
       hasChangesRef.current = false;
     }
+    setTask(null);
+    setUserPermissions(null);
+    setIsLoading(false);
+    setFetchError(null);
     setStatusMsg(null);
     setShowReasonInput(false);
     setRequestReasonText('');
@@ -498,17 +494,18 @@ export function TaskDetailModal({
   useEffect(() => {
     if (isOpen && taskId) {
       hasChangesRef.current = false;
-      // Prepopulate immediately from initialData or cache for instant 0ms perceived opening
-      if (initialData && (!task || task.id !== taskId)) {
-        setTask(initialData as TaskDetailData);
-      } else if (taskDetailCache.has(taskId)) {
-        const cached = taskDetailCache.get(taskId)!;
-        setTask(cached.task);
-        setUserPermissions(cached.userPermissions);
-      }
-      fetchTaskDetails();
+      setTask(null);
+      setUserPermissions(null);
+      setActiveTab('info');
+      fetchTaskDetails(true);
+    } else if (!isOpen) {
+      setTask(null);
+      setUserPermissions(null);
+      setIsLoading(false);
+      setFetchError(null);
+      setStatusMsg(null);
     }
-  }, [isOpen, taskId, initialData, fetchTaskDetails]);
+  }, [isOpen, taskId, fetchTaskDetails]);
 
   if (!isOpen || !taskId) return null;
 
@@ -899,9 +896,9 @@ export function TaskDetailModal({
       <div className={`${styles.modalContent} ${styles.taskModalContent}`} onClick={(e) => e.stopPropagation()}>
         <div className={`${styles.modalHeader} ${styles.taskModalHeader}`}>
           <div style={{ flex: 1, minWidth: 0, paddingRight: '0.75rem' }}>
-            <span className={styles.taskNumber}>{task?.taskNumber || 'Task Detail'}</span>
+            <span className={styles.taskNumber}>{task ? task.taskNumber : 'Task Detail'}</span>
             <h3 className={styles.modalTitle} style={{ marginTop: '0.2rem' }}>
-              {task?.title || 'Memuat...'}
+              {task ? task.title : (isLoading ? 'Memuat...' : (fetchError ? 'Terjadi Kesalahan' : 'Detail Task'))}
             </h3>
           </div>
           <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
@@ -948,8 +945,37 @@ export function TaskDetailModal({
           </div>
         </div>
 
-        {/* Top Banners Container */}
-        <div className={styles.detailBannerSection}>
+        {isLoading ? (
+          <div className={styles.detailScrollBody} style={{ minHeight: '260px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '2rem' }}>
+            <InlineSpinner size={24} color="var(--primary)" />
+            <span style={{ fontSize: '0.88rem', color: 'var(--muted-foreground)' }}>Memuat detail task dari database...</span>
+          </div>
+        ) : fetchError || !task ? (
+          <div className={styles.detailScrollBody} style={{ minHeight: '240px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', padding: '2rem', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#DC2626' }}>
+              <ShieldAlert size={22} />
+              <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>{fetchError || 'Task tidak ditemukan.'}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => fetchTaskDetails(true)}
+              style={{
+                padding: '0.45rem 0.9rem',
+                borderRadius: '6px',
+                border: '1px solid var(--border)',
+                background: 'var(--surface)',
+                color: 'var(--foreground)',
+                fontSize: '0.82rem',
+                cursor: 'pointer'
+              }}
+            >
+              Coba Lagi
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Top Banners Container */}
+            <div className={styles.detailBannerSection}>
           {/* Task Completed Read-Only Banner */}
           {isTaskDone && (
             <div className={styles.lockedBanner}>
@@ -1666,13 +1692,7 @@ export function TaskDetailModal({
 
         {/* Content Body Scrollable Area */}
         <div className={styles.detailScrollBody}>
-          {isLoading || !task ? (
-            <div className={styles.loadingBox}>
-              <InlineSpinner size={18} color="var(--primary)" />
-              <span>Memuat detail task...</span>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '300px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', minHeight: '300px' }}>
             {activeTab === 'info' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className={styles.infoGrid}>
@@ -1830,9 +1850,10 @@ export function TaskDetailModal({
             {activeTab === 'history' && (
               <TaskHistorySection histories={task.histories || []} />
             )}
+            </div>
           </div>
-        )}
-        </div>
+        </>
+      )}
 
         {/* Modal Footer */}
         <div className={`${styles.modalFooter} ${styles.modalFooterCompact}`}>
