@@ -339,6 +339,7 @@ model TaskChecklist {
   task        Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
+  @@index([taskId, createdAt])
   @@map("task_checklists")
 }
 
@@ -354,6 +355,7 @@ model TaskComment {
 
   @@index([taskId])
   @@index([userId])
+  @@index([taskId, createdAt])
   @@map("task_comments")
 }
 
@@ -371,6 +373,7 @@ model TaskAttachment {
 
   @@index([taskId])
   @@index([uploadedById])
+  @@index([taskId, createdAt])
   @@map("task_attachments")
 }
 
@@ -388,6 +391,7 @@ model TaskHistory {
 
   @@index([taskId])
   @@index([userId])
+  @@index([taskId, createdAt])
   @@map("task_histories")
 }
 

@@ -11,6 +11,9 @@ import { triggerTaskRealtimeUpdate } from '@/lib/notifications/task-realtime';
 import { getOrCreateUncategorizedCategory } from '@/lib/category-service';
 import { getOrCreateDefaultTaskProject } from '@/lib/task-project-service';
 
+const MAX_COMMENTS_LIMIT = 50;
+const MAX_HISTORIES_LIMIT = 50;
+
 // Updated route with Done Request Approval Workflow & Stale-Client Purging
 export async function GET(
   req: NextRequest,
@@ -23,120 +26,150 @@ export async function GET(
       return NextResponse.json({ error: 'Session expired.' }, { status: 401 });
     }
 
-    const sessionUserId = parseInt(session.user.id || '0', 10);
-    const activeProject = await getActiveProjectContext(sessionUserId, session.user.name || undefined, req);
-
-    if (!activeProject) {
-      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
-    }
-
     const { id: getParamsId } = await params;
     const taskId = parseInt(getParamsId, 10);
     if (isNaN(taskId)) {
       return NextResponse.json({ error: 'ID Task tidak valid.' }, { status: 400 });
     }
 
-    const rawTask = await prisma.task.findFirst({
-      where: { id: taskId, deletedAt: null },
-      select: {
-        id: true,
-        taskNumber: true,
-        projectId: true,
-        title: true,
-        description: true,
-        status: true,
-        priority: true,
-        assigneeId: true,
-        createdById: true,
-        categoryId: true,
-        tags: true,
-        startDate: true,
-        dueDate: true,
-        createdAt: true,
-        updatedAt: true,
-        closeRequestStatus: true,
-        closeRequestedById: true,
-        closeRequestedAt: true,
-        closeRequestReason: true,
-        closeReviewedById: true,
-        closeReviewedAt: true,
-        closeRejectReason: true,
-        closeRequestedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
-        closeReviewedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
-        doneRequestStatus: true,
-        doneRequestedById: true,
-        doneRequestedAt: true,
-        doneRequestNote: true,
-        doneReviewedById: true,
-        doneReviewedAt: true,
-        doneRejectReason: true,
-        doneRequestedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
-        doneReviewedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
-        assignee: { select: { id: true, name: true, username: true, email: true, image: true } },
-        createdBy: { select: { id: true, name: true, username: true, email: true, image: true } },
-        category: { select: { id: true, name: true, description: true } },
-        taskProjectId: true,
-        phaseId: true,
-        phase: true,
-        phaseRel: { select: { id: true, name: true, order: true } },
-        taskProject: { select: { id: true, name: true, description: true } },
-        checklists: { orderBy: { createdAt: 'asc' } },
-        comments: {
-          orderBy: { createdAt: 'asc' },
-          select: {
-            id: true,
-            content: true,
-            createdAt: true,
-            userId: true,
-            user: { select: { id: true, name: true, username: true, image: true } },
-          },
-        },
-        attachments: {
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            fileName: true,
-            fileUrl: true,
-            fileSize: true,
-            fileType: true,
-            createdAt: true,
-            uploadedById: true,
-            uploadedBy: { select: { id: true, name: true } },
-          },
-        },
-        histories: {
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            action: true,
-            fieldName: true,
-            previousValue: true,
-            newValue: true,
-            createdAt: true,
-            userId: true,
-            user: { select: { id: true, name: true } },
-          },
-        },
-      },
-    });
+    const sessionUserId = parseInt(session.user.id || '0', 10);
 
-    const task = rawTask ? {
-      ...rawTask,
-      isDone: rawTask.status === 'DONE',
-    } : null;
+    // Parallel fetch: activeProjectContext, base task details, and related child collections
+    const [
+      activeProject,
+      rawTask,
+      checklists,
+      comments,
+      attachments,
+      histories,
+    ] = await Promise.all([
+      getActiveProjectContext(sessionUserId, session.user.name || undefined, req),
+      prisma.task.findFirst({
+        where: { id: taskId, deletedAt: null },
+        select: {
+          id: true,
+          taskNumber: true,
+          projectId: true,
+          title: true,
+          description: true,
+          status: true,
+          priority: true,
+          assigneeId: true,
+          createdById: true,
+          categoryId: true,
+          tags: true,
+          startDate: true,
+          dueDate: true,
+          createdAt: true,
+          updatedAt: true,
+          closeRequestStatus: true,
+          closeRequestedById: true,
+          closeRequestedAt: true,
+          closeRequestReason: true,
+          closeReviewedById: true,
+          closeReviewedAt: true,
+          closeRejectReason: true,
+          closeRequestedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+          closeReviewedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+          doneRequestStatus: true,
+          doneRequestedById: true,
+          doneRequestedAt: true,
+          doneRequestNote: true,
+          doneReviewedById: true,
+          doneReviewedAt: true,
+          doneRejectReason: true,
+          doneRequestedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+          doneReviewedBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+          assignee: { select: { id: true, name: true, username: true, email: true, image: true } },
+          createdBy: { select: { id: true, name: true, username: true, email: true, image: true } },
+          category: { select: { id: true, name: true, description: true } },
+          taskProjectId: true,
+          phaseId: true,
+          phase: true,
+          phaseRel: { select: { id: true, name: true, order: true } },
+          taskProject: { select: { id: true, name: true, description: true } },
+        },
+      }),
+      prisma.taskChecklist.findMany({
+        where: { taskId },
+        orderBy: { createdAt: 'asc' },
+        select: {
+          id: true,
+          taskId: true,
+          title: true,
+          isCompleted: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      }),
+      prisma.taskComment.findMany({
+        where: { taskId },
+        orderBy: { createdAt: 'desc' },
+        take: MAX_COMMENTS_LIMIT,
+        select: {
+          id: true,
+          content: true,
+          createdAt: true,
+          userId: true,
+          user: { select: { id: true, name: true, username: true, image: true } },
+        },
+      }),
+      prisma.taskAttachment.findMany({
+        where: { taskId },
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          fileName: true,
+          fileUrl: true,
+          fileSize: true,
+          fileType: true,
+          createdAt: true,
+          uploadedById: true,
+          uploadedBy: { select: { id: true, name: true } },
+        },
+      }),
+      prisma.taskHistory.findMany({
+        where: { taskId },
+        orderBy: { createdAt: 'desc' },
+        take: MAX_HISTORIES_LIMIT,
+        select: {
+          id: true,
+          action: true,
+          fieldName: true,
+          previousValue: true,
+          newValue: true,
+          createdAt: true,
+          userId: true,
+          user: { select: { id: true, name: true } },
+        },
+      }),
+    ]);
 
-    if (!task || !task.projectId) {
+    if (!activeProject) {
+      return NextResponse.json({ error: 'Proyek tidak ditemukan.' }, { status: 404 });
+    }
+
+    if (!rawTask || !rawTask.projectId) {
       return NextResponse.json({ error: 'Task tidak ditemukan.' }, { status: 404 });
     }
 
     let userPermissions = activeProject.permissions;
-    if (task.projectId !== activeProject.projectId) {
-      const membership = await getProjectMember(task.projectId, sessionUserId);
+    if (rawTask.projectId !== activeProject.projectId) {
+      const membership = await getProjectMember(rawTask.projectId, sessionUserId);
       if (!membership) {
         return NextResponse.json({ error: 'Anda tidak memiliki akses ke proyek task ini.' }, { status: 403 });
       }
-      userPermissions = await getProjectPermissions(membership.role as ProjectRole, task.projectId);
+      userPermissions = await getProjectPermissions(membership.role as ProjectRole, rawTask.projectId);
     }
+
+    const task = {
+      ...rawTask,
+      isDone: rawTask.status === 'DONE',
+      checklists,
+      comments: comments.reverse(),
+      attachments,
+      histories,
+    };
 
     const totalDur = (performance.now() - tStart).toFixed(2);
     const response = NextResponse.json({ task, userPermissions });
