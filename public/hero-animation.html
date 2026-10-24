@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>TaskTuntas – Animasi Manajemen Proyek</title>
+<style>
+:root{--bg:#f8fafc;--card:#fff;--tx:#0f172a;--mut:#64748b;--bd:#e2e8f0;--pri:#2563eb;--pril:#eff6ff;--prib:#bfdbfe;--sh:#e9edf3;--ph:#9aa3b2;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0b1220;--card:#121b2d;--tx:#e8eef9;--mut:#93a1b8;--bd:#25314a;--pril:#16284a;--prib:#2b4a85;--sh:#1a2438;--ph:#3b4658}}
+:root[data-theme="dark"]{--bg:#0b1220;--card:#121b2d;--tx:#e8eef9;--mut:#93a1b8;--bd:#25314a;--pril:#16284a;--prib:#2b4a85;--sh:#1a2438;--ph:#3b4658}
+*{box-sizing:border-box}html,body{height:100%;margin:0}
+body{background:transparent;color:var(--tx);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;align-items:center;padding:10px 14px;gap:12px;overflow:hidden}
+svg{width:16px;height:16px;flex-shrink:0}
+.app{position:relative;width:100%;max-width:1100px;height:610px;background:var(--bg);border:1px solid var(--bd);border-radius:14px;display:flex;overflow:hidden;box-shadow:0 8px 30px #0002}
+.side{width:210px;background:var(--card);border-right:1px solid var(--bd);padding:12px;display:flex;flex-direction:column;gap:4px;font-size:13px;flex-shrink:0;transition:width .5s}
+.lg{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--tx);margin-bottom:8px}.lg>svg{width:21px;height:21px;margin-right:2px}
+.bx{border:1px solid var(--bd);border-radius:8px;width:28px;height:28px;display:grid;place-items:center;margin-left:auto;color:var(--tx)}
+.ws{display:flex;gap:8px;align-items:center;border:1px solid var(--bd);border-radius:10px;padding:8px;margin-bottom:10px}
+.wi{width:30px;height:30px;border-radius:7px;background:var(--pri);color:#fff;display:grid;place-items:center;flex-shrink:0}
+.ws b{font-size:12px;display:block;white-space:nowrap}.ws small{font-size:10px;color:var(--mut)}
+.it{display:flex;gap:10px;align-items:center;padding:8px 9px;border-radius:8px;color:var(--mut);border:1px solid transparent;white-space:nowrap}
+.it.on{background:var(--pril);border-color:var(--prib);color:var(--pri);font-weight:600}
+.sp{flex:1}.bdg{background:#dc2626;color:#fff;border-radius:9px;font-size:9px;font-weight:700;padding:1px 5px;margin-left:-6px;margin-top:-12px}
+.hide{border:1px solid var(--bd);border-radius:8px;padding:7px 10px;color:var(--mut);font-size:12px;margin-top:4px;white-space:nowrap}
+.mini{width:58px}.mini .lb,.mini .ws>div:last-child,.mini .bx,.mini .hide,.mini .bdg{display:none}.mini .it{justify-content:center}.mini .lg span{display:none}
+.main{flex:1;min-width:0;display:flex;flex-direction:column;position:relative}
+.top{height:48px;background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px;padding:0 14px;font-weight:600;font-size:15px}
+.hm{border:1px solid var(--bd);border-radius:8px;width:30px;height:30px;display:grid;place-items:center;font-weight:400}
+.us{margin-left:auto;display:flex;gap:8px;align-items:center;border:1px solid var(--bd);border-radius:20px;padding:3px 10px 3px 4px;font-size:11px;line-height:1.2}
+.av{width:26px;height:26px;border-radius:50%;background:var(--pri);color:#fff;display:grid;place-items:center;font-size:10px;font-weight:700}.us small{display:block;color:var(--mut);font-size:9px}
+.tabs{display:flex;gap:2px;padding:6px 10px 0;overflow-x:auto;border-bottom:1px solid var(--bd);margin:0 12px}
+.tab{display:flex;gap:6px;align-items:center;padding:9px 10px;font-size:12px;color:var(--mut);white-space:nowrap;border-bottom:2px solid transparent;transition:.3s}
+.tab.on{color:var(--tx);font-weight:600;border-color:var(--pri)}
+.stage{flex:1;position:relative;overflow:hidden}
+.scene{position:absolute;inset:12px;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;opacity:0;transform:translateY(10px);pointer-events:none;transition:.5s;overflow:hidden}
+.scene.on{opacity:1;transform:none}
+.hd{display:flex;gap:10px;align-items:flex-start;padding-bottom:10px;border-bottom:1px solid var(--bd);margin-bottom:12px}.hd>svg{width:22px;height:22px;margin-top:3px}
+.hd b{font-size:17px;display:block}.hd small{color:var(--mut);font-size:11px}
+.btn{margin-left:auto;background:var(--pri);color:#fff;border-radius:7px;padding:9px 14px;font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center;white-space:nowrap}
+.scene.on .btn.pl{animation:pl 1.6s 1.5s 2}@keyframes pl{50%{box-shadow:0 0 0 7px #2563eb33}}
+.fl6{display:grid;grid-template-columns:1.6fr repeat(5,1fr);gap:10px;margin-bottom:12px}
+.fl6 label{font-size:10px;font-weight:700;color:var(--mut);letter-spacing:.5px;display:block;margin-bottom:4px}
+.sel{border:1px solid var(--bd);border-radius:8px;padding:8px 10px;font-size:11px;color:var(--mut);display:flex;justify-content:space-between;white-space:nowrap;overflow:hidden}
+.tbl{border:1px solid var(--bd);border-radius:10px;overflow:hidden}
+.tr{display:grid;grid-template-columns:1.1fr 1.6fr 1fr .8fr 1fr 1fr 1fr .9fr;gap:6px;align-items:center;padding:14px 10px;border-bottom:1px solid var(--bd);font-size:12px}
+.tr.h{font-size:10px;font-weight:700;color:var(--mut);padding:10px;background:var(--bg)}
+.scene.on .tr:not(.h){animation:in .6s both}.scene.on .tr:nth-child(3){animation-delay:.9s}
+@keyframes in{from{opacity:0;transform:translateX(-24px)}}
+.b{font-size:10px;font-weight:700;padding:3px 8px;border-radius:5px;border:1px solid;display:inline-block;justify-self:start}
+.o{color:var(--pri);background:var(--pril);border-color:var(--prib)}.pg2{color:#b45309;background:#fffbeb;border-color:#fcd34d}
+.ac{display:flex;gap:4px}.ac span{border:1px solid var(--bd);border-radius:6px;width:24px;height:24px;display:grid;place-items:center;color:var(--mut)}.ac svg{width:13px;height:13px}
+.board{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:10px;height:392px;overflow:hidden}
+.col{border:1px solid var(--bd);border-radius:10px;padding:14px;background:var(--bg)}
+.ch{font-weight:700;font-size:14px;display:flex;gap:8px;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--bd);margin-bottom:12px}
+.ct{background:var(--card);border:1px solid var(--bd);border-radius:10px;font-size:10px;padding:2px 7px;color:var(--mut);transition:.3s}
+.kc{background:var(--card);border:1px solid var(--bd);border-radius:8px;font-size:12px;box-shadow:0 1px 3px #0000000d;margin-bottom:10px}
+.kc>div{padding:8px 12px;border-bottom:1px solid var(--bd)}.kc>div:last-child{border-bottom:0}.k1{color:var(--mut);font-size:13px}.k2{color:var(--pri);font-weight:700}.k2.cr{color:#dc2626}.k3{font-weight:700;font-size:13px;min-height:42px;line-height:1.35}.k4{color:var(--mut);display:flex;gap:6px;align-items:center}.k4 s{width:11px;height:8px;background:#f3d9b1;border-radius:2px;display:inline-block}.k5{display:flex;align-items:center;justify-content:space-between;color:var(--mut)}.k5 span:first-child{display:flex;gap:7px;align-items:center}.k5 svg{width:14px;height:14px}.ar{display:flex;gap:4px}.ar b{width:22px;height:22px;border:1px solid var(--bd);border-radius:6px;display:grid;place-items:center;font-weight:400;font-size:13px;color:var(--mut)}
+.kc.m{position:absolute;width:calc(25% - 37.5px);left:15px;top:62px;border:1.5px solid var(--pri);box-shadow:0 6px 16px #2563eb44;z-index:3;margin:0;transition:left .8s cubic-bezier(.5,0,.2,1),top .8s}
+.em{border:1px dashed var(--bd);border-radius:9px;height:90px;display:grid;place-items:center;font-size:12px;color:var(--mut);transition:.3s}
+.cn{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-weight:700;font-size:15px}.cn span{border:1px solid var(--bd);border-radius:6px;padding:4px 9px;font-size:11px;font-weight:500}.cn .ar{margin-left:auto;display:flex;gap:6px}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--bd);gap:1px}
+.cd{background:var(--card);height:56px;padding:6px;font-size:11px;color:var(--mut);position:relative}
+.cd.dn{height:26px;background:var(--bg);text-align:center;font-weight:700;font-size:10px}.cd.e{background:var(--sh)}.cd.s{background:var(--pril);color:var(--pri);font-weight:700}
+.cd.t{outline:2px solid var(--pri);outline-offset:-2px;background:var(--pril);color:var(--pri);font-weight:700;z-index:1}
+.chip{position:absolute;left:4px;right:4px;top:26px;font-size:9px;padding:3px 6px;border-radius:5px;border:1px solid;white-space:nowrap;overflow:hidden}
+.scene.on .chip{animation:pop .5s both}@keyframes pop{from{transform:scale(0)}70%{transform:scale(1.12)}}
+.tg{background:var(--bg);color:var(--mut);border-color:var(--bd)}.to{background:#fffbeb;color:#b45309;border-color:#fde68a}
+.pj{display:flex;gap:8px;align-items:center;font-size:12px;margin-bottom:8px;color:var(--mut)}.pj .sel{width:200px;color:var(--tx);font-size:13px}.pj .sb{border:1px solid var(--prib);background:var(--pril);color:var(--pri);border-radius:8px;padding:8px 10px;font-weight:600;display:flex;gap:6px}
+.lgd{display:flex;gap:12px;font-size:11px;color:var(--mut);margin:0 0 8px;align-items:center}.lgd .rg{border:1px solid var(--bd);background:var(--bg);border-radius:8px;padding:6px 10px;margin-right:auto}.lgd i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px}
+.gn{border:1px solid var(--bd);border-radius:8px;overflow:hidden;position:relative}
+.gd,.gr{display:flex;align-items:center;border-bottom:1px solid var(--bd)}
+.gd{height:40px;font-size:10px;color:var(--mut)}.gd div{flex:1;text-align:center;line-height:1.2}
+.gl{width:210px;flex-shrink:0;padding:0 10px;font-size:11px;display:flex;gap:6px;align-items:center;white-space:nowrap;overflow:hidden}.gl b{color:var(--pri);font-family:ui-monospace,monospace}.gl s{text-decoration:none;margin-left:auto;color:var(--mut);font-size:10px}
+.gr{height:34px}.gr.p{background:var(--ph);color:#fff;font-weight:700;height:36px}.gr.p .gl{color:#fff}.gl .pb{background:var(--pri);color:#fff;border-radius:5px;padding:3px 7px;font-size:10px;margin-left:auto}
+.gt{position:relative;flex:1;height:100%;background:linear-gradient(to right,var(--bd) 1px,transparent 1px) 0 0/6.25% 100%}
+.bar{position:absolute;top:6px;height:22px;border-radius:6px;border-left:4px solid #f59e0b;color:#fff;font-size:10px;padding:4px 7px;white-space:nowrap;overflow:hidden;transform-origin:left}
+.scene.on .bar{animation:gw .8s cubic-bezier(.3,.7,.2,1) both}@keyframes gw{from{transform:scaleX(0)}}
+.bar.ph2{top:7px;height:20px;background:#0003;border:1px dashed #fff8;color:#fff;border-radius:5px}
+.tip{position:absolute;left:150px;top:152px;background:#e5e7eb;color:#111;font-size:11px;padding:4px 8px;border:1px solid #9ca3af;opacity:0;z-index:3}.scene.on .tip{animation:tp 3s 2.5s}@keyframes tp{15%,80%{opacity:1}}
+.ftb{display:flex;align-items:center;gap:1px;padding:7px 4px;border-bottom:1px solid var(--bd);overflow:hidden}.ftb b{width:27px;height:30px;display:grid;place-items:center;color:var(--mut);border-radius:7px;flex-shrink:0;border:1px solid transparent}.ftb b svg{width:16px;height:16px}.ftb b.a{background:var(--pril);border-color:var(--prib);color:var(--pri)}.ftb b.r{color:#e57373}.ftb s{width:1px;height:22px;background:var(--bd);margin:0 5px;flex-shrink:0;text-decoration:none}.ftb .zm{font-style:normal;font-size:12px;font-weight:600;color:var(--mut);margin:0 4px}.ftb .sv{background:#93b4f5;color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;display:flex;gap:6px;align-items:center;margin-left:8px;flex-shrink:0}.ftb .sv svg{width:15px;height:15px}.scene.on .ftb>*{animation:fi .4s both;animation-delay:calc(var(--i)*35ms)}@keyframes fi{from{opacity:0;transform:translateY(-8px)}}
+.zc{position:absolute;left:12px;bottom:12px;background:var(--card);border:1px solid var(--bd);border-radius:6px;display:flex;flex-direction:column;box-shadow:0 2px 6px #0001;z-index:2}.zc b{width:28px;height:28px;display:grid;place-items:center;border-bottom:1px solid var(--bd);font-weight:400;font-size:16px}.zc b:last-child{border:0}.rf{position:absolute;right:6px;bottom:0;font-size:9px;color:var(--mut)}.mm svg{width:100%;height:100%}
+.fb{display:flex;height:324px;margin:0 -14px -14px}
+.cv{flex:1;position:relative;background:var(--bg) radial-gradient(var(--bd) 1px,transparent 1px) 0 0/15px 15px}.cv svg{width:100%;height:100%}
+.pn{width:190px;border-left:1px solid var(--bd);padding:12px;font-size:11px;background:var(--card)}.pn h6{font-size:10px;letter-spacing:.5px;margin:14px 0 8px;color:var(--mut)}.pn .r{display:flex;justify-content:space-between;margin-bottom:8px}
+.mm{position:absolute;right:8px;bottom:8px;width:110px;height:60px;background:var(--card);border:1px solid var(--bd);border-radius:6px}
+.nd{transform-box:fill-box;transform-origin:center}.scene.on .nd{animation:pop .6s both}
+.ed{fill:none;stroke-width:2.5;stroke-dasharray:300;stroke-dashoffset:300}.scene.on .ed{animation:dr 1s forwards}@keyframes dr{to{stroke-dashoffset:0}}
+.fab{position:absolute;right:16px;bottom:14px;background:var(--pri);color:#fff;border-radius:22px;padding:12px 18px;font-weight:600;font-size:13px;display:flex;gap:8px;align-items:center;z-index:9;box-shadow:0 6px 18px #2563eb66}
+.ai{position:absolute;right:14px;top:56px;bottom:66px;width:340px;background:var(--card);border:1px solid var(--bd);border-radius:14px;z-index:8;display:flex;flex-direction:column;box-shadow:0 10px 30px #0003;transform:translateX(30px);opacity:0;pointer-events:none;transition:.5s}
+.ai.on{transform:none;opacity:1}
+.ah{display:flex;gap:10px;align-items:center;padding:12px;border-bottom:1px solid var(--bd);font-size:11px}.ah b{font-size:13px}.ah .ok{color:#16a34a;background:#dcfce7;border-radius:10px;font-size:9px;padding:1px 6px;margin-left:4px}.ah .rs{margin-left:auto;border:1px solid var(--bd);border-radius:8px;padding:5px 9px}
+.am{flex:1;padding:12px;display:flex;flex-direction:column;gap:10px;font-size:12px;overflow:hidden}
+.bu{align-self:flex-end;background:var(--pri);color:#fff;padding:9px 13px;border-radius:12px}.ai.on .bu{animation:in .5s .5s both}
+.bb{border:1px solid var(--bd);border-radius:12px;padding:10px;line-height:1.55;white-space:pre-wrap;min-height:100px}.ai.on .bb{animation:in .5s 1.3s both}
+.ain{border:1px solid var(--bd);border-radius:10px;margin:8px 12px;padding:10px;color:var(--mut);font-size:12px}
+.ctl{display:flex;gap:10px;align-items:center;width:100%;max-width:1100px}.ctl button{background:var(--pri);color:#fff;border:0;border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer}
+.pg{flex:1;height:6px;background:var(--bd);border-radius:3px;overflow:hidden;cursor:pointer}.pg i{display:block;height:100%;width:0;background:var(--pri)}.cap{font-size:13px;color:var(--mut);min-width:220px;text-align:right}
+@media(max-width:760px){.side{display:none}.cap,.ai{display:none}.app{height:560px}.fl6,.tr{grid-template-columns:1fr 1fr}.fl6>*:nth-child(n+3),.tr>*:nth-child(n+3){display:none}.pn{display:none}.gl{width:120px}}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01s!important;transition-duration:.01s!important}}
+.dw{margin-left:auto;position:relative}.dlb{border:1px solid var(--bd);border-radius:8px;padding:9px 14px;font-size:12px;font-weight:600;display:flex;gap:8px;align-items:center;background:var(--card);transition:.15s;white-space:nowrap}.dlb.press{background:var(--pril);border-color:var(--prib);transform:scale(.97)}
+.dm{position:absolute;right:0;top:46px;width:230px;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:0 10px 28px #0003;padding:10px;opacity:0;transform:translateY(-6px);pointer-events:none;transition:.25s;z-index:5}.dm.on{opacity:1;transform:none}.dm small{font-size:9px;font-weight:700;letter-spacing:.6px;color:var(--mut);display:block;margin:4px 6px 8px}
+.dr{display:flex;align-items:center;gap:8px;padding:9px 8px;border-radius:8px;font-size:12px;transition:.15s}.dr.hv{background:var(--pril)}.dr em{margin-left:auto;font-style:normal;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;border:1px solid}.dr svg{color:#16a34a}.pdf{color:#dc2626;background:#fef2f2;border-color:#fca5a5}.xl{color:#16a34a;background:#f0fdf4;border-color:#86efac}
+.sc4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.st{border:1px solid var(--bd);border-radius:12px;padding:14px;display:flex;gap:12px;align-items:center}.st .ic{width:38px;height:38px;border-radius:9px;display:grid;place-items:center;flex-shrink:0}.st .ic svg{width:20px;height:20px}.st b{font-size:24px;display:block;line-height:1.1}.st small{font-size:11px;color:var(--mut)}
+.pn2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.pp{border:1px solid var(--bd);border-radius:12px;padding:12px 14px}.pp h5{margin:0 0 4px;font-size:13px;display:flex;gap:8px;align-items:center}.pp h5 svg{color:var(--pri)}.rw{display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-top:9px}.tk{height:6px;border-radius:3px;background:var(--bd);margin-top:5px;overflow:hidden}.fill{height:100%;border-radius:3px;background:var(--pri)}.scene.on .fill{animation:fw 1s both}@keyframes fw{from{width:0}}
+.wl{border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13px;font-weight:700}.wl div{display:flex;gap:10px;margin-top:10px}.wl span{flex:1;border:1px solid var(--bd);border-radius:9px;padding:12px;font-size:12px}
+.dlt{position:absolute;right:14px;top:56px;width:300px;background:var(--card);border:1px solid var(--bd);border-radius:12px;box-shadow:0 10px 28px #0003;padding:12px;z-index:10;display:flex;gap:10px;font-size:12px;opacity:0;transform:translateY(-8px);pointer-events:none;transition:.3s}.dlt.on{opacity:1;transform:none}.fx{width:34px;height:34px;border-radius:8px;background:#fef2f2;color:#dc2626;display:grid;place-items:center;flex-shrink:0}.bd2{height:5px;background:var(--bd);border-radius:3px;margin-top:8px;overflow:hidden}.bd2 i{display:block;height:100%;width:0;background:var(--pri);transition:width 2.6s linear}.dlt.go .bd2 i{width:100%}.dlt.done .bd2 i{background:#16a34a}
+.cur{position:absolute;z-index:30;left:55%;top:60%;width:22px;height:22px;pointer-events:none;opacity:0;transition:left .8s cubic-bezier(.4,0,.2,1),top .8s cubic-bezier(.4,0,.2,1),opacity .3s,transform .15s}.cur.ck{transform:scale(.8)}
+@media(max-width:760px){.sc4{grid-template-columns:1fr 1fr}.pn2{grid-template-columns:1fr}.dlt{width:240px}}
+</style></head><body>
+<div class="app" id="app">
+ <div class="side" id="side">
+  <div class="lg"><svg viewBox="60 55 905 915" fill="none" stroke="#3366e0" stroke-width="53" stroke-linejoin="round"><rect x="98.5" y="93.5" width="226.5" height="492" rx="22"/><rect x="447" y="93.5" width="479" height="227" rx="22"/><rect x="438" y="444" width="164" height="144.5" rx="22"/><rect x="715" y="452" width="211" height="478" rx="22"/><rect x="98.5" y="718.5" width="486.5" height="211.5" rx="22"/></svg><span>TaskTuntas</span><div class="bx"><i data-i="left"></i></div></div>
+  <div class="ws"><div class="wi"><i data-i="folder"></i></div><div><b id="wn">Web Portofolio</b><small id="wr">Private · ADMIN</small></div></div>
+  <div class="it"><i data-i="grid"></i><span class="lb">Overview</span></div>
+  <div class="it on"><i data-i="list"></i><span class="lb">Task Management</span></div>
+  <div class="it"><i data-i="users"></i><span class="lb">User Management</span></div>
+  <div class="it"><i data-i="shield"></i><span class="lb">Role Management</span></div>
+  <div class="it"><i data-i="history"></i><span class="lb">Activity History</span></div>
+  <div class="it"><i data-i="user"></i><span class="lb">Profile</span></div>
+  <div class="it"><i data-i="link"></i><span class="lb">Account Linked</span></div>
+  <div class="it"><i data-i="gear"></i><span class="lb">Settings</span></div>
+  <div class="sp"></div>
+  <div class="it"><i data-i="bell"></i><span class="lb">Notifikasi</span><span class="bdg" id="nb">19</span></div>
+  <div class="hide">‹ Sembunyikan</div>
+ </div>
+ <div class="main">
+  <div class="top"><div class="hm"><i data-i="menu"></i></div><span id="tt">Task Management</span><div class="us"><div class="av">TA</div><div>Tara Alsyah<small>ADMIN</small></div></div></div>
+  <div class="tabs" id="tabs"></div>
+  <div class="stage">
+
+  <div class="scene"><div class="hd"><i data-i="list"></i><div><b>All Tasks</b><small>Kelola seluruh daftar task, penugasan, status workflow, dan prioritas.</small></div><div class="btn pl"><i data-i="plus"></i>Buat Task Baru</div></div>
+   <div class="fl6"><div><label>PENCARIAN</label><div class="sel">⌕ Cari nomor task, judul, deskripsi</div></div><div><label>STATUS</label><div class="sel">● Semua Status ⌄</div></div><div><label>PRIORITY</label><div class="sel">● Semua Priority ⌄</div></div><div><label>CATEGORY</label><div class="sel">● Semua Category ⌄</div></div><div><label>ASSIGNEE</label><div class="sel">Semua Assignee ⌄</div></div><div><label>URUTAN</label><div class="sel"><span style="color:var(--pri)">● Terbaru (…</span>⌄</div></div></div>
+   <div class="tbl"><div class="tr h"><span>TASK NUMBER</span><span>TITLE</span><span>STATUS</span><span>PRIORITY</span><span>CATEGORY</span><span>ASSIGNEE</span><span>DUE DATE</span><span>ACTION</span></div>
+    <div class="tr"><b>TSK-3030002</b><span>Properti Node</span><span class="b o">OPEN</span><span class="b o">MEDIUM</span><span style="color:var(--mut)">Uncategorized</span><span>Unassigned</span><span>-</span><div class="ac"><span><i data-i="eye"></i></span><span><i data-i="edit"></i></span><span><i data-i="trash"></i></span></div></div>
+    <div class="tr"><b>TSK-2880002</b><span>Cek Detail CPU Usage Oam</span><span class="b pg2">IN PROGRESS</span><span class="b o">MEDIUM</span><span style="color:var(--mut)">Uncategorized</span><span>Tara Alsyah</span><span>21 Sep 2026</span><div class="ac"><span><i data-i="eye"></i></span><span><i data-i="edit"></i></span><span><i data-i="trash"></i></span></div></div></div></div>
+
+  <div class="scene"><div class="hd"><i data-i="kanban"></i><div><b>Kanban Board</b><small>Pindahkan alur kerja task secara fleksibel dari Backlog hingga Done.</small></div><div class="btn"><i data-i="plus"></i>Buat Task Baru</div></div>
+   <div class="board" id="bd">
+    <div class="col"><div class="ch">Backlog <span class="ct">1</span></div></div>
+    <div class="col"><div class="ch">Open <span class="ct">13</span></div><div class="kc"><div class="k1">TSK-3240002</div><div class="k2">MEDIUM</div><div class="k3">After Dev Email</div><div class="k4"><s></s>Bug</div><div class="k5"><span><i data-i="user"></i>Tara Alsyah</span><span class="ar"><b>‹</b><b>›</b></span></div></div></div>
+    <div class="col"><div class="ch">In Progress <span class="ct">3</span></div><div class="kc"><div class="k1">TSK-1050002</div><div class="k2">MEDIUM</div><div class="k3">After Redesign</div><div class="k4"><s></s>Uncategorized</div><div class="k5"><span><i data-i="user"></i>Tara Alsyah</span><span class="ar"><b>‹</b><b>›</b></span></div></div></div>
+    <div class="col"><div class="ch">Done <span class="ct">10</span></div><div class="kc"><div class="k1">TSK-3060002</div><div class="k2">MEDIUM</div><div class="k3">Audit</div><div class="k4"><s></s>Enhancement</div><div class="k5"><span><i data-i="user"></i>BSI3</span></div></div><div id="em" style="display:none"></div></div>
+    <div class="kc m" id="kc"><div class="k1">TSK-3090004</div><div class="k2">MEDIUM</div><div class="k3">Assessment Inventory Server Lama</div><div class="k4"><s></s>Uncategorized</div><div class="k5"><span><i data-i="user"></i>BSI3</span><span class="ar"><b>‹</b><b>›</b></span></div></div></div></div>
+
+  <div class="scene"><div class="hd"><i data-i="cal"></i><div><b>Calendar Deadline View</b><small>Visualisasi jadwal tenggat waktu (due date) seluruh task pada tampilan kalender bulanan.</small></div><div class="btn"><i data-i="plus"></i>Buat Task Baru</div></div>
+   <div class="cn">Oktober 2026 <span>Hari Ini</span><div class="ar"><span>‹</span><span>›</span></div></div><div class="cal" id="cal"></div></div>
+
+  <div class="scene" id="tl"><div class="hd"><i data-i="tl"></i><div><b>Timeline (Gantt Chart)</b><small>Visualisasi jadwal pengerjaan task berdasarkan hari kerja (Senin - Jumat) yang selalu sinkron dengan Kanban dan Kalender.</small></div><div class="btn"><i data-i="plus"></i>Buat Task Baru</div></div>
+   <div class="pj">Project / Fitur: <div class="sel">Fitur Email Notif</div><i data-i="edit"></i><i data-i="trash"></i><div class="sb"><i data-i="folder"></i>+ Proyek/Fitur</div><div class="sb">+ Phase</div><div class="sb">◎ Hari Ini</div></div>
+   <div class="lgd"><div class="rg">Rentang: <b style="color:var(--tx)">45 hari kerja</b> (Senin – Jumat)</div><span><i style="background:#475569"></i>To Do</span><span><i style="background:#2563eb"></i>In Progress</span><span><i style="background:#16a34a"></i>Done</span><span><i style="background:#ef4444"></i>Terlambat</span></div>
+   <div class="gn" id="gn"></div><div class="tip">Klik untuk melihat detail TSK-3090002</div></div>
+
+  <div class="scene"><div class="hd" style="border:0;margin:0;padding:0 0 8px;align-items:center"><div class="sel" style="color:var(--tx)">← Daftar Flow</div><b style="font-size:16px">Alur Sprint &amp; Delivery</b><span class="b o">◉ Mode Lihat</span><div class="btn"><i data-i="edit"></i>Edit Diagram</div></div>
+   <div class="ftb" id="ftb"></div>
+   <div class="fb"><div class="cv"><svg viewBox="0 0 700 330" preserveAspectRatio="xMidYMid meet">
+     <rect x="20" y="20" width="620" height="290" rx="4" fill="#94a3b822" stroke="#94a3b8" stroke-dasharray="6 5"/><rect x="20" y="20" width="620" height="28" fill="#94a3b833"/><text x="32" y="39" font-size="11" font-weight="700" fill="#64748b">SPRINT EXECUTION CYCLE</text>
+     <path class="ed" style="animation-delay:.9s" stroke="#6366f1" d="M175 160H215"/><path class="ed" style="animation-delay:1.3s" stroke="#d97706" d="M340 160H385"/><path class="ed" style="animation-delay:1.7s" stroke="#16a34a" d="M495 160H540"/>
+     <path class="ed" style="animation-delay:2.1s;stroke-dasharray:6 5;stroke:#ef4444" d="M440 118V92H278V125"/><text x="360" y="88" font-size="11" fill="#475569" text-anchor="middle">Fix Bug</text><text x="520" y="150" font-size="11" fill="#475569" text-anchor="middle">Pass</text>
+     <g class="nd"><rect x="55" y="130" width="120" height="60" fill="#dbeafe" stroke="#2563eb" stroke-width="2"/><text x="115" y="165" text-anchor="middle" font-size="12" font-weight="600" fill="#1e3a8a">Sprint Planning</text></g>
+     <g class="nd" style="animation-delay:.4s"><rect x="215" y="130" width="125" height="60" fill="#fef3c7" stroke="#d97706" stroke-width="2"/><text x="277" y="165" text-anchor="middle" font-size="12" fill="#78350f">Active Development</text></g>
+     <g class="nd" style="animation-delay:.7s"><path d="M440 110L495 160L440 210L385 160Z" fill="#f3e8ff" stroke="#9333ea" stroke-width="2"/><text x="440" y="164" text-anchor="middle" font-size="10" font-weight="600" fill="#581c87">QA &amp; Code Review</text></g>
+     <g class="nd" style="animation-delay:1s"><rect x="540" y="130" width="90" height="60" rx="30" fill="#dcfce7" stroke="#16a34a" stroke-width="2"/><text x="585" y="164" text-anchor="middle" font-size="10" font-weight="600" fill="#14532d">Production</text></g>
+     <g class="nd" style="animation-delay:2.4s"><rect x="215" y="235" width="150" height="55" rx="4" fill="#fde68a"/><text x="290" y="258" text-anchor="middle" font-size="10" fill="#78350f">Daily Standup tiap jam</text><text x="290" y="273" text-anchor="middle" font-size="10" fill="#78350f">09.30 WIB via Google Meet</text></g></svg><div class="mm"><svg viewBox="0 0 100 50"><rect x="4" y="6" width="92" height="38" fill="#e2e8f0"/><rect x="10" y="14" width="14" height="7" fill="#dbeafe" stroke="#2563eb" stroke-width=".5"/><rect x="28" y="14" width="14" height="7" fill="#fef3c7" stroke="#d97706" stroke-width=".5"/><rect x="46" y="14" width="14" height="7" fill="#f3e8ff" stroke="#9333ea" stroke-width=".5"/><rect x="64" y="14" width="14" height="7" fill="#dcfce7" stroke="#16a34a" stroke-width=".5"/><rect x="30" y="27" width="14" height="9" fill="#fde68a"/></svg></div><div class="zc"><b>+</b><b>−</b><b>⛶</b></div><small class="rf">React Flow</small></div>
+    <div class="pn"><b style="font-size:13px">Pengaturan Kanvas ›</b><div style="border:1px solid var(--bd);border-radius:8px;padding:8px;color:var(--mut);margin-top:12px">🔒 Mode Lihat — Properti hanya untuk dibaca</div><h6>KISI-KISI (GRID)</h6><div class="r">Tampilkan Grid <span>☑</span></div><div class="r">Snap ke Grid <span>☑</span></div><div class="r">Ukuran Grid <span class="sel" style="padding:4px 8px">15 px ⌄</span></div><h6>LATAR BELAKANG KANVAS</h6><div class="r">Warna Latar <span>#f8fafc</span></div></div></div></div>
+<div class="scene"><div class="hd"><i data-i="chart"></i><div><b>Laporan &amp; Statistik Task</b><small>Filter data laporan dan unduh ringkasan laporan proyek secara eksklusif di sini.</small></div><div class="dw"><div class="dlb" id="dlb"><i data-i="dl"></i>Download Report<i data-i="chev"></i></div><div class="dm" id="dm"><small>FORMAT LAPORAN PROYEK</small><div class="dr" id="dpdf"><i data-i="file" style="color:#dc2626"></i>Download PDF<em class="pdf">PDF</em></div><div class="dr"><i data-i="file"></i>Download Excel<em class="xl">.XLSX</em></div><div class="dr"><i data-i="file" style="color:#2563eb"></i>Download CSV<em class="xl">.CSV</em></div></div></div></div>
+<div class="sc4"><div class="st"><div class="ic" style="background:#eff6ff;color:#2563eb"><i data-i="list"></i></div><div><b class="cnt" data-n="28">0</b><small>Total Seluruh Task</small></div></div><div class="st"><div class="ic" style="background:#f0fdf4;color:#16a34a"><i data-i="ok"></i></div><div><b class="cnt" data-n="10">0</b><small>Task Selesai (Done)</small></div></div><div class="st"><div class="ic" style="background:#fffbeb;color:#d97706"><i data-i="clock"></i></div><div><b class="cnt" data-n="3">0</b><small>In Progress</small></div></div><div class="st"><div class="ic" style="background:#fef2f2;color:#dc2626"><i data-i="warn"></i></div><div><b class="cnt" data-n="12" style="color:#dc2626">0</b><small>Task Melewati Deadline (Overdue)</small></div></div></div>
+<div class="pn2"><div class="pp"><h5><i data-i="chart"></i>Distribusi berdasarkan Prioritas</h5><div class="rw"><span>Low</span><span>0 (0%)</span></div><div class="tk"><div class="fill" style="width:0%;background:#2563eb;animation-delay:0.6s"></div></div><div class="rw"><span>Medium</span><span>26 (93%)</span></div><div class="tk"><div class="fill" style="width:93%;background:#2563eb;animation-delay:0.8s"></div></div><div class="rw"><span>High</span><span>0 (0%)</span></div><div class="tk"><div class="fill" style="width:0%;background:#2563eb;animation-delay:1s"></div></div><div class="rw"><span>Critical</span><span>2 (7%)</span></div><div class="tk"><div class="fill" style="width:7%;background:#dc2626;animation-delay:1.2s"></div></div></div><div class="pp"><h5><i data-i="layers"></i>Distribusi berdasarkan Kategori</h5><div class="rw"><span>Uncategorized</span><span>14 task</span></div><div class="tk"><div class="fill" style="width:50%;background:#4f6bb8;animation-delay:0.6s"></div></div><div class="rw"><span>Bug</span><span>11 task</span></div><div class="tk"><div class="fill" style="width:39%;background:#4f6bb8;animation-delay:0.8s"></div></div><div class="rw"><span>Enhancement</span><span>2 task</span></div><div class="tk"><div class="fill" style="width:7%;background:#4f6bb8;animation-delay:1s"></div></div><div class="rw"><span>Web Portofolio</span><span>1 task</span></div><div class="tk"><div class="fill" style="width:4%;background:#4f6bb8;animation-delay:1.2s"></div></div></div></div>
+<div class="wl"><span style="display:flex;gap:8px;align-items:center;border:0;padding:0"><i data-i="users"></i>Beban Kerja per Pengguna (Assignee)</span><div><span><b>Unassigned</b> · 3 Task</span><span><b>Tara Alsyah Icode</b> · 3 Task</span><span><b>Tara Alsyah</b></span></div></div></div>
+  </div>
+  <div class="ai" id="ai"><div class="ah"><div class="wi"><i data-i="bot"></i></div><div><b>AI Assistant</b><span class="ok">ACTIVE</span><br>Web Portofolio</div><div class="rs">⟳ Reset</div></div>
+   <div class="am"><div class="bu">Ada task yg urgent hari ini?</div><div class="bb" id="ans"></div></div><div class="ain">Tanyakan sesuatu tentang Task Management…</div></div>
+  <div class="dlt" id="dlt"><div class="fx"><i data-i="file"></i></div><div style="flex:1"><b>Laporan-Web-Portofolio.pdf</b><div id="dtx" style="color:var(--mut);margin-top:2px">Menyiapkan laporan…</div><div class="bd2"><i></i></div></div></div><div class="cur" id="cur"><svg viewBox="0 0 24 24" fill="#111" stroke="#fff" stroke-width="1.5" style="width:22px;height:22px"><path d="M4 3l16 8-7 2-3 7z"/></svg></div><div class="fab" id="fab"><i data-i="bot"></i><span id="fl">Tanya AI</span></div>
+ </div>
+</div>
+<div class="ctl"><button id="pp">⏸ Jeda</button><div class="pg"><i id="pgi"></i></div><div class="cap" id="cap"></div></div>
+<script>
+var P={grid:'<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',list:'<path d="M10 6h11M10 12h11M10 18h11M3 6l1.5 1.5L7 5M3 12l1.5 1.5L7 11M3 18l1.5 1.5L7 17"/>',users:'<circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6"/>',shield:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',history:'<path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 8v5l3 2"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/>',link:'<path d="M10 14a4 4 0 0 0 5.6 0l3-3a4 4 0 0 0-5.6-5.6l-1 1M14 10a4 4 0 0 0-5.6 0l-3 3a4 4 0 0 0 5.6 5.6l1-1"/>',gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/>',kanban:'<path d="M6 4v16M12 4v10M18 4v13"/>',cal:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',tl:'<path d="M4 6h10M8 12h12M4 18h8"/>',flow:'<rect x="3" y="3" width="8" height="6" rx="1"/><rect x="13" y="15" width="8" height="6" rx="1"/><path d="M7 9v3h6v3"/>',folder:'<path d="M3 6a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',chart:'<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>',eye:'<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>',edit:'<path d="M4 20h4L19 9l-4-4L4 16z"/>',trash:'<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',bot:'<rect x="4" y="8" width="16" height="11" rx="3"/><path d="M12 4v4M9 13h.01M15 13h.01"/>',plus:'<path d="M12 5v14M5 12h14"/>',left:'<path d="M15 6l-6 6 6 6"/>',menu:'<path d="M4 6h16M4 12h16M4 18h16"/>',bell:'<path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/>',uc:'<circle cx="9" cy="8" r="3.5"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M16 11l2 2 4-4"/>',ok:'<circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/>',clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',warn:'<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',dl:'<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>',layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',chev:'<path d="M6 9l6 6 6-6"/>',file:'<path d="M14 3H6a1 1 0 0 0-1 1v16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>'};
+document.querySelectorAll('i[data-i]').forEach(function(e){e.outerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+P[e.dataset.i]+'</svg>'});
+var TB=[["All Tasks","list"],["My Tasks","uc"],["Kanban Board","kanban"],["Calendar","cal"],["Timeline","tl"],["Flow","flow"],["Categories","folder"],["Reports","chart"]],tabs=document.getElementById('tabs');
+TB.forEach(function(t){var d=document.createElement('div');d.className='tab';d.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">'+P[t[1]]+'</svg>'+t[0];tabs.appendChild(d)});
+var cal=document.getElementById('cal'),h='';
+['MIN','SEN','SEL','RAB','KAM','JUM','SAB'].forEach(function(n){h+='<div class="cd dn">'+n+'</div>'});
+for(var i=0;i<4;i++)h+='<div class="cd e"></div>';
+var C={26:['TSK-3330002: T…','tg',.4],28:['TSK-3360002: C…','to',.9],30:['TSK-3360003: B…','to',1.4]};
+for(var n=1;n<=31;n++){h+='<div class="cd'+(n==24?' t':n==11?' s':'')+'">'+n+(C[n]?'<div class="chip '+C[n][1]+'" style="animation-delay:'+C[n][2]+'s">● '+C[n][0]+'</div>':'')+'</div>'}
+cal.innerHTML=h;
+var D=[['Sen',12],['Sel',13],['Rab',14],['Kam',15],['Jum',16],['Sen',19],['Sel',20],['Rab',21],['Kam',22],['Jum',23],['Sen',26],['Sel',27],['Rab',28],['Kam',29],['Jum',30],['Sen',2]];
+var G=[['Development','1/3',5,11,[['TSK-3090003','Internal Testing','BSI3',9,4,'#2563eb','In Review'],['TSK-3090002','Update Library','BSI3',7,9,'#475569','To Do'],['TSK-3060002','Audit','BSI3',5,1,'#16a34a','D']]],['Testing','0/3',5,10,[['TSK-3240002','After Dev Email','Tara',8,3,'#475569','To Do'],['TSK-3120002','Testing CDR','Tara',5,8,'#475569','To Do'],['TSK-3090004','Assessment Inventory Serv…','BSI3',12,3,'#475569','To Do']]]];
+var g='<div class="gd"><div class="gl" style="font-size:12px;font-weight:700">Fitur Email Notif (Phase &amp; Task)<s>3 phase</s></div><div style="display:flex;flex:1">'+D.map(function(d){return '<div>'+d[0]+'<br><b style="color:var(--tx);font-size:11px">'+d[1]+'</b><br>'+(d[1]==2?'Nov':'Okt')+'</div>'}).join('')+'</div></div>',k=0;
+G.forEach(function(p){g+='<div class="gr p"><div class="gl">'+p[0]+' <small>'+p[1]+'</small><span class="pb">+ Task</span></div><div class="gt"><div class="bar ph2" style="left:'+p[2]*6.25+'%;width:'+p[3]*6.25+'%;animation-delay:'+(k*.15)+'s">'+p[0]+' ('+(p[3]*3)+' hari kerja)</div></div></div>';k++;
+ p[4].forEach(function(t){g+='<div class="gr"><div class="gl"><b>'+t[0]+'</b> '+t[1]+'<s>'+t[2]+'</s></div><div class="gt"><div class="bar" style="left:'+t[3]*6.25+'%;width:'+Math.min(t[4],16-t[3])*6.25+'%;background:'+t[5]+';animation-delay:'+(.3+k*.18)+'s">⏱ '+(t[4]>1?t[6]+' · '+t[1]:t[6])+'</div></div></div>';k++})});
+document.getElementById('gn').innerHTML=g;
+var ANS="Tidak ada task dengan prioritas HIGH yang memiliki tenggat waktu hari ini (24 Oktober 2026).\n\nNamun ada task yang mendekati tenggat:\n1. Testing Koneksi Mysql (TSK-3330002)\n   Status: BACKLOG · MEDIUM\n   Due: 26 Oktober 2026";
+var TAB=[0,2,3,4,5,7,4],TIT=['Task Management','Dashboard','Dashboard','Dashboard','Dashboard','Dashboard','Dashboard'],NB=[19,20,22,22,22,22,22];
+var sc=document.querySelectorAll('.scene'),tbs=tabs.children,CAP=["Satu daftar untuk semua task","Geser task antar status","Tenggat waktu tampil di kalender","Gantt chart hari kerja","Editor diagram alur kerja tim","Laporan statistik & download report","Tanya status task lewat AI"];
+var cur=-1,tm=[],ty,el=0,DU=[7000,7000,7000,7000,7000,10500,8000],TOT=DU.reduce(function(a,b){return a+b}),OF=DU.map(function(_,i){return DU.slice(0,i).reduce(function(a,b){return a+b},0)}),paused=false,kc=document.getElementById('kc'),side=document.getElementById('side');
+function setC(a){document.querySelectorAll('#bd .ct').forEach(function(c,i){c.textContent=a[i]})}
+function enter(i){tm.forEach(clearTimeout);tm=[];clearInterval(ty);rpEnter(i);
+ if(i==1){var bd=document.getElementById('bd'),cols=bd.querySelectorAll('.col'),slot=function(k){var c=cols[k],cs=c.querySelectorAll('.kc'),t;if(cs.length){var l=cs[cs.length-1];t=l.offsetTop+l.offsetHeight+10}else t=c.offsetTop+26+c.querySelector('.ch').offsetHeight;return t};
+  kc.style.transition='none';kc.style.left='15px';kc.style.top=slot(0)+'px';kc.style.opacity=1;void kc.offsetWidth;kc.style.transition='';setC([1,13,3,10]);
+  var st=[[1,[0,14,3,10]],[2,[0,13,4,10]],[3,[0,13,3,11]]];
+  st.forEach(function(q,j){tm.push(setTimeout(function(){kc.style.left='calc('+q[0]+'*(25% + 2.5px) + 15px)';kc.style.top=slot(q[0])+'px';setC(q[1])},1100+j*1700))})}
+ if(i==6){var a=document.getElementById('ans');a.textContent='';var p=0;tm.push(setTimeout(function(){ty=setInterval(function(){a.textContent=ANS.slice(0,++p);if(p>=ANS.length)clearInterval(ty)},26)},1800))}}
+function go(i){
+ sc.forEach(function(s,k){s.classList.toggle('on',k==i||(i==6&&k==3))});
+
+ for(var k=0;k<tbs.length;k++)tbs[k].classList.toggle('on',TAB[i]==k);
+ side.classList.toggle('mini',i==4);document.getElementById('tt').textContent=TIT[i];document.getElementById('nb').textContent=NB[i];
+ document.getElementById('ai').classList.toggle('on',i==6);document.getElementById('fl').textContent=i==6?'✕ Tutup AI':'Tanya AI';
+ document.getElementById('cap').textContent=(i+1)+'/7 · '+CAP[i];cur=i;el=0;enter(i)}
+var last=performance.now(),pgi=document.getElementById('pgi');
+function tick(n){var dt=n-last;last=n;if(!paused){el+=dt;pgi.style.width=((OF[cur]+el)/TOT*100)+'%';if(el>=DU[cur])go((cur+1)%7)}requestAnimationFrame(tick)}
+document.getElementById('pp').onclick=function(){paused=!paused;this.textContent=paused?'▶ Putar':'⏸ Jeda'};
+document.querySelector('.pg').onclick=function(e){var r=this.getBoundingClientRect();var f=(e.clientX-r.left)/r.width*TOT,k=0;while(k<6&&f>=OF[k+1])k++;go(k)};
+Object.assign(P,{fopen:'<path d="M3 18V6a2 2 0 0 1 2-2h4l2 2h7a2 2 0 0 1 2 2v2"/><path d="M3 18l3-8h16l-3 8z"/>',dl:'<path d="M12 3v12M7 10l5 5 5-5M4 20h16"/>',ul:'<path d="M12 15V3M7 8l5-5 5 5M4 20h16"/>',undo:'<path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',redo:'<path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 0 0 0 12h3"/>',cut:'<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/>',copy:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>',paste:'<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M12 11v6M9 14l3 3 3-3"/>',dup:'<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1M15 12v6M12 15h6"/>',all:'<path d="M4 6h16M4 12h10M4 18h14"/>',alc:'<path d="M4 6h16M7 12h10M5 18h14"/>',alr:'<path d="M4 6h16M10 12h10M6 18h14"/>',as:'<path d="M4 3v18"/><rect x="8" y="5" width="12" height="5" rx="1"/><rect x="8" y="14" width="7" height="5" rx="1"/>',ad:'<path d="M12 3v18"/><rect x="5" y="6" width="14" height="5" rx="1"/><rect x="8" y="14" width="8" height="5" rx="1"/>',ae:'<path d="M20 3v18"/><rect x="4" y="5" width="12" height="5" rx="1"/><rect x="9" y="14" width="7" height="5" rx="1"/>',vd:'<path d="M12 3v18"/><rect x="4" y="6" width="5" height="12" rx="1"/><rect x="15" y="9" width="5" height="6" rx="1"/>',vm:'<path d="M3 12h18"/><rect x="5" y="5" width="5" height="14" rx="1"/><rect x="14" y="8" width="5" height="8" rx="1"/>',todown:'<path d="M12 4v12M7 11l5 5 5-5M5 20h14"/>',toright:'<path d="M4 12h12M11 7l5 5-5 5M20 5v14"/>',layers:'<path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/>',unlock:'<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 7-2.6"/>',grid3:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>',magnet:'<path d="M6 3v8a6 6 0 0 0 12 0V3h-4v8a2 2 0 0 1-4 0V3zM6 7h4M14 7h4"/>',map:'<path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2z"/><path d="M9 4v14M15 6v14"/>',zout:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6"/>',zin:'<circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4M8 11h6M11 8v6"/>',expand:'<path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/>',save:'<path d="M5 3h11l4 4v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>'});
+(function(){var sv=function(n){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'+P[n]+'</svg>'},L=['fopen','dl','ul','|','undo','redo','|','cut','copy','paste','dup','trash:r','|','all','alc','alr','as','ad','ae','vd','vm','|','todown','toright','|','layers','unlock','|','grid3:a','magnet:a','map:a'],h='',i=0;
+L.forEach(function(x){var a=x.split(':');i++;h+=a[0]=='|'?'<s style="--i:'+i+'"></s>':'<b class="'+(a[1]||'')+'" style="--i:'+i+'">'+sv(a[0])+'</b>'});
+h+='<span class="sp"></span><b style="--i:'+(i+1)+'">'+sv('zout')+'</b><em class="zm">90%</em><b style="--i:'+(i+2)+'">'+sv('zin')+'</b><b style="--i:'+(i+3)+'">'+sv('expand')+'</b><div class="sv" style="--i:'+(i+4)+'">'+sv('save')+'Simpan</div>';
+document.getElementById('ftb').innerHTML=h})();
+function rpEnter(i){
+ var m=document.querySelector('.main'),cu=document.getElementById('cur'),b=document.getElementById('dlb'),dm=document.getElementById('dm'),dt=document.getElementById('dlt'),px=document.getElementById('dpdf'),tx=document.getElementById('dtx');
+ cu.style.opacity=0;dm.classList.remove('on');b.classList.remove('press');px.classList.remove('hv');dt.className='dlt';tx.textContent='Menyiapkan laporan…';
+ if(i!=5)return;
+ document.querySelectorAll('.cnt').forEach(function(e){var n=+e.dataset.n,t0=performance.now();e.textContent=0;(function f(t){var p=Math.min(1,(t-t0-300)/1200);e.textContent=Math.round(n*Math.max(0,p));if(p<1)requestAnimationFrame(f)})(t0)});
+ function mv(el,dx,dy){var r=el.getBoundingClientRect(),q=m.getBoundingClientRect();cu.style.left=(r.left-q.left+r.width/2+dx)+'px';cu.style.top=(r.top-q.top+r.height/2+dy)+'px'}
+ function ck(){cu.classList.add('ck');setTimeout(function(){cu.classList.remove('ck')},180)}
+ cu.style.transition='none';cu.style.left='55%';cu.style.top='60%';void cu.offsetWidth;cu.style.transition='';
+ function T(ms,fn){tm.push(setTimeout(fn,ms))}
+ T(2200,function(){cu.style.opacity=1;mv(b,6,8)});
+ T(3300,function(){ck();b.classList.add('press');dm.classList.add('on')});
+ T(3600,function(){b.classList.remove('press')});
+ T(4300,function(){mv(px,30,4)});
+ T(5100,function(){px.classList.add('hv')});
+ T(5700,function(){ck()});
+ T(5900,function(){dm.classList.remove('on');dt.classList.add('on');tx.textContent='Mengambil data task…';cu.style.opacity=0});
+ T(6000,function(){dt.classList.add('go')});
+ T(7100,function(){tx.textContent='Menyusun laporan PDF…'});
+ T(8600,function(){dt.classList.add('done');tx.textContent='Selesai · tersimpan di Downloads ✓'});
+}
+go(0);requestAnimationFrame(tick);
+</script></body></html>

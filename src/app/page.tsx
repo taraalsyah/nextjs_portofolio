@@ -2,6 +2,7 @@
 
 import Navbar from "@/components/layout/Navbar";
 import HeroSection from "@/components/layout/HeroSection";
+import LandingWalkthrough from "@/components/landing/LandingWalkthrough";
 import LandingCapabilities from "@/components/landing/LandingCapabilities";
 import LandingFeatures from "@/components/landing/LandingFeatures";
 import LandingPreview from "@/components/landing/LandingPreview";
@@ -19,6 +20,9 @@ export default function Home() {
 
       {/* 2 & 3. Hero Section & Hero Visual Mockup */}
       <HeroSection />
+
+      {/* Video Animasi Walkthrough Interaktif */}
+      <LandingWalkthrough />
 
       {/* 4. Social Proof & Core Capabilities */}
       <LandingCapabilities />
