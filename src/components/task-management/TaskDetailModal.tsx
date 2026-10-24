@@ -892,8 +892,8 @@ export function TaskDetailModal({
   };
 
   return (
-    <div className={`${styles.modalOverlay} ${styles.taskModalOverlay}`} onClick={handleCloseWithReset}>
-      <div className={`${styles.modalContent} ${styles.taskModalContent}`} onClick={(e) => e.stopPropagation()}>
+    <div className={`${styles.modalOverlay} ${styles.taskModalOverlay} ${styles.detailModalOverlay}`} onClick={handleCloseWithReset}>
+      <div className={`${styles.modalContent} ${styles.taskModalContent} ${styles.detailModalContent}`} onClick={(e) => e.stopPropagation()}>
         <div className={`${styles.modalHeader} ${styles.taskModalHeader}`}>
           <div style={{ flex: 1, minWidth: 0, paddingRight: '0.75rem' }}>
             <span className={styles.taskNumber}>{task ? task.taskNumber : 'Task Detail'}</span>

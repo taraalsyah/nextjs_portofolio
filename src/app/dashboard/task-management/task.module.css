@@ -1647,6 +1647,18 @@
   max-height: calc(100dvh - var(--header-height, 48px) - 2.25rem);
 }
 
+/* Modifiers for Task Detail Modal: widened to 860px and centered symmetrically in content area relative to sidebar */
+@media (min-width: 769px) {
+  .detailModalOverlay {
+    padding-left: calc(var(--sidebar-width, 220px) + 1.25rem);
+    padding-right: 1.25rem;
+  }
+
+  .detailModalContent {
+    max-width: 860px;
+  }
+}
+
 .taskModalHeader {
   padding: 0.75rem 1.25rem;
 }
