@@ -28,7 +28,7 @@ const LandingFooter = () => {
             <h3 className={styles.footerColTitle}>Product</h3>
             <ul className={styles.footerLinks}>
               <li><Link href="/#features">Features</Link></li>
-              <li><Link href="/#projects">Projects</Link></li>
+              <li><Link href="/#preview">Solutions</Link></li>
               <li><Link href="/#workflow">Workflow</Link></li>
               <li><Link href="/#pricing">Pricing</Link></li>
             </ul>
