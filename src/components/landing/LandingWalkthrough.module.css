@@ -1,83 +1,185 @@
 .walkthroughSection {
   position: relative;
-  padding: 4rem 0 4.5rem;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  padding: 0 0 clamp(8px, 2vh, 20px);
+  box-sizing: border-box;
+  scroll-snap-align: start;
+  scroll-margin-top: 68px;
   background: radial-gradient(circle at 50% 0%, rgba(37, 99, 235, 0.05) 0%, transparent 60%),
               var(--background);
   border-bottom: 1px solid var(--border);
-  overflow: hidden;
 }
 
-.sectionHeader {
-  text-align: center;
-  max-width: 760px;
-  margin: 0 auto 2.5rem;
-}
-
-.badge {
-  display: inline-flex;
+.walkthroughContainer {
+  width: 100%;
+  padding-top: 0;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.4rem 1rem;
+  justify-content: flex-start;
+}
+
+.walkthroughSection .walkthroughContainer {
+  padding-top: 0;
+  margin-top: 0;
+}
+
+.walkthroughContainer > :first-child {
+  margin-top: 0;
+}
+
+.walkthroughIntro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: clamp(4px, 0.8vh, 8px);
+  margin: 0 auto clamp(0.75rem, 1.8vh, 1.25rem);
+  max-width: min(100%, 680px);
+  padding-top: clamp(12px, 2vh, 24px);
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
   border-radius: 100px;
   background: var(--primary-soft);
   border: 1px solid var(--primary-border);
   color: var(--primary);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 1rem;
+  letter-spacing: 0.06em;
 }
 
-.title {
-  font-size: clamp(1.8rem, 3.2vw, 2.5rem);
-  font-weight: 800;
-  color: var(--foreground);
-  letter-spacing: -0.02em;
-  line-height: 1.25;
-  margin-bottom: 1rem;
-}
-
-.subtitle {
-  font-size: 1.05rem;
+.introTitle {
+  font-family: var(--font-heading);
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--secondary-text);
-  line-height: 1.6;
+  line-height: 1.5;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+  margin: 0;
+  white-space: normal;
+}
+
+.introSubtitle {
+  font-size: clamp(0.82rem, 1.05vw, 0.9rem);
+  color: var(--secondary-text);
+  line-height: 1.45;
+  margin: 0;
 }
 
 .frameContainer {
+  --frame-w: 1128;
+  --frame-h: 678;
+  --wt-reserved: clamp(110px, 15vh, 140px);
   position: relative;
-  width: 100%;
-  max-width: 1140px;
-  margin: 0 auto;
-  border-radius: 16px;
+  aspect-ratio: 1128 / 678;
+  aspect-ratio: var(--frame-w) / var(--frame-h);
+  width: min(100%, calc((100vh - var(--wt-reserved)) * var(--frame-w) / var(--frame-h)));
+  width: min(100%, calc((100dvh - var(--wt-reserved)) * var(--frame-w) / var(--frame-h)));
+  max-width: calc(var(--frame-w) * 1px);
+  margin-inline: auto;
+  border-radius: var(--radius-md, 12px);
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 16px 40px -10px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(0, 0, 0, 0.05);
   overflow: hidden;
 }
 
 .iframe {
-  width: 100%;
-  height: 710px;
-  border: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: calc(var(--frame-w) * 1px);
+  height: calc(var(--frame-h) * 1px);
+  border: 0;
   display: block;
   background: transparent;
+  transform-origin: top left;
+  transform: scale(var(--scale, 0.5));
 }
 
-@media (max-width: 768px) {
-  .walkthroughSection {
-    padding: 2.5rem 0 3rem;
+@media (max-height: 720px) {
+  .eyebrow,
+  .introSubtitle {
+    display: none;
   }
 
-  .sectionHeader {
-    margin-bottom: 1.75rem;
+  .walkthroughIntro {
+    margin-bottom: clamp(4px, 1vh, 8px);
+    padding-top: clamp(6px, 1.2vh, 12px);
+  }
+
+  .introTitle {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+    margin-bottom: 0;
   }
 
   .frameContainer {
-    border-radius: 12px;
+    --wt-reserved: clamp(55px, 9vh, 75px);
+  }
+}
+
+@media (max-width: 992px) {
+  .walkthroughSection {
+    min-height: auto;
+    padding: 0 0 clamp(1.5rem, 3vh, 2.5rem);
   }
 
-  .iframe {
-    height: 640px;
+  .walkthroughIntro {
+    max-width: 100%;
+    padding-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .introTitle {
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+  }
+
+  .introSubtitle {
+    font-size: clamp(0.82rem, 1.5vw, 0.95rem);
+  }
+
+  .frameContainer {
+    width: 100%;
+    border-radius: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .walkthroughSection {
+    min-height: auto;
+    padding: 0 0 clamp(1rem, 2.5vh, 2rem);
+  }
+
+  .walkthroughIntro {
+    padding-top: 0.75rem;
+    margin-bottom: 0.75rem;
+    gap: 4px;
+  }
+
+  .introTitle {
+    font-size: 0.78rem;
+    letter-spacing: 0.06em;
+  }
+
+  .introSubtitle {
+    font-size: 0.82rem;
+  }
+
+  .frameContainer {
+    width: 100%;
+    border-radius: 10px;
   }
 }

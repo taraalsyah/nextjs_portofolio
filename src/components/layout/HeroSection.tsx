@@ -18,7 +18,7 @@ import styles from './HeroSection.module.css';
 const HeroSection = () => {
   return (
     <section className={styles.hero}>
-      <div className="section-container">
+      <div className={`section-container ${styles.heroContainer}`}>
         <div className={styles.heroGrid}>
           {/* Left Column: SaaS Value Proposition */}
           <div className={styles.content}>

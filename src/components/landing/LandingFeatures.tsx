@@ -55,7 +55,7 @@ const FEATURES = [
 const LandingFeatures = () => {
   return (
     <section id="features" className={styles.featuresSection}>
-      <div className="section-container">
+      <div className={`section-container ${styles.featuresContainer}`}>
         <div className={styles.sectionHeader}>
           <div className={styles.pillBadge}>POWERFUL CAPABILITIES</div>
           <h2 className={styles.sectionTitle}>
@@ -79,14 +79,14 @@ const LandingFeatures = () => {
                 className={styles.featureCard}
               >
                 <div className={styles.featureIconWrapper}>
-                  <Icon size={24} />
+                  <Icon size={18} />
                 </div>
                 <h3 className={styles.featureTitle}>{feat.title}</h3>
                 <p className={styles.featureDesc}>{feat.desc}</p>
                 <ul className={styles.featureBullets}>
                   {feat.bullets.map((b, i) => (
                     <li key={i} className={styles.featureBullet}>
-                      <Check size={15} className={styles.bulletCheck} />
+                      <Check size={13} className={styles.bulletCheck} />
                       <span>{b}</span>
                     </li>
                   ))}
